@@ -43,17 +43,17 @@ A community pool on Soroban:
 
 The first working slice: a Stellar testnet dApp where a member connects their wallet and sends a contribution.
 
-- Connect and disconnect a Freighter wallet (with network check)
+- Connect and disconnect any major Stellar wallet (Freighter, xBull, Albedo, Lobstr, Hana, and more) via a wallet-selection modal
 - Fetch and display the connected wallet's XLM balance
 - Fund an unactivated account via Friendbot with one click
 - Send an XLM payment on testnet with clear feedback: pending, success with transaction hash (linked to Stellar Expert), or failure state
 
-**Tech stack:** React + Vite · `@stellar/freighter-api` (wallet) · `@stellar/stellar-sdk` (Horizon testnet)
+**Tech stack:** React + Vite · Stellar Wallets Kit (multi-wallet) · `@stellar/stellar-sdk` (Horizon testnet)
 
 ## Setup (run locally)
 
-1. Install [Node.js 18+](https://nodejs.org) and the [Freighter](https://www.freighter.app/) browser extension
-2. In Freighter, switch the network to **Testnet**
+1. Install [Node.js 18+](https://nodejs.org) and a Stellar wallet (e.g. [Freighter](https://www.freighter.app/), xBull, or Albedo)
+2. Set your wallet's network to **Testnet**
 3. Clone and run:
 
 ```bash

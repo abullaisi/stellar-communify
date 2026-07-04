@@ -1,9 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  requestAccess,
-  getNetwork,
-  signTransaction,
-} from "@stellar/freighter-api";
+import { connectWallet, signWithWallet } from "./wallet";
 import {
   fetchBalance,
   fundWithFriendbot,
@@ -16,7 +12,6 @@ import {
 
 export default function App() {
   const [address, setAddress] = useState(null);
-  const [network, setNetwork] = useState(null);
   const [balance, setBalance] = useState(null);
   const [busy, setBusy] = useState(false);
   const [connectError, setConnectError] = useState("");
@@ -40,23 +35,18 @@ export default function App() {
   async function connect() {
     setConnectError("");
     try {
-      const access = await requestAccess();
-      if (access.error) throw new Error(access.error);
-      setAddress(access.address);
-      const net = await getNetwork();
-      if (!net.error) setNetwork(net.network);
-      await refreshBalance(access.address);
+      const addr = await connectWallet();
+      setAddress(addr);
+      await refreshBalance(addr);
     } catch (err) {
       setConnectError(
-        err.message ||
-          "Could not connect to Freighter. Is the extension installed?"
+        err.message || "Could not connect a wallet. Is one installed?"
       );
     }
   }
 
   function disconnect() {
     setAddress(null);
-    setNetwork(null);
     setBalance(null);
     setConnectError("");
     setTx({ status: "idle", hash: "", error: "" });
@@ -80,13 +70,9 @@ export default function App() {
     setTx({ status: "signing", hash: "", error: "" });
     try {
       const xdr = await buildPaymentXdr(address, destination.trim(), amount);
-      const signed = await signTransaction(xdr, {
-        networkPassphrase: TESTNET_PASSPHRASE,
-        address,
-      });
-      if (signed.error) throw new Error(signed.error);
+      const signedXdr = await signWithWallet(xdr, address, TESTNET_PASSPHRASE);
       setTx({ status: "submitting", hash: "", error: "" });
-      const result = await submitSignedXdr(signed.signedTxXdr ?? signed);
+      const result = await submitSignedXdr(signedXdr);
       setTx({ status: "success", hash: result.hash, error: "" });
       setDestination("");
       setAmount("");
@@ -117,9 +103,10 @@ export default function App() {
         <section className="card center">
           <h2>Connect your wallet</h2>
           <p className="hint">
-            Uses the Freighter browser extension, set to Testnet.
+            Works with Freighter, xBull, Albedo, Lobstr, Hana, and more. Set
+            your wallet to Testnet.
           </p>
-          <button onClick={connect}>Connect Freighter</button>
+          <button onClick={connect}>Connect Wallet</button>
           {connectError && <p className="error">{connectError}</p>}
         </section>
       ) : (
@@ -129,13 +116,7 @@ export default function App() {
               <span className="label">Connected wallet</span>
               <div className="row tight">
                 <code title={address}>{shortAddress(address)}</code>
-                {network && (
-                  <span
-                    className={`pill ${network === "TESTNET" ? "ok" : "warn"}`}
-                  >
-                    {network}
-                  </span>
-                )}
+                <span className="pill ok">TESTNET</span>
               </div>
             </div>
             <button className="ghost" onClick={disconnect}>
@@ -143,12 +124,6 @@ export default function App() {
             </button>
           </section>
 
-          {network && network !== "TESTNET" && (
-            <p className="error">
-              Freighter is on {network}. Switch to Testnet in the extension,
-              then reconnect.
-            </p>
-          )}
           {connectError && <p className="error">{connectError}</p>}
 
           <section className="card">
