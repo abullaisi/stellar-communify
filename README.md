@@ -13,7 +13,7 @@ Indonesia runs on community finance. Koperasi, patungan, kas komunitas: millions
 ## Why Stellar
 
 - **Asset issuance and a DEX are built into the protocol.** A community pool token doesn't need custom infrastructure.
-- **Transactions cost near zero and settle in seconds**, so small contributions (the arisan scale) stay economical.
+- **Transactions cost near zero and settle in seconds**, so small everyday contributions stay economical.
 - **Anchors bridge rupiah to the network**, so members can think in IDR, not crypto.
 - **A growing RWA ecosystem on Stellar** (tokenized funds, lending markets) gives pooled funds somewhere productive to go, through composition instead of reinvention.
 
