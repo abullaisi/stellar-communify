@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main, design-dapp]
+  pull_request:
+
+jobs:
+  contract:
+    name: Contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts
+      - name: Run Soroban contract tests
+        run: cargo test -p komunify --locked
+        working-directory: contracts
+
+  dapp:
+    name: Dapp build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: packages/dapp/package-lock.json
+      - run: npm ci
+        working-directory: packages/dapp
+      - run: npm run build
+        working-directory: packages/dapp
+      # frontend tests plug in here once they land:
+      # - run: npm test
+      #   working-directory: packages/dapp
+
+  deploy:
+    name: Deploy to Cloudflare Pages
+    needs: [contract, dapp]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: packages/dapp/package-lock.json
+      - run: npm ci
+        working-directory: packages/dapp
+      - run: npm run build
+        working-directory: packages/dapp
+      - name: Publish to Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy packages/dapp/dist --project-name=komunify --branch=main
