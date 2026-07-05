@@ -1,4 +1,26 @@
+# Dependencies
 node_modules
-dist
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Build output
+.next/
+out/
+*.tsbuildinfo
+
+# Next.js generated
+next-env.d.ts
+
+# Generated / scratch contract bindings
+.tmp-bindings/
+
+# Local deploy artifact (contract id — share via .env instead)
+.contract-id
+
+# macOS
 .DS_Store
+dist
 *.local

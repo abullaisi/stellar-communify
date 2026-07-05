@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { connectWallet, signWithWallet } from "./wallet";
 import {
   fetchBalance,
@@ -9,6 +9,12 @@ import {
   shortAddress,
   TESTNET_PASSPHRASE,
 } from "./stellar";
+import {
+  subscribe,
+  getStats,
+  classifyError,
+  explorerContractUrl,
+} from "./komunify";
 
 export default function App() {
   const [address, setAddress] = useState(null);
@@ -18,6 +24,21 @@ export default function App() {
   const [destination, setDestination] = useState("");
   const [amount, setAmount] = useState("");
   const [tx, setTx] = useState({ status: "idle", hash: "", error: "" });
+  const [subAmount, setSubAmount] = useState("10");
+  const [sub, setSub] = useState({ status: "idle", hash: "", error: "" });
+  const [stats, setStats] = useState(null);
+
+  const loadStats = useCallback(async () => {
+    try {
+      setStats(await getStats());
+    } catch {
+      // stats are progressive enhancement; keep the app usable if RPC hiccups
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   const refreshBalance = useCallback(
     async (addr) => {
@@ -87,15 +108,28 @@ export default function App() {
     }
   }
 
+  async function paySubscription(e) {
+    e.preventDefault();
+    setSub({ status: "signing", hash: "", error: "" });
+    try {
+      const hash = await subscribe(address, subAmount);
+      setSub({ status: "success", hash, error: "" });
+      await Promise.all([refreshBalance(), loadStats()]);
+    } catch (err) {
+      setSub({ status: "error", hash: "", error: classifyError(err) });
+    }
+  }
+
   const sending = tx.status === "signing" || tx.status === "submitting";
+  const subscribing = sub.status === "signing" || sub.status === "submitting";
 
   return (
     <main className="shell">
       <header>
-        <div className="logo">Communify</div>
+        <div className="logo">Komunify</div>
         <p className="tagline">
-          Community pool payments on Stellar testnet. Pool together, decide
-          together, grow together.
+          One payment. Every community. Subscriptions with on-chain revenue
+          split, live on Stellar testnet.
         </p>
       </header>
 
@@ -150,6 +184,49 @@ export default function App() {
           </section>
 
           <section className="card">
+            <h2>Komunify Pass</h2>
+            <p className="hint">
+              One subscription payment, split on-chain: 70% project owner, 20%
+              community manager, 10% platform. Minimum 1 XLM.
+            </p>
+            <form onSubmit={paySubscription}>
+              <label>
+                Amount (XLM)
+                <input
+                  value={subAmount}
+                  onChange={(e) => setSubAmount(e.target.value)}
+                  type="number"
+                  min="1"
+                  step="any"
+                  required
+                />
+              </label>
+              <button disabled={subscribing}>
+                {sub.status === "signing"
+                  ? "Waiting for signature…"
+                  : sub.status === "submitting"
+                    ? "Submitting…"
+                    : "Subscribe"}
+              </button>
+            </form>
+            {sub.status === "success" && (
+              <p className="success">
+                Subscribed ✓ Payment split on-chain. Transaction:{" "}
+                <a
+                  href={explorerTxUrl(sub.hash)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <code>{sub.hash.slice(0, 10)}…</code>
+                </a>
+              </p>
+            )}
+            {sub.status === "error" && (
+              <p className="error">{sub.error}</p>
+            )}
+          </section>
+
+          <section className="card">
             <h2>Send a contribution</h2>
             <form onSubmit={send}>
               <label>
@@ -200,9 +277,36 @@ export default function App() {
         </>
       )}
 
+      <section className="card">
+        <span className="label">Live on-chain stats</span>
+        {stats ? (
+          <div className="row">
+            <div>
+              <span className="label">Subscribers</span>
+              <div className="balance">{stats.count}</div>
+            </div>
+            <div>
+              <span className="label">Total volume</span>
+              <div className="balance">
+                {stats.volumeXlm.toLocaleString()} XLM
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="hint">Loading from testnet…</p>
+        )}
+        <p className="hint">
+          Read straight from the{" "}
+          <a href={explorerContractUrl()} target="_blank" rel="noreferrer">
+            Komunify contract
+          </a>{" "}
+          on Stellar testnet.
+        </p>
+      </section>
+
       <footer>
         Built at Build on Stellar Bootcamp Bandung · APAC Stellar Hackathon
-        2026 · <a href="https://github.com/abullaisi/stellar-communify">GitHub</a>
+        2026 · <a href="https://github.com/abullaisi/stellar-hackathon">GitHub</a>
       </footer>
     </main>
   );

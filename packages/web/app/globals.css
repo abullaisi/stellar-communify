@@ -1,0 +1,312 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------------------------------------------------- */
+/*  Komunify design system — SPLIT v4 (see DESIGN.md, canonical source)        */
+/*  Dark, calm, financial trust. One accent (gold) does all the work.          */
+/*  All theme values live here as custom properties; never hardcode a hex.     */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: dark;
+
+  /* Backgrounds */
+  --color-bg-primary: #0b0b0a;
+  --color-bg-elevated: #131311;
+  --color-bg-input: #0d0d0b;
+  --color-bg-accent-tint: rgba(229, 168, 74, 0.12);
+  --color-bg-success-tint: rgba(62, 207, 142, 0.14);
+  --color-bg-warning-tint: rgba(255, 138, 92, 0.14);
+
+  /* Content */
+  --color-content-primary: #ecd9c1;
+  --color-content-secondary: #928e85;
+  --color-content-accent: #e5a84a;
+  --color-content-on-accent: #201607;
+  --color-content-success: #3ecf8e;
+  --color-content-warning: #ff8a5c;
+  --color-content-danger: #ff6b6b;
+
+  /* Border */
+  --color-border-medium: #262521;
+  --color-border-accent: #e5a84a;
+
+  /* Spacing scale (4 / 8 / 12 / 16 / 20 / 32 / 48) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Radius scale: chip < control < surface < pill */
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  shadcn/ui compatibility layer — maps shadcn's token contract onto the      */
+/*  SPLIT v4 palette above. Values are HSL triplets sampled from the --color-* */
+/*  tokens; --color-* stays canonical, keep these in sync on a re-theme.       */
+/* -------------------------------------------------------------------------- */
+:root {
+  --background: 60 5% 4%; /* color-bg-primary   #0b0b0a */
+  --foreground: 33 53% 84%; /* color-content-primary #ecd9c1 */
+  --card: 60 6% 7%; /* color-bg-elevated  #131311 */
+  --card-foreground: 33 53% 84%;
+  --popover: 60 6% 7%;
+  --popover-foreground: 33 53% 84%;
+  --primary: 36 75% 59%; /* color-content-accent    #e5a84a */
+  --primary-foreground: 36 64% 8%; /* color-content-on-accent #201607 */
+  --secondary: 48 7% 14%; /* color-border-medium #262521 */
+  --secondary-foreground: 33 53% 84%;
+  --muted: 60 6% 7%;
+  --muted-foreground: 42 6% 55%; /* color-content-secondary #928e85 */
+  --accent: 48 7% 14%; /* subtle hover surface */
+  --accent-foreground: 33 53% 84%;
+  --destructive: 0 100% 71%; /* color-content-danger #ff6b6b */
+  --destructive-foreground: 60 5% 4%;
+  --border: 48 7% 14%; /* color-border-medium */
+  --input: 48 7% 14%; /* input border */
+  --ring: 36 75% 59%; /* accent focus */
+  --radius: 0.6875rem; /* rounded-md → 9px, matches --radius-md */
+}
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-content-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Layout root — single centered column, one per page */
+.shell {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+.logo {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.logo::first-letter {
+  color: var(--color-content-accent);
+}
+.tagline {
+  font-size: 14px;
+  color: var(--color-content-secondary);
+  margin: 6px 0 0;
+}
+
+/* Surface */
+.card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+.card.center {
+  text-align: center;
+  padding: 36px var(--space-5);
+}
+.card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+/* Horizontal layout */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+.row.tight {
+  justify-content: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+/* Micro label — mono uppercase signature */
+.label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-content-secondary);
+}
+
+/* Display number */
+.balance {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 10px;
+}
+
+/* Status pill */
+.pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  padding: 3px 9px;
+}
+.pill.ok {
+  background: var(--color-bg-success-tint);
+  color: var(--color-content-success);
+}
+.pill.warn {
+  background: var(--color-bg-warning-tint);
+  color: var(--color-content-warning);
+}
+.pill.accent {
+  background: var(--color-bg-accent-tint);
+  color: var(--color-content-accent);
+}
+
+/* Buttons */
+button {
+  background: var(--color-content-accent);
+  color: var(--color-content-on-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 150ms ease-out;
+}
+button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+button.ghost {
+  background: transparent;
+  color: var(--color-content-primary);
+  border: 1px solid var(--color-border-medium);
+  font-weight: 600;
+}
+
+/* Form fields */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--color-content-secondary);
+}
+input,
+textarea {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  color: var(--color-content-primary);
+  font-size: 14px;
+  font-family: inherit;
+}
+textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.5;
+}
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-border-accent);
+}
+
+/* Code chip */
+code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+}
+
+/* Feedback text */
+.hint {
+  font-size: 13px;
+  color: var(--color-content-secondary);
+  margin: var(--space-2) 0 var(--space-3);
+}
+.error {
+  font-size: 13px;
+  color: var(--color-content-danger);
+  margin: 10px 0 0;
+}
+.success {
+  font-size: 13px;
+  color: var(--color-content-success);
+  margin: var(--space-3) 0 0;
+}
+
+/* Transaction detail (technical panel) */
+.tx {
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--color-border-medium);
+  padding-top: var(--space-3);
+}
+.tx-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px var(--space-3);
+  align-items: center;
+  margin: var(--space-2) 0 0;
+}
+.tx-grid dt {
+  margin: 0;
+}
+.tx-grid dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.tx a {
+  color: var(--color-content-accent);
+  text-decoration: none;
+}
+.tx-link {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-size: 13px;
+}
+
+/* Footer */
+footer {
+  font-size: 12px;
+  color: var(--color-content-secondary);
+  text-align: center;
+  margin-top: var(--space-3);
+}
+footer a {
+  color: inherit;
+}

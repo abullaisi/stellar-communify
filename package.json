@@ -1,21 +1,22 @@
 {
-  "name": "stellar-hackathon",
-  "private": true,
+  "name": "komunify",
   "version": "0.1.0",
-  "type": "module",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@creit-tech/stellar-wallets-kit": "npm:@jsr/creit-tech__stellar-wallets-kit@^2.5.0",
-    "@stellar/stellar-sdk": "^13.1.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "dev": "bun --parallel -r dev",
+    "build": "bun --parallel -r build",
+    "typecheck": "bun --parallel -r typecheck",
+    "lint": "bun --parallel -r lint",
+    "format": "bun --parallel -r format",
+    "contract:test": "cd contracts && cargo test",
+    "contract:build": "cd contracts && stellar contract build",
+    "contract:bindings": "rm -rf tmp-bindings && stellar contract bindings typescript --wasm contracts/target/wasm32v1-none/release/notes.wasm --output-dir tmp-bindings --overwrite && cp tmp-bindings/src/index.ts packages/contract-client/src/index.ts && rm -rf tmp-bindings && cd packages/contract-client && bun run build"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.0"
+    "typescript": "^5.7.2",
+    "prettier": "^3.4.2"
   }
 }
