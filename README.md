@@ -3,6 +3,8 @@
 **One subscription. Every community.** Komunify is a consumer payments dApp on Stellar: members pay one subscription to unlock benefits across partner communities, a Soroban contract auto-splits the revenue between platform, project owner, and community manager, and an on-chain dashboard proves the traction.
 
 > Status: building. Started at Build on Stellar Bootcamp Bandung (July 4-5, 2026) as "Communify", a community-pool concept; refined into Komunify (PRD v2.0) for the APAC Stellar Hackathon.
+>
+> **Live demo:** https://komunify.pages.dev (Stellar testnet; bring a Freighter/xBull/Albedo wallet set to Testnet)
 
 **Track:** Payment Consumer Applications
 
