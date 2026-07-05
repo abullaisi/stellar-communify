@@ -105,6 +105,8 @@ The Day 1 bootcamp contribution-ledger contract this evolved from lives in the g
 
 | State | Screenshot |
 |---|---|
+| App overview, wallet connected (desktop) | ![Desktop app overview](screenshots/desktop-app.png) |
+| Wallet options (Stellar Wallets Kit) + Freighter connection prompt on Testnet | ![Wallet options](screenshots/wallet-options.png) |
 | Wallet connected | ![Wallet connected](screenshots/wallet-connected.png) |
 | Balance displayed | ![Balance displayed](screenshots/balance.png) |
 | Successful testnet transaction | ![Transaction success](screenshots/tx-success.png) |
