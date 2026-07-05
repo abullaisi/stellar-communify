@@ -15,14 +15,14 @@
   --color-bg-primary: #0b0b0a;
   --color-bg-elevated: #131311;
   --color-bg-input: #0d0d0b;
-  --color-bg-accent-tint: rgba(229, 168, 74, 0.12);
+  --color-bg-accent-tint: rgba(250, 214, 87, 0.12);
   --color-bg-success-tint: rgba(62, 207, 142, 0.14);
   --color-bg-warning-tint: rgba(255, 138, 92, 0.14);
 
   /* Content */
   --color-content-primary: #ecd9c1;
   --color-content-secondary: #928e85;
-  --color-content-accent: #e5a84a;
+  --color-content-accent: #fad657;
   --color-content-on-accent: #201607;
   --color-content-success: #3ecf8e;
   --color-content-warning: #ff8a5c;
@@ -30,7 +30,7 @@
 
   /* Border */
   --color-border-medium: #262521;
-  --color-border-accent: #e5a84a;
+  --color-border-accent: #fad657;
 
   /* Spacing scale (4 / 8 / 12 / 16 / 20 / 32 / 48) */
   --space-1: 4px;
@@ -62,7 +62,7 @@
   --card-foreground: 33 53% 84%;
   --popover: 60 6% 7%;
   --popover-foreground: 33 53% 84%;
-  --primary: 36 75% 59%; /* color-content-accent    #e5a84a */
+  --primary: 36 75% 59%; /* color-content-accent    #fad657 */
   --primary-foreground: 36 64% 8%; /* color-content-on-accent #201607 */
   --secondary: 48 7% 14%; /* color-border-medium #262521 */
   --secondary-foreground: 33 53% 84%;

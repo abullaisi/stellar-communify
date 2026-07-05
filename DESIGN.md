@@ -87,10 +87,18 @@ If the team explicitly says "copy the modal from Stellar Wallets Kit" or "use pa
 > ## THEME: SPLIT v4, ADOPTED 2026-07-05
 >
 > The working theme is **SPLIT v4**, implemented from the combined brand board (gpt-1 minimal mark composed into the gpt-2 board via i2i on Flora). All color values in Section 2 are SAMPLED from that board render, not estimated. STEMPEL and RASI are archived alternates in Section 2.
+>
+> **Accent revision (2026-07-05, later the same day):** the action accent is brightened from the board-sampled amber `#e5a84a` to vivid yellow `#fad657`, per Imam's direction. Reference: animations.dev, whose live `--brand` CSS token is exactly `#fad657` (verified from the site's shipped stylesheet, not estimated). Section 2 carries the brightened values; every other sampled color is unchanged. The board render below stays the reference for composition, mark geometry, and atmosphere: its amber reads as the mark's material color on the board, while the UI accent is the brighter yellow.
+>
+> **Finalized brand board (Flora v4 combine, node output `99306dfc`):**
+>
+> ![Komunify SPLIT v4 combined brand board](brand/komunify-split-v4-board.png)
+>
+> Asset locations: repo `brand/komunify-split-v4-board.png` (served copy at `packages/dapp/public/brand/`), local mirror `~/Documents/komunify-docs/brand/`, source canvas `prj_ns715xkhbjdb11sgxy4nfs5qg589zb6z` ([media URL](https://media.flora.ai/node-inputs/2026/7/5/anonymous/99306dfc-c2a2-4710-a9a7-8d2d0f46d1b8.png)).
 > **The entire theme layer stays isolated in CSS custom properties.** Any future re-theme remains a variable swap in `:root`, not a refactor. Do not hardcode any hex value in a component; raw colors outside the token block are theme debt.
-> Board-derived motifs sanctioned for use: (1) numbered section labels with a gold number and mono uppercase text ("01 LOGO" pattern), (2) the two-tone headline (line one cream, line two gold, per "One payment. / Every community."), (3) the gold flow-glow (`rgba(229,168,74,0.35)`) reserved EXCLUSIVELY for the split-flow visual, never for buttons or decoration.
+> Board-derived motifs sanctioned for use: (1) numbered section labels with a gold number and mono uppercase text ("01 LOGO" pattern), (2) the two-tone headline (line one cream, line two gold, per "One payment. / Every community."), (3) the gold flow-glow (`rgba(250,214,87,0.35)`) reserved EXCLUSIVELY for the split-flow visual, never for buttons or decoration.
 
-Komunify handles other people's subscription money. The register is dark, calm, financial trust. A warm true-black canvas (board-sampled, deliberately not blue-tinted), elevated card surfaces one step lighter, quiet borders, and exactly one accent (gold `#e5a84a`) doing all the work: the primary action, the logo mark's first letter, the input focus ring. Success, warning, and danger colors appear only as status feedback, never as decoration.
+Komunify handles other people's subscription money. The register is dark, calm, financial trust. A warm true-black canvas (board-sampled, deliberately not blue-tinted), elevated card surfaces one step lighter, quiet borders, and exactly one accent (bright yellow-gold `#fad657`) doing all the work: the primary action, the logo mark's first letter, the input focus ring. Success, warning, and danger colors appear only as status feedback, never as decoration.
 
 The app is a single centered 520px column (`.shell`) of stacked cards. Density is moderate: 20px card padding, 16px gaps, generous line-height. Hierarchy comes from type weight and the mono UPPERCASE label signature, not from extra colors or heavy shadows. Numbers (balances, amounts) always render tabular so digits align.
 
@@ -128,7 +136,7 @@ All tokens live in `:root` in `src/App.css`. The semantic names below are the ca
 | `--color-bg-primary` | `#0b0b0a` | same | Page background (`body`) |
 | `--color-bg-elevated` | `#131311` | same | Card surfaces (`.card`) |
 | `--color-bg-input` | `#0d0d0b` | same (promoted 2026-07-05) | Input fields and code chips. Promote to a named var when next touched. |
-| `--color-bg-accent-tint` | `rgba(229,168,74,0.12)` | same (added 2026-07-05) | Accent-tinted fills (planned unlocked badge, accent pill variant) |
+| `--color-bg-accent-tint` | `rgba(250,214,87,0.12)` | same (added 2026-07-05) | Accent-tinted fills (planned unlocked badge, accent pill variant) |
 | `--color-bg-success-tint` | `rgba(62,207,142,0.14)` | same (promoted 2026-07-05) | Success pill background |
 | `--color-bg-warning-tint` | `rgba(255,138,92,0.14)` | same (promoted 2026-07-05) | Warning pill background |
 
@@ -138,7 +146,7 @@ All tokens live in `:root` in `src/App.css`. The semantic names below are the ca
 |-------|-------|-------------|------|
 | `--color-content-primary` | `#ecd9c1` | same | Body text, headings, ghost button labels |
 | `--color-content-secondary` | `#928e85` | same | Labels, hints, tagline, footer, form label text |
-| `--color-content-accent` | `#e5a84a` | same | Primary button fill, logo first letter, focus border |
+| `--color-content-accent` | `#fad657` | same | Primary button fill, logo first letter, focus border |
 | `--color-content-on-accent` | `#201607` | same | Text on accent surfaces (primary button label) |
 | `--color-content-success` | `#3ecf8e` | same | Success text, success pill label |
 | `--color-content-warning` | `#ff8a5c` | same | Warning text, warning pill label |
@@ -149,11 +157,11 @@ All tokens live in `:root` in `src/App.css`. The semantic names below are the ca
 | Token | Value | App.css var | Role |
 |-------|-------|-------------|------|
 | `--color-border-medium` | `#262521` | same | Card borders, input borders, ghost button borders, code chip borders |
-| `--color-border-accent` | `#e5a84a` | same (promoted 2026-07-05) | Focus state border |
+| `--color-border-accent` | `#fad657` | same (promoted 2026-07-05) | Focus state border |
 
 ### Palette status (updated 2026-07-05)
 
-**SPLIT is the adopted working theme** as of 2026-07-05, implemented from the v4 combined brand board (gpt-1 minimal mark composed into the gpt-2 board via i2i on Flora; hex values SAMPLED from the board render, not estimated). Key sampled anchors: panel dark #0f1110 on #010101 gutters, action gold #e5a84a, mark gold #e8b463, headline cream #e5d1b9, wordmark cream #f1dfca, muted #928e85. Functional colors (success/warning/danger) are unchanged pending a warm-tone pass. STEMPEL and RASI below are archived alternates, kept for reference and possible sub-brand use.
+**SPLIT is the adopted working theme** as of 2026-07-05, implemented from the v4 combined brand board (gpt-1 minimal mark composed into the gpt-2 board via i2i on Flora; hex values SAMPLED from the board render, not estimated). Key sampled anchors: panel dark #0f1110 on #010101 gutters, action gold #e5a84a, mark gold #e8b463, headline cream #e5d1b9, wordmark cream #f1dfca, muted #928e85. **Accent superseded same day:** the in-app action accent is now `#fad657` (brightening pass, see the Section 1 banner); `#e5a84a` stays in this sentence only as the sampling record of what the board render shows. Functional colors (success/warning/danger) are unchanged pending a warm-tone pass. STEMPEL and RASI below are archived alternates, kept for reference and possible sub-brand use.
 
 ### Candidate palettes (SPLIT adopted; alternates archived)
 
@@ -165,7 +173,7 @@ Documented for the vote. `split` is the live default. Each renders as a `data-th
 | `--color-bg-elevated` | `#131311` | `#FDFBF7` | `#171432` |
 | `--color-content-primary` | `#ecd9c1` | `#1F2A24` | `#EEEBFF` |
 | `--color-content-secondary` | `#928e85` | `#5C685F` | `#8E88B0` |
-| `--color-content-accent` | `#e5a84a` | `#1F4D3A` (forest green) | `#A78BFA` (lilac) |
+| `--color-content-accent` | `#fad657` | `#1F4D3A` (forest green) | `#A78BFA` (lilac) |
 | `--color-content-on-accent` | `#201607` | `#F4EFE6` | `#14102A` |
 | Detail | gold IS the accent | gold detail `#B08D3E` | none |
 

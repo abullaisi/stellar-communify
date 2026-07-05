@@ -18,14 +18,14 @@
   --color-bg-primary: #0b0b0a;
   --color-bg-elevated: #131311;
   --color-bg-input: #0d0d0b;
-  --color-bg-accent-tint: rgba(229, 168, 74, 0.12);
+  --color-bg-accent-tint: rgba(250, 214, 87, 0.12);
   --color-bg-success-tint: rgba(62, 207, 142, 0.14);
   --color-bg-warning-tint: rgba(255, 138, 92, 0.14);
 
   /* CONTENT */
   --color-content-primary: #ecd9c1;
   --color-content-secondary: #928e85;
-  --color-content-accent: #e5a84a;
+  --color-content-accent: #fad657;
   --color-content-on-accent: #201607;
   --color-content-success: #3ecf8e;
   --color-content-warning: #ff8a5c;
@@ -33,7 +33,7 @@
 
   /* BORDER */
   --color-border-medium: #262521;
-  --color-border-accent: #e5a84a;
+  --color-border-accent: #fad657;
 
   /* RADIUS (Agentic DEFAULT-mode shape) */
   --radius-sm: 6px;
@@ -1000,15 +1000,23 @@ input:focus { outline: none; border-color: var(--color-border-accent); }
       <h1>Komunify Design System <span class="badge-v0">v0</span></h1>
       <nav class="masthead-links">
         <a href="/">App</a>
-        <a href="https://github.com/abullaisi/stellar-communify/blob/main/DESIGN.md">DESIGN.md</a>
+        <a href="https://github.com/yoms07/stellar-hackathon/blob/main/DESIGN.md">DESIGN.md</a>
       </nav>
     </div>
     <p class="masthead-note">
       Theme: <strong>SPLIT v4</strong>, adopted 2026-07-05 from the combined brand board (i2i, sampled hexes). STEMPEL / RASI archived as alternates.
+      Accent revised same day: action accent brightened to <strong>#fad657</strong> (vivid yellow, animations.dev-verified reference); see DESIGN.md Section 1.
       Token structure follows the Agentic semantic naming: BACKGROUND / CONTENT / BORDER / INPUT / BUTTON.
       Every specimen on this page is rendered live from the tokens, not screenshots.
     </p>
   </header>
+
+  <!-- ============ 00. BRAND BOARD ============ -->
+  <section id="brand">
+    <h2 class="section-label"><span class="num">00</span>Brand Board</h2>
+    <p class="section-intro">Finalized SPLIT v4 combine from Flora (gpt-1 minimal mark composed into the gpt-2 board via i2i, node output 99306dfc). This render is the reference for composition, mark geometry, and atmosphere. The board's amber is the mark's material color in the render; the live UI accent is the brighter #fad657.</p>
+    <img src="brand/komunify-split-v4-board.png" alt="Komunify SPLIT v4 combined brand board: logo cover, digital application, split ledger, image direction, logo construction, brand essence" style="width:100%; height:auto; display:block; border:1px solid var(--color-border-medium); border-radius:var(--radius-lg);">
+  </section>
 
   <!-- ============ A. COLOR TOKENS ============ -->
   <section id="color">
@@ -1036,9 +1044,9 @@ input:focus { outline: none; border-color: var(--color-border-accent); }
         <div class="swatch-role">Inputs, code chips, tracks</div>
       </div>
       <div class="swatch">
-        <div class="swatch-chip on-page" style="--tint:linear-gradient(rgba(229,168,74,0.12),rgba(229,168,74,0.12))"></div>
+        <div class="swatch-chip on-page" style="--tint:linear-gradient(rgba(250, 214, 87,0.12),rgba(250, 214, 87,0.12))"></div>
         <div class="swatch-name">--color-bg-accent-tint</div>
-        <div class="swatch-value">rgba(229,168,74,0.12)</div>
+        <div class="swatch-value">rgba(250, 214, 87,0.12)</div>
         <div class="swatch-role">Accent fills: active step, v0 badge</div>
       </div>
       <div class="swatch">
@@ -1070,9 +1078,9 @@ input:focus { outline: none; border-color: var(--color-border-accent); }
         <div class="swatch-role">Labels, hints, taglines</div>
       </div>
       <div class="swatch">
-        <div class="swatch-chip" style="background:#e5a84a"></div>
+        <div class="swatch-chip" style="background:#fad657"></div>
         <div class="swatch-name">--color-content-accent</div>
-        <div class="swatch-value">#e5a84a</div>
+        <div class="swatch-value">#fad657</div>
         <div class="swatch-role">Brand gold: CTA fill, logo mark</div>
       </div>
       <div class="swatch">
@@ -1110,9 +1118,9 @@ input:focus { outline: none; border-color: var(--color-border-accent); }
         <div class="swatch-role">Default 1px hairline everywhere</div>
       </div>
       <div class="swatch">
-        <div class="swatch-chip" style="background:#e5a84a"></div>
+        <div class="swatch-chip" style="background:#fad657"></div>
         <div class="swatch-name">--color-border-accent</div>
-        <div class="swatch-value">#e5a84a</div>
+        <div class="swatch-value">#fad657</div>
         <div class="swatch-role">Focus ring on inputs</div>
       </div>
     </div>
@@ -1143,7 +1151,7 @@ input:focus { outline: none; border-color: var(--color-border-accent); }
         <div class="theme-dots">
           <span class="dot" style="background:#0b0b0a"></span>
           <span class="dot" style="background:#131311"></span>
-          <span class="dot" style="background:#e5a84a"></span>
+          <span class="dot" style="background:#fad657"></span>
           <span class="dot" style="background:#ecd9c1"></span>
           <span class="dot-note">adopted 2026-07-05</span>
         </div>
