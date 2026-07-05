@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Member preview</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .stack { display: flex; flex-direction: column; gap: var(--space-4); }
+    .content-line { align-items: flex-start; }
+    .content-line .row.tight { margin-top: 0; }
+    .preview-pane .skeleton + .skeleton { margin-top: var(--space-2); }
+    /* pane bg equals the skeleton base; lift the ramp one surface step so lines stay visible */
+    .preview-pane .skeleton {
+      background: linear-gradient(90deg, var(--color-bg-elevated) 25%, var(--color-border-medium) 50%, var(--color-bg-elevated) 75%);
+      background-size: 200% 100%;
+    }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="topbar">
+    <a class="logo" href="index.html">Komunify</a>
+    <nav class="topbar-nav">
+      <a href="index.html">Connect</a>
+      <a href="subscribe.html">Subscribe</a>
+      <a href="benefits.html">Benefits</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="traction.html">Traction</a>
+      <code id="topbar-wallet" class="hidden"></code>
+    </nav>
+  </div>
+
+  <!-- guard: shown when there is no active subscription -->
+  <div class="card center hidden" id="guard">
+    <h2>Members only</h2>
+    <p class="hint">This partner's premium content unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+
+  <!-- partner preview: shown when subscribed -->
+  <div class="stack hidden" id="preview">
+
+    <div class="grid-detail">
+
+      <div class="stack">
+        <div class="card">
+          <div class="row">
+            <div class="row tight">
+              <span class="avatar" id="p-avatar"></span>
+              <h2 id="p-name"></h2>
+            </div>
+            <span class="badge unlocked">UNLOCKED</span>
+          </div>
+          <p class="hint">Included with your Community Bundle. Access is checked against your on-chain entitlement.</p>
+        </div>
+
+        <div class="stack">
+          <a class="btn ghost" href="dashboard.html">Access dashboard</a>
+          <a class="btn ghost" href="benefits.html">Back to benefits</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="num-label"><span class="num">06</span> MEMBER CONTENT</div>
+        <p class="hint">Preview what your subscription unlocks here. Full content opens in the partner's space.</p>
+        <div id="content-rows"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
+    <a href="#" id="reset-proto">Reset demo</a>
+  </footer>
+</main>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    var guard = document.getElementById("guard");
+    var preview = document.getElementById("preview");
+
+    if (!K.subscribed) {
+      guard.classList.remove("hidden");
+      return;
+    }
+    preview.classList.remove("hidden");
+
+    var pid = new URLSearchParams(location.search).get("p");
+    var partner = null;
+    KDATA.partners.forEach(function (p) { if (p.id === pid) partner = p; });
+    if (!partner) partner = KDATA.partners[0];
+
+    document.title = "Komunify · " + partner.name;
+    var av = document.getElementById("p-avatar");
+    av.textContent = partner.initial;
+    if (partner.avatarCls) av.classList.add(partner.avatarCls);
+    document.getElementById("p-name").textContent = partner.name;
+
+    var typeLabels = { course: "COURSE", video: "VIDEO", ebook: "EBOOK", link: "EXTERNAL LINK" };
+
+    function paneHtml(item) {
+      if (item.type === "course") {
+        var mods = (item.modules || []).map(function (m, i) {
+          return '<div class="module-line"><span class="module-num">0' + (i + 1) + '</span><span>' + m + '</span></div>';
+        }).join("");
+        return mods + '<p class="content-meta">All modules included with your membership.</p>';
+      }
+      if (item.type === "video") {
+        return '<div class="media-ph"><span class="play-dot"></span></div>' +
+               '<p class="content-meta">Preview frame. The full recording streams in the partner space.</p>';
+      }
+      if (item.type === "ebook") {
+        return '<div class="skeleton sk-line w80"></div>' +
+               '<div class="skeleton sk-line w60"></div>' +
+               '<div class="skeleton sk-line w40"></div>' +
+               '<p class="content-meta">Sample pages. The full PDF is available to members.</p>';
+      }
+      return "";
+    }
+
+    var rows = document.getElementById("content-rows");
+    (partner.content || []).forEach(function (item, i) {
+      var line = document.createElement("div");
+      line.className = "benefit-line content-line";
+      var action;
+      if (item.type === "link") {
+        action = '<a class="btn ghost sm" href="#" title="External link, placeholder in this prototype">Open ↗</a>';
+      } else {
+        action = '<button class="ghost sm" data-pane="pane-' + i + '">Preview</button>';
+      }
+      line.innerHTML =
+        '<div>' +
+          '<div class="content-type">' + typeLabels[item.type] + '</div>' +
+          '<div class="content-title">' + item.title + '</div>' +
+          '<div class="content-meta">' + item.meta + '</div>' +
+        '</div>' +
+        '<div class="row tight">' + action + '</div>';
+      rows.appendChild(line);
+
+      if (item.type !== "link") {
+        var pane = document.createElement("div");
+        pane.className = "preview-pane hidden fade-in";
+        pane.id = "pane-" + i;
+        pane.innerHTML = paneHtml(item);
+        rows.appendChild(pane);
+      }
+    });
+
+    rows.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-pane]");
+      if (!btn) return;
+      var pane = document.getElementById(btn.getAttribute("data-pane"));
+      var opening = pane.classList.contains("hidden");
+      pane.classList.toggle("hidden");
+      btn.textContent = opening ? "Hide preview" : "Preview";
+    });
+  })();
+
+  document.getElementById("reset-proto").addEventListener("click", function (e) {
+    e.preventDefault();
+    K.reset();
+    location.href = "index.html";
+  });
+</script>
+</body>
+</html>

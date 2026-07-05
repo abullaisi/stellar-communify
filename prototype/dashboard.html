@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Access dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .stack { display: flex; flex-direction: column; gap: var(--space-4); }
+    .content-line { align-items: flex-start; }
+    .content-line .row.tight { margin-top: 0; }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="topbar">
+    <a class="logo" href="index.html">Komunify</a>
+    <nav class="topbar-nav">
+      <a href="index.html">Connect</a>
+      <a href="subscribe.html">Subscribe</a>
+      <a href="benefits.html">Benefits</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="traction.html">Traction</a>
+      <code id="topbar-wallet" class="hidden"></code>
+    </nav>
+  </div>
+
+  <!-- guard: shown when there is no active subscription -->
+  <div class="card center hidden" id="guard">
+    <h2>Members only</h2>
+    <p class="hint">The access dashboard shows everything your Community Bundle subscription unlocks.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+
+  <!-- access dashboard: shown when subscribed -->
+  <div class="stack hidden" id="dash">
+
+    <div class="grid-dash">
+
+      <div class="card">
+        <div class="num-label"><span class="num">07</span> ACCESS LIBRARY</div>
+        <p class="hint">Everything your subscription unlocks, across every partner. Open an item to preview it in the partner's space.</p>
+        <div id="library-rows"></div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="label">MEMBERSHIP</div>
+          <div class="row">
+            <h2>Community Bundle</h2>
+            <span class="pill accent">ACTIVE</span>
+          </div>
+          <p class="hint">Renews Aug 5, 2026 · entitlement recorded on-chain</p>
+          <code id="dash-addr"></code>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-chip">
+            <div class="label">PARTNERS</div>
+            <div class="stat-value" id="stat-partners"></div>
+          </div>
+          <div class="stat-chip">
+            <div class="label">ITEMS UNLOCKED</div>
+            <div class="stat-value" id="stat-items"></div>
+          </div>
+          <div class="stat-chip">
+            <div class="label">MEMBER PRICES</div>
+            <div class="stat-value" id="stat-prices"></div>
+          </div>
+        </div>
+
+        <div class="row tight">
+          <a class="btn ghost" href="benefits.html">All benefits</a>
+          <a class="btn ghost" href="traction.html">On-chain traction</a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
+    <a href="#" id="reset-proto">Reset demo</a>
+  </footer>
+</main>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    var guard = document.getElementById("guard");
+    var dash = document.getElementById("dash");
+
+    if (!K.subscribed) {
+      guard.classList.remove("hidden");
+      return;
+    }
+    dash.classList.remove("hidden");
+
+    var addr = K.wallet || KDATA.demoAddress;
+    var chip = document.getElementById("dash-addr");
+    chip.textContent = shortAddr(addr);
+    chip.title = addr;
+
+    var items = 0;
+    KDATA.partners.forEach(function (p) { items += (p.content || []).length; });
+    document.getElementById("stat-partners").textContent = KDATA.partners.length;
+    document.getElementById("stat-items").textContent = items;
+    document.getElementById("stat-prices").textContent = KDATA.listings.length;
+
+    var typeLabels = { course: "COURSE", video: "VIDEO", ebook: "EBOOK", link: "EXTERNAL LINK" };
+
+    var rows = document.getElementById("library-rows");
+    KDATA.partners.forEach(function (p) {
+      (p.content || []).forEach(function (item) {
+        var line = document.createElement("div");
+        line.className = "benefit-line content-line";
+        line.innerHTML =
+          '<div>' +
+            '<div class="content-type">' + typeLabels[item.type] + '</div>' +
+            '<div class="content-title">' + item.title + '</div>' +
+            '<div class="content-meta">' + p.name + ' · ' + item.meta + '</div>' +
+          '</div>' +
+          '<div class="row tight">' +
+            '<a class="btn ghost sm" href="partner.html?p=' + p.id + '">Open</a>' +
+          '</div>';
+        rows.appendChild(line);
+      });
+    });
+  })();
+
+  document.getElementById("reset-proto").addEventListener("click", function (e) {
+    e.preventDefault();
+    K.reset();
+    location.href = "index.html";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Connect</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .card.center .avatar-group { justify-content: center; margin-top: var(--space-4); }
+    .gap-top { margin-top: var(--space-4); }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <a class="logo" href="index.html">Komunify</a>
+      <nav class="topbar-nav">
+        <a href="index.html" class="active">Connect</a>
+        <a href="subscribe.html">Subscribe</a>
+        <a href="benefits.html">Benefits</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="traction.html">Traction</a>
+        <code id="topbar-wallet" class="hidden"></code>
+      </nav>
+    </div>
+
+    <!-- stepper card -->
+    <div class="card">
+      <div class="stepper">
+        <div class="step active" id="step-1"><span class="step-dot">1</span><span class="step-name">Connect</span></div>
+        <div class="step-line" id="line-1"></div>
+        <div class="step todo" id="step-2"><span class="step-dot">2</span><span class="step-name">Pay</span></div>
+        <div class="step-line" id="line-2"></div>
+        <div class="step todo" id="step-3"><span class="step-dot">3</span><span class="step-name">Unlocked</span></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+    <!-- hero card -->
+    <div class="card center">
+      <h1 class="headline">One payment.<span class="gold">Every community.</span></h1>
+      <p class="hint">Subscribe once on Stellar and get member benefits from every partner community in the bundle.</p>
+      <div class="avatar-group" id="partner-avatars">
+        <span class="avatar-note">3 partner communities in this bundle</span>
+      </div>
+    </div>
+
+    <!-- connect card -->
+    <div class="card">
+      <section id="wallet-disconnected">
+        <div class="num-label"><span class="num">01</span> WALLET</div>
+        <p class="hint">Connect a Stellar wallet to see your balance and subscribe. This demo runs on testnet, no real funds move.</p>
+        <button id="connect-btn">Connect Wallet</button>
+      </section>
+
+      <section id="wallet-connected" class="hidden">
+        <div class="label">WALLET</div>
+        <div class="row tight">
+          <code id="wallet-addr"></code>
+          <span class="pill ok">TESTNET</span>
+        </div>
+        <div class="label gap-top">XLM BALANCE</div>
+        <div class="balance" id="wallet-balance"></div>
+        <div class="row tight">
+          <a class="btn" id="primary-cta" href="subscribe.html">Choose subscription</a>
+          <button class="ghost" id="disconnect-btn">Disconnect</button>
+        </div>
+      </section>
+    </div>
+
+    </div>
+
+    <footer>
+      <span class="label">Prototype</span> · Komunify on Stellar testnet ·
+      <a href="#" id="reset-proto">Reset demo</a>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var disc = document.getElementById("wallet-disconnected");
+      var conn = document.getElementById("wallet-connected");
+
+      // partner cluster (avatars go before the note)
+      var group = document.getElementById("partner-avatars");
+      var note = group.querySelector(".avatar-note");
+      KDATA.partners.forEach(function (p) {
+        var av = document.createElement("span");
+        av.className = "avatar" + (p.avatarCls ? " " + p.avatarCls : "");
+        av.textContent = p.initial;
+        av.title = p.name;
+        group.insertBefore(av, note);
+      });
+
+      function setStep(el, state, num) {
+        el.className = "step " + state;
+        el.querySelector(".step-dot").textContent = state === "done" ? "✓" : num;
+      }
+
+      function render() {
+        var connected = !!K.wallet;
+        var subscribed = K.subscribed;
+
+        var s1 = document.getElementById("step-1");
+        var s2 = document.getElementById("step-2");
+        var s3 = document.getElementById("step-3");
+        var l1 = document.getElementById("line-1");
+        var l2 = document.getElementById("line-2");
+
+        if (connected && subscribed) {
+          setStep(s1, "done", "1"); setStep(s2, "done", "2"); setStep(s3, "done", "3");
+          l1.className = "step-line lit"; l2.className = "step-line lit";
+        } else if (connected) {
+          setStep(s1, "done", "1"); setStep(s2, "active", "2"); setStep(s3, "todo", "3");
+          l1.className = "step-line lit"; l2.className = "step-line";
+        } else {
+          setStep(s1, "active", "1"); setStep(s2, "todo", "2"); setStep(s3, "todo", "3");
+          l1.className = "step-line"; l2.className = "step-line";
+        }
+
+        if (connected) {
+          disc.classList.add("hidden");
+          conn.classList.remove("hidden");
+          var addr = document.getElementById("wallet-addr");
+          addr.textContent = shortAddr(K.wallet);
+          addr.title = K.wallet;
+          document.getElementById("wallet-balance").textContent = fmtXlm(KDATA.demoBalanceXlm);
+          var cta = document.getElementById("primary-cta");
+          if (subscribed) {
+            cta.textContent = "Open member dashboard";
+            cta.setAttribute("href", "dashboard.html");
+          } else {
+            cta.textContent = "Choose subscription";
+            cta.setAttribute("href", "subscribe.html");
+          }
+        } else {
+          conn.classList.add("hidden");
+          disc.classList.remove("hidden");
+        }
+      }
+
+      document.getElementById("connect-btn").addEventListener("click", function () {
+        K.connect();
+        render();
+      });
+
+      document.getElementById("disconnect-btn").addEventListener("click", function () {
+        K.disconnect();
+        render();
+      });
+
+      document.getElementById("reset-proto").addEventListener("click", function (e) {
+        e.preventDefault();
+        K.reset();
+        location.href = "index.html";
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

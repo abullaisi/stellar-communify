@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Traction</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .card .num-label { margin: 0 0 var(--space-2); }
+    .feed-main { min-width: 0; }
+    .feed-kind { font-weight: 600; }
+    .feed-detail { color: var(--color-content-secondary); font-size: 13px; }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="topbar">
+    <a class="logo" href="index.html">Komunify</a>
+    <nav class="topbar-nav">
+      <a href="index.html">Connect</a>
+      <a href="subscribe.html">Subscribe</a>
+      <a href="benefits.html">Benefits</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="traction.html" class="active">Traction</a>
+      <code id="topbar-wallet" class="hidden"></code>
+    </nav>
+  </div>
+
+  <div class="card">
+    <div class="num-label"><span class="num">05</span> TRACTION</div>
+    <h2>Live on-chain traction</h2>
+    <p class="hint">Every number below reads from the KomunifyContract on Stellar testnet.</p>
+  </div>
+
+  <div class="stat-strip" id="stat-strip"></div>
+
+  <div class="grid-2">
+
+  <div class="card">
+    <div class="label">PAYOUT SPLIT TO DATE</div>
+    <div id="payout-rows"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">RECENT ACTIVITY</div>
+    <div id="activity-rows"></div>
+  </div>
+
+  </div>
+
+  <div class="card">
+    <div class="label">CONTRACT</div>
+    <div class="row tight">
+      <code id="contract-chip"></code>
+      <span class="pill ok">TESTNET</span>
+    </div>
+    <div class="row tight">
+      <a class="btn ghost" id="link-contract" href="#" target="_blank" rel="noopener">View on Stellar Expert</a>
+      <a class="btn ghost" id="link-tx" href="#" target="_blank" rel="noopener">Latest tx</a>
+    </div>
+  </div>
+
+  <a class="btn ghost" href="benefits.html">Back to benefits</a>
+
+  <footer>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
+    <a href="#" id="reset-proto">Reset demo</a>
+  </footer>
+</main>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    // Stat chips: read from KDATA.stats
+    var stats = KDATA.stats;
+    var chips = [
+      { label: "SUBSCRIBERS", value: String(stats.subscribers), delta: "+12 this week" },
+      { label: "VOLUME", value: fmtXlm(stats.volumeXlm), delta: "" },
+      { label: "PAYOUT EVENTS", value: String(stats.payoutEvents), delta: "" }
+    ];
+    document.getElementById("stat-strip").innerHTML = chips.map(function (c) {
+      return (
+        '<div class="stat-chip">' +
+          '<div class="label">' + c.label + '</div>' +
+          '<div class="stat-value">' + c.value + '</div>' +
+          (c.delta ? '<div class="stat-delta">' + c.delta + '</div>' : '') +
+        '</div>'
+      );
+    }).join("");
+
+    // Payout summary: each share is its pct of total volume (no glow here)
+    document.getElementById("payout-rows").innerHTML = KDATA.split.map(function (s) {
+      var amt = (KDATA.stats.volumeXlm * s.pct) / 100;
+      var fillCls = "alloc-fill" + (s.cls ? " " + s.cls : "");
+      return (
+        '<div class="alloc-row">' +
+          '<span class="alloc-name">' + s.name + '</span>' +
+          '<span class="alloc-pct">' + s.pct + '%</span>' +
+          '<span class="alloc-amt">' + fmtXlm(amt) + '</span>' +
+          '<div class="alloc-track"><div class="' + fillCls + '" style="width:' + s.pct + '%"></div></div>' +
+        '</div>'
+      );
+    }).join("");
+
+    // Recent activity feed
+    document.getElementById("activity-rows").innerHTML = KDATA.activity.map(function (a) {
+      return (
+        '<div class="feed-row">' +
+          '<div class="feed-main">' +
+            '<div class="feed-kind">' + a.kind + '</div>' +
+            '<div class="feed-detail">' + a.detail + '</div>' +
+          '</div>' +
+          '<span class="feed-when">' + a.when + '</span>' +
+        '</div>'
+      );
+    }).join("");
+
+    // Contract chip + explorer links
+    var chip = document.getElementById("contract-chip");
+    chip.textContent = shortHash(KDATA.contractId);
+    chip.title = KDATA.contractId;
+    document.getElementById("link-contract").href = KDATA.explorerBase + "/contract/" + KDATA.contractId;
+    document.getElementById("link-tx").href = KDATA.explorerBase + "/tx/" + KDATA.demoTxHash;
+
+    // Reset demo
+    document.getElementById("reset-proto").addEventListener("click", function (e) {
+      e.preventDefault();
+      K.reset();
+      location.href = "index.html";
+    });
+  })();
+</script>
+</body>
+</html>
