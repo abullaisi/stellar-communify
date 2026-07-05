@@ -1,0 +1,1569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Komunify Design System v0</title>
+<style>
+/* ============================================================
+   COMMUNIFY DESIGN SYSTEM v0 -- live specimen page
+   Token structure adapted from Agentic Design System v1.1
+   Values = current live app (src/App.css)
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* BACKGROUND */
+  --color-bg-primary: #0b0b0a;
+  --color-bg-elevated: #131311;
+  --color-bg-input: #0d0d0b;
+  --color-bg-accent-tint: rgba(229, 168, 74, 0.12);
+  --color-bg-success-tint: rgba(62, 207, 142, 0.14);
+  --color-bg-warning-tint: rgba(255, 138, 92, 0.14);
+
+  /* CONTENT */
+  --color-content-primary: #ecd9c1;
+  --color-content-secondary: #928e85;
+  --color-content-accent: #e5a84a;
+  --color-content-on-accent: #201607;
+  --color-content-success: #3ecf8e;
+  --color-content-warning: #ff8a5c;
+  --color-content-danger: #ff6b6b;
+
+  /* BORDER */
+  --color-border-medium: #262521;
+  --color-border-accent: #e5a84a;
+
+  /* RADIUS (Agentic DEFAULT-mode shape) */
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+
+  /* SPACING */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* TYPE */
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--color-bg-primary);
+  color: var(--color-content-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-6);
+}
+
+a { color: inherit; }
+
+/* ---------- page chrome ---------- */
+
+.masthead {
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.masthead-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.masthead h1::first-letter { color: var(--color-content-accent); }
+
+.badge-v0 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-content-accent);
+  background: var(--color-bg-accent-tint);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+  position: relative;
+  top: -2px;
+  margin-left: var(--space-3);
+}
+
+.masthead-links {
+  display: flex;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.masthead-links a {
+  color: var(--color-content-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border-medium);
+  padding-bottom: 2px;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.masthead-links a:hover {
+  color: var(--color-content-accent);
+  border-color: var(--color-content-accent);
+}
+
+.masthead-note {
+  margin: var(--space-4) 0 0;
+  color: var(--color-content-secondary);
+  font-size: 13px;
+  max-width: 62ch;
+}
+
+.masthead-note strong {
+  color: var(--color-content-primary);
+  font-weight: 600;
+}
+
+/* ---------- sections ---------- */
+
+section {
+  padding: var(--space-7) 0;
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-content-secondary);
+  margin: 0 0 var(--space-2);
+}
+
+.section-label .num { color: var(--color-content-accent); margin-right: var(--space-2); }
+
+.section-intro {
+  margin: 0 0 var(--space-6);
+  color: var(--color-content-secondary);
+  font-size: 13px;
+  max-width: 60ch;
+}
+
+/* ---------- a. color tokens ---------- */
+
+.token-group-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-content-secondary);
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.token-group-label:first-of-type { margin-top: 0; }
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-3);
+}
+
+.swatch {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  transition: border-color 140ms ease;
+}
+
+.swatch:hover { border-color: #3a4454; }
+
+.swatch-chip {
+  height: 56px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-medium);
+  margin-bottom: var(--space-3);
+}
+
+.swatch-chip.on-page {
+  /* translucent tints previewed over the page background they sit on */
+  background-color: var(--color-bg-primary);
+  background-image: var(--tint);
+}
+
+.swatch-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-content-primary);
+  word-break: break-all;
+}
+
+.swatch-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-content-secondary);
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.swatch-role {
+  font-size: 12px;
+  color: var(--color-content-secondary);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-medium);
+}
+
+/* ---------- b. candidate palettes ---------- */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.theme-card {
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  transition: border-color 140ms ease;
+}
+
+.theme-card:hover { border-color: #3a4454; }
+
+.theme-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.theme-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-content-primary);
+}
+
+.theme-vote {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-content-secondary);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* the preview surface re-themes purely by overriding tokens in scope */
+.theme-preview {
+  background: var(--color-bg-primary);
+  padding: var(--space-5);
+}
+
+[data-theme="stempel"] {
+  color-scheme: light;
+  --color-bg-primary: #F4EFE6;
+  --color-bg-elevated: #FDFBF7;
+  --color-bg-accent-tint: rgba(31, 77, 58, 0.10);
+  --color-content-primary: #1F2A24;
+  --color-content-secondary: #5C685F;
+  --color-content-accent: #1F4D3A;
+  --color-content-on-accent: #F4EFE6;
+  --color-border-medium: #E0D8C6;   /* derived */
+  --color-border-accent: #1F4D3A;
+  --gold-detail: #B08D3E;
+}
+
+[data-theme="rasi"] {
+  --color-bg-primary: #0E0C1E;
+  --color-bg-elevated: #171432;
+  --color-bg-accent-tint: rgba(167, 139, 250, 0.14);
+  --color-content-primary: #EEEBFF;
+  --color-content-secondary: #8E88B0;
+  --color-content-accent: #A78BFA;
+  --color-content-on-accent: #14102A;
+  --color-border-medium: #2A2450;   /* derived */
+  --color-border-accent: #A78BFA;
+}
+
+.mini-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  color: var(--color-content-primary);
+}
+
+.mini-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mini-card .mini-sub {
+  margin: 4px 0 var(--space-4);
+  font-size: 13px;
+  color: var(--color-content-secondary);
+}
+
+.mini-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.mini-pill {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  padding: 3px 9px;
+  background: var(--color-bg-accent-tint);
+  color: var(--color-content-accent);
+}
+
+.mini-btn {
+  background: var(--color-content-accent);
+  color: var(--color-content-on-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mini-btn:hover { filter: brightness(1.06); }
+
+.theme-dots {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-medium);
+}
+
+.theme-dots .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.theme-dots .dot-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-content-secondary);
+  margin-left: auto;
+}
+
+/* ---------- c. type scale ---------- */
+
+.type-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--space-5);
+  align-items: baseline;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.type-row:last-child { border-bottom: none; }
+
+.type-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--color-content-secondary);
+  text-transform: uppercase;
+}
+
+.type-meta .spec {
+  display: block;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 2px;
+  color: var(--color-content-secondary);
+  opacity: 0.7;
+}
+
+.spec-display {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.spec-display .dim { color: var(--color-content-secondary); font-weight: 700; }
+
+.spec-logo {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.spec-logo::first-letter { color: var(--color-content-accent); }
+
+.spec-h2 { font-size: 16px; font-weight: 600; }
+.spec-body-md { font-size: 14px; line-height: 1.5; max-width: 52ch; }
+.spec-body-sm { font-size: 13px; color: var(--color-content-secondary); max-width: 52ch; }
+
+.spec-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-content-secondary);
+}
+
+.spec-pill-label { font-size: 11px; font-weight: 700; }
+
+/* ---------- d. spacing + radius ---------- */
+
+.scale-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+.space-row {
+  display: grid;
+  grid-template-columns: 96px 40px 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.space-row .k {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-content-primary);
+}
+
+.space-row .v {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-content-secondary);
+  text-align: right;
+}
+
+.space-bar {
+  height: 18px;
+  background: var(--color-bg-accent-tint);
+  border: 1px solid var(--color-content-accent);
+  border-radius: 2px;
+}
+
+.radius-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+}
+
+.radius-demo { text-align: center; }
+
+.radius-box {
+  width: 72px;
+  height: 72px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  transition: border-color 140ms ease;
+}
+
+.radius-demo:hover .radius-box { border-color: var(--color-content-accent); }
+
+.radius-box.full { width: 104px; height: 44px; }
+
+.radius-caption {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-content-secondary);
+  margin-top: var(--space-2);
+}
+
+.radius-caption b {
+  color: var(--color-content-primary);
+  font-weight: 400;
+  display: block;
+}
+
+/* ---------- specimen frames (atoms + molecules) ---------- */
+
+.specimen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--space-4);
+}
+
+.specimen-grid .wide { grid-column: 1 / -1; }
+
+.specimen {
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 140ms ease;
+}
+
+.specimen:hover { border-color: #3a362c; }
+
+.specimen-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.specimen-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-content-primary);
+}
+
+.taxonomy {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-content-secondary);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.specimen-body {
+  background: var(--color-bg-primary);
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  justify-content: flex-start;
+}
+
+.specimen-note {
+  font-size: 12px;
+  color: var(--color-content-secondary);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border-medium);
+}
+
+/* ---------- e. atoms -- app classes reproduced exactly (src/App.css) ---------- */
+
+.card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);   /* 14px */
+  padding: 20px;
+}
+
+.card h2 { font-size: 16px; margin: 0 0 10px; font-weight: 600; }
+
+.card.center { text-align: center; padding: 36px 20px; }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.row.tight { justify-content: flex-start; gap: 8px; margin-top: 4px; }
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-content-secondary);
+}
+
+.balance {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 6px 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+code {
+  font-family: var(--font-mono);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-sm);   /* 6px */
+  padding: 2px 7px;
+  font-size: 13px;
+}
+
+.pill {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  padding: 3px 9px;
+}
+
+.pill.ok   { background: var(--color-bg-success-tint); color: var(--color-content-success); }
+.pill.warn { background: var(--color-bg-warning-tint); color: var(--color-content-warning); }
+
+button {
+  background: var(--color-content-accent);
+  color: var(--color-content-on-accent);
+  border: none;
+  border-radius: var(--radius-md);   /* 9px */
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover { filter: brightness(1.06); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+button:disabled:hover { filter: none; }
+
+button.ghost {
+  background: transparent;
+  color: var(--color-content-primary);
+  border: 1px solid var(--color-border-medium);
+  font-weight: 600;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--color-content-secondary);
+}
+
+input {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  color: var(--color-content-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  width: 100%;
+}
+
+input:focus { outline: none; border-color: var(--color-border-accent); }
+
+.hint    { color: var(--color-content-secondary); font-size: 13px; margin: 8px 0 12px; }
+.error   { color: var(--color-content-danger);   font-size: 13px; margin: 10px 0 0; }
+.success { color: var(--color-content-success);  font-size: 13px; margin: 12px 0 0; }
+
+/* ---------- f. molecules ---------- */
+
+/* subscription card */
+.sub-price {
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 2px;
+}
+
+.sub-price .per {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-content-secondary);
+}
+
+.avatar-group { display: flex; align-items: center; }
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-input);
+  border: 2px solid var(--color-bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-content-secondary);
+}
+
+.avatar + .avatar { margin-left: -8px; }
+.avatar.a1 { background: var(--color-bg-accent-tint);  color: var(--color-content-accent); }
+.avatar.a2 { background: var(--color-bg-success-tint); color: var(--color-content-success); }
+.avatar.a3 { background: var(--color-bg-warning-tint); color: var(--color-content-warning); }
+
+.avatar-note { font-size: 12px; color: var(--color-content-secondary); margin-left: 10px; }
+
+/* split allocation rows */
+.alloc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: 6px;
+  padding: var(--space-2) 0;
+}
+
+.alloc-name {
+  font-size: 13px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alloc-pct {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-content-secondary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.alloc-amt {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.alloc-track {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: var(--color-bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.alloc-fill {
+  height: 100%;
+  background: var(--color-content-accent);
+  border-radius: var(--radius-full);
+}
+
+.alloc-fill.dim { opacity: 0.55; }
+.alloc-fill.dimmer { opacity: 0.3; }
+
+/* dashboard stat chips */
+.stat-strip { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.stat-chip {
+  flex: 1 1 140px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  transition: border-color 140ms ease;
+}
+
+.stat-chip:hover { border-color: #3a4454; }
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.stat-delta { font-size: 12px; color: var(--color-content-success); margin-top: 2px; }
+
+/* entitlement badges */
+.benefit-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.benefit-line:last-child { border-bottom: none; }
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius-full);
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.badge.locked {
+  color: var(--color-content-secondary);
+  border: 1px solid var(--color-border-medium);
+  background: transparent;
+}
+
+.badge.unlocked {
+  color: var(--color-content-success);
+  background: var(--color-bg-success-tint);
+  border: 1px solid transparent;
+}
+
+/* stepper */
+.stepper { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+
+.step { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.step-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step.done .step-dot {
+  background: var(--color-content-accent);
+  color: var(--color-content-on-accent);
+}
+
+.step.active .step-dot {
+  background: var(--color-bg-accent-tint);
+  color: var(--color-content-accent);
+  border: 1px solid var(--color-content-accent);
+}
+
+.step.todo .step-dot {
+  background: transparent;
+  color: var(--color-content-secondary);
+  border: 1px solid var(--color-border-medium);
+}
+
+.step-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.step.done .step-name   { color: var(--color-content-primary); }
+.step.active .step-name { color: var(--color-content-accent); }
+.step.todo .step-name   { color: var(--color-content-secondary); }
+
+.step-line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-medium);
+  min-width: 10px;
+}
+
+.step-line.lit { background: var(--color-content-accent); opacity: 0.5; }
+
+/* toast */
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: 13px;
+}
+
+.toast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.toast.pending .toast-dot {
+  background: var(--color-content-accent);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.toast.tx-success { border-color: rgba(62, 207, 142, 0.35); }
+.toast.tx-success .toast-dot { background: var(--color-content-success); }
+
+.toast.tx-fail { border-color: rgba(255, 107, 107, 0.35); }
+.toast.tx-fail .toast-dot { background: var(--color-content-danger); }
+
+.toast .t-msg { flex: 1; min-width: 0; }
+.toast .t-sub { color: var(--color-content-secondary); font-size: 12px; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* skeleton */
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-input) 25%,
+    #1a2029 50%,
+    var(--color-bg-input) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.sk-line   { height: 12px; }
+.sk-line.w60 { width: 60%; }
+.sk-line.w40 { width: 40%; }
+.sk-line.w80 { width: 80%; }
+.sk-balance { height: 30px; width: 55%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton, .toast.pending .toast-dot { animation: none; }
+}
+
+/* ---------- footer ---------- */
+
+.colophon {
+  padding-top: var(--space-6);
+  font-size: 12px;
+  color: var(--color-content-secondary);
+  text-align: center;
+}
+
+.colophon a { color: inherit; }
+.colophon a:hover { color: var(--color-content-accent); }
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 640px) {
+  .page { padding: var(--space-6) var(--space-4) var(--space-5); }
+  .type-row { grid-template-columns: 1fr; gap: var(--space-2); }
+  .scale-cols { grid-template-columns: 1fr; }
+  .stepper { flex-wrap: wrap; }
+  .taxonomy { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <h1>Komunify Design System <span class="badge-v0">v0</span></h1>
+      <nav class="masthead-links">
+        <a href="/">App</a>
+        <a href="https://github.com/abullaisi/stellar-communify/blob/main/DESIGN.md">DESIGN.md</a>
+      </nav>
+    </div>
+    <p class="masthead-note">
+      Theme: <strong>SPLIT v4</strong>, adopted 2026-07-05 from the combined brand board (i2i, sampled hexes). STEMPEL / RASI archived as alternates.
+      Token structure follows the Agentic semantic naming: BACKGROUND / CONTENT / BORDER / INPUT / BUTTON.
+      Every specimen on this page is rendered live from the tokens, not screenshots.
+    </p>
+  </header>
+
+  <!-- ============ A. COLOR TOKENS ============ -->
+  <section id="color">
+    <h2 class="section-label"><span class="num">01</span>Color Tokens</h2>
+    <p class="section-intro">Semantic tokens, no raw hex in components. Values match the live app (src/App.css). Primitive ramps come later, after the brand vote.</p>
+
+    <p class="token-group-label">Background</p>
+    <div class="swatch-grid">
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#0b0b0a"></div>
+        <div class="swatch-name">--color-bg-primary</div>
+        <div class="swatch-value">#0b0b0a</div>
+        <div class="swatch-role">Page background</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#131311"></div>
+        <div class="swatch-name">--color-bg-elevated</div>
+        <div class="swatch-value">#131311</div>
+        <div class="swatch-role">Cards, elevated surfaces</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#0d0d0b"></div>
+        <div class="swatch-name">--color-bg-input</div>
+        <div class="swatch-value">#0d0d0b</div>
+        <div class="swatch-role">Inputs, code chips, tracks</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip on-page" style="--tint:linear-gradient(rgba(229,168,74,0.12),rgba(229,168,74,0.12))"></div>
+        <div class="swatch-name">--color-bg-accent-tint</div>
+        <div class="swatch-value">rgba(229,168,74,0.12)</div>
+        <div class="swatch-role">Accent fills: active step, v0 badge</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip on-page" style="--tint:linear-gradient(rgba(62,207,142,0.14),rgba(62,207,142,0.14))"></div>
+        <div class="swatch-name">--color-bg-success-tint</div>
+        <div class="swatch-value">rgba(62,207,142,0.14)</div>
+        <div class="swatch-role">OK pill, unlocked badge fill</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip on-page" style="--tint:linear-gradient(rgba(255,138,92,0.14),rgba(255,138,92,0.14))"></div>
+        <div class="swatch-name">--color-bg-warning-tint</div>
+        <div class="swatch-value">rgba(255,138,92,0.14)</div>
+        <div class="swatch-role">Warn pill fill</div>
+      </div>
+    </div>
+
+    <p class="token-group-label">Content</p>
+    <div class="swatch-grid">
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#ecd9c1"></div>
+        <div class="swatch-name">--color-content-primary</div>
+        <div class="swatch-value">#ecd9c1</div>
+        <div class="swatch-role">Headings, body, values</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#928e85"></div>
+        <div class="swatch-name">--color-content-secondary</div>
+        <div class="swatch-value">#928e85</div>
+        <div class="swatch-role">Labels, hints, taglines</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#e5a84a"></div>
+        <div class="swatch-name">--color-content-accent</div>
+        <div class="swatch-value">#e5a84a</div>
+        <div class="swatch-role">Brand gold: CTA fill, logo mark</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#201607"></div>
+        <div class="swatch-name">--color-content-on-accent</div>
+        <div class="swatch-value">#201607</div>
+        <div class="swatch-role">Text on accent surfaces</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#3ecf8e"></div>
+        <div class="swatch-name">--color-content-success</div>
+        <div class="swatch-value">#3ecf8e</div>
+        <div class="swatch-role">Success text, tx confirmed</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#ff8a5c"></div>
+        <div class="swatch-name">--color-content-warning</div>
+        <div class="swatch-value">#ff8a5c</div>
+        <div class="swatch-role">Warning text, low balance</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#ff6b6b"></div>
+        <div class="swatch-name">--color-content-danger</div>
+        <div class="swatch-value">#ff6b6b</div>
+        <div class="swatch-role">Errors, failed tx</div>
+      </div>
+    </div>
+
+    <p class="token-group-label">Border</p>
+    <div class="swatch-grid">
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#262521"></div>
+        <div class="swatch-name">--color-border-medium</div>
+        <div class="swatch-value">#262521</div>
+        <div class="swatch-role">Default 1px hairline everywhere</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#e5a84a"></div>
+        <div class="swatch-name">--color-border-accent</div>
+        <div class="swatch-value">#e5a84a</div>
+        <div class="swatch-role">Focus ring on inputs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ B. CANDIDATE PALETTES ============ -->
+  <section id="palettes">
+    <h2 class="section-label"><span class="num">02</span>Candidate Palettes</h2>
+    <p class="section-intro">Three brand concepts, one token contract. Each preview overrides only the CSS custom properties in scope; the components are identical markup. SPLIT ships in v0 until the team votes.</p>
+
+    <div class="theme-grid">
+
+      <div class="theme-card" data-theme="split">
+        <div class="theme-card-head">
+          <span class="theme-name">Split · dark+gold</span>
+          <span class="theme-vote">adopted v4</span>
+        </div>
+        <div class="theme-preview">
+          <div class="mini-card">
+            <h3>Komunify Pass</h3>
+            <p class="mini-sub">One subscription, every community.</p>
+            <div class="mini-row">
+              <span class="mini-pill">ACTIVE</span>
+              <button class="mini-btn" type="button">Pay</button>
+            </div>
+          </div>
+        </div>
+        <div class="theme-dots">
+          <span class="dot" style="background:#0b0b0a"></span>
+          <span class="dot" style="background:#131311"></span>
+          <span class="dot" style="background:#e5a84a"></span>
+          <span class="dot" style="background:#ecd9c1"></span>
+          <span class="dot-note">adopted 2026-07-05</span>
+        </div>
+      </div>
+
+      <div class="theme-card" data-theme="stempel">
+        <div class="theme-card-head" style="background:var(--color-bg-elevated)">
+          <span class="theme-name">Stempel · ivory+forest</span>
+          <span class="theme-vote">candidate</span>
+        </div>
+        <div class="theme-preview">
+          <div class="mini-card">
+            <h3>Komunify Pass</h3>
+            <p class="mini-sub">One subscription, every community.</p>
+            <div class="mini-row">
+              <span class="mini-pill">ACTIVE</span>
+              <button class="mini-btn" type="button">Pay</button>
+            </div>
+          </div>
+        </div>
+        <div class="theme-dots" style="background:var(--color-bg-elevated)">
+          <span class="dot" style="background:#F4EFE6"></span>
+          <span class="dot" style="background:#1F4D3A"></span>
+          <span class="dot" style="background:#B08D3E"></span>
+          <span class="dot" style="background:#1F2A24"></span>
+          <span class="dot-note">archived alternate</span>
+        </div>
+      </div>
+
+      <div class="theme-card" data-theme="rasi">
+        <div class="theme-card-head" style="background:var(--color-bg-elevated)">
+          <span class="theme-name">Rasi · indigo+lilac</span>
+          <span class="theme-vote">candidate</span>
+        </div>
+        <div class="theme-preview">
+          <div class="mini-card">
+            <h3>Komunify Pass</h3>
+            <p class="mini-sub">One subscription, every community.</p>
+            <div class="mini-row">
+              <span class="mini-pill">ACTIVE</span>
+              <button class="mini-btn" type="button">Pay</button>
+            </div>
+          </div>
+        </div>
+        <div class="theme-dots" style="background:var(--color-bg-elevated)">
+          <span class="dot" style="background:#0E0C1E"></span>
+          <span class="dot" style="background:#171432"></span>
+          <span class="dot" style="background:#A78BFA"></span>
+          <span class="dot" style="background:#EEEBFF"></span>
+          <span class="dot-note">archived alternate</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ C. TYPE SCALE ============ -->
+  <section id="type">
+    <h2 class="section-label"><span class="num">03</span>Type Scale</h2>
+    <p class="section-intro">Agentic signature adapted: mono uppercase labels over a clean system sans. Serif headings not adopted in v0; reconsider if STEMPEL wins the vote. Numerics are always tabular.</p>
+
+    <div class="type-row">
+      <div class="type-meta">Display / Balance<span class="spec">30px / 700 · tabular-nums</span></div>
+      <div>
+        <div class="spec-display">10,000 <span class="dim">XLM</span></div>
+        <div class="spec-display" style="color:var(--color-content-secondary)">11,111 <span class="dim">XLM</span></div>
+      </div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">Logo<span class="spec">28px / 800 · -0.02em · first letter accent</span></div>
+      <div class="spec-logo">Komunify</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">H2 / Card title<span class="spec">16px / 600</span></div>
+      <div class="spec-h2">Subscription status</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">Body md<span class="spec">14px / 400 · 1.5</span></div>
+      <div class="spec-body-md">One subscription unlocks benefits across partner communities. Revenue splits on-chain through a Soroban contract, per payment, no invoices.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">Body sm<span class="spec">13px / 400 · hints, helper, feedback</span></div>
+      <div class="spec-body-sm">Funded on testnet via Friendbot. Switch to mainnet after the demo.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">Label<span class="spec">12px / mono · uppercase · 0.06em</span></div>
+      <div class="spec-label">Wallet balance</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">Pill label<span class="spec">11px / 700</span></div>
+      <div class="spec-pill-label">TESTNET</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">Code<span class="spec">13px / mono · chip · radius-sm</span></div>
+      <div><code>GBRX…K3LM</code></div>
+    </div>
+  </section>
+
+  <!-- ============ D. SPACING + RADIUS ============ -->
+  <section id="space">
+    <h2 class="section-label"><span class="num">04</span>Spacing + Radius</h2>
+    <p class="section-intro">Seven spacing stops, four radii. Bars are actual size. The app today uses gap 12/16, card padding 20, shell padding 48/20/32.</p>
+
+    <div class="scale-cols">
+      <div>
+        <p class="token-group-label">Spacing</p>
+        <div class="space-row"><span class="k">--space-1</span><span class="v">4</span><span class="space-bar" style="width:4px"></span></div>
+        <div class="space-row"><span class="k">--space-2</span><span class="v">8</span><span class="space-bar" style="width:8px"></span></div>
+        <div class="space-row"><span class="k">--space-3</span><span class="v">12</span><span class="space-bar" style="width:12px"></span></div>
+        <div class="space-row"><span class="k">--space-4</span><span class="v">16</span><span class="space-bar" style="width:16px"></span></div>
+        <div class="space-row"><span class="k">--space-5</span><span class="v">20</span><span class="space-bar" style="width:20px"></span></div>
+        <div class="space-row"><span class="k">--space-6</span><span class="v">32</span><span class="space-bar" style="width:32px"></span></div>
+        <div class="space-row"><span class="k">--space-7</span><span class="v">48</span><span class="space-bar" style="width:48px"></span></div>
+      </div>
+
+      <div>
+        <p class="token-group-label">Radius (Agentic default-mode shape)</p>
+        <div class="radius-grid">
+          <div class="radius-demo">
+            <div class="radius-box" style="border-radius:var(--radius-sm)"></div>
+            <div class="radius-caption"><b>--radius-sm · 6</b>code chips</div>
+          </div>
+          <div class="radius-demo">
+            <div class="radius-box" style="border-radius:var(--radius-md)"></div>
+            <div class="radius-caption"><b>--radius-md · 9</b>buttons, inputs</div>
+          </div>
+          <div class="radius-demo">
+            <div class="radius-box" style="border-radius:var(--radius-lg)"></div>
+            <div class="radius-caption"><b>--radius-lg · 14</b>cards</div>
+          </div>
+          <div class="radius-demo">
+            <div class="radius-box full" style="border-radius:var(--radius-full)"></div>
+            <div class="radius-caption"><b>--radius-full · 999</b>pills</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ E. ATOMS ============ -->
+  <section id="atoms">
+    <h2 class="section-label"><span class="num">05</span>Atoms</h2>
+    <p class="section-intro">The shipped inventory: same classes, same values as src/App.css. If it renders differently in the app, one of the two is wrong.</p>
+
+    <div class="specimen-grid">
+
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Buttons</span>
+          <span class="taxonomy">BUTTON / PRIMARY · GHOST · DISABLED</span>
+        </div>
+        <div class="specimen-body">
+          <div class="row tight" style="flex-wrap:wrap">
+            <button type="button">Subscribe</button>
+            <button type="button" class="ghost">Copy address</button>
+            <button type="button" disabled>Processing</button>
+          </div>
+        </div>
+        <div class="specimen-note">Primary: --color-content-accent fill, --color-content-on-accent label. Ghost: transparent + 1px --color-border-medium. Hover: brightness 1.06.</div>
+      </div>
+
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Input</span>
+          <span class="taxonomy">INPUT / TEXT</span>
+        </div>
+        <div class="specimen-body">
+          <label>
+            Destination address
+            <input type="text" placeholder="G..." spellcheck="false">
+          </label>
+        </div>
+        <div class="specimen-note">Focus ring: border-color switches to --color-border-accent, no outline. Click the field to see it.</div>
+      </div>
+
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Pills</span>
+          <span class="taxonomy">PILL / STATUS</span>
+        </div>
+        <div class="specimen-body">
+          <div class="row tight">
+            <span class="pill ok">TESTNET</span>
+            <span class="pill warn">LOW BALANCE</span>
+          </div>
+        </div>
+        <div class="specimen-note">Tint background + matching content color. 11px/700, radius-full.</div>
+      </div>
+
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Code chip</span>
+          <span class="taxonomy">CODE / INLINE</span>
+        </div>
+        <div class="specimen-body">
+          <div>Account <code>GBRX…K3LM</code> funded on <code>testnet</code></div>
+        </div>
+        <div class="specimen-note">13px mono on --color-bg-input, radius-sm, 1px --color-border-medium.</div>
+      </div>
+
+      <div class="specimen wide">
+        <div class="specimen-head">
+          <span class="specimen-title">Feedback text</span>
+          <span class="taxonomy">TEXT / HINT · ERROR · SUCCESS</span>
+        </div>
+        <div class="specimen-body">
+          <p class="hint" style="margin:0">Payments settle in about 5 seconds on Stellar testnet.</p>
+          <p class="error" style="margin:0">Transaction failed: insufficient balance for fee.</p>
+          <p class="success" style="margin:0">Payment sent. View on explorer.</p>
+        </div>
+        <div class="specimen-note">All 13px. Color is the only state signal; position under the triggering control.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ F. MOLECULES (PLANNED) ============ -->
+  <section id="molecules">
+    <h2 class="section-label"><span class="num">06</span>Molecules · Planned</h2>
+    <p class="section-intro">Composed from the atoms above, mapped to Agentic taxonomy names, scoped to the Faris PRD. Rendered live so the build has no ambiguity. N/A for MVP: Chat, AI thinking states, Breadcrumbs, Pagination, File upload. Wallet-select MODAL arrives pre-themed from Stellar Wallets Kit.</p>
+
+    <div class="specimen-grid">
+
+      <!-- subscription card -->
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Subscription card</span>
+          <span class="taxonomy">CARD / PRICE + CTA · AVATAR GROUP</span>
+        </div>
+        <div class="specimen-body">
+          <div class="card">
+            <div class="row">
+              <span class="label">Membership</span>
+              <span class="pill ok">ACTIVE</span>
+            </div>
+            <h2 style="margin-top:10px">Komunify Pass</h2>
+            <div class="sub-price">Rp 49.000 <span class="per">/ bulan</span></div>
+            <div class="row tight" style="margin:10px 0 14px">
+              <span class="avatar-group">
+                <span class="avatar a1">KB</span>
+                <span class="avatar a2">DC</span>
+                <span class="avatar a3">TR</span>
+              </span>
+              <span class="avatar-note">3 partner communities</span>
+            </div>
+            <button type="button" style="width:100%">Pay with Stellar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- split allocation -->
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Split allocation</span>
+          <span class="taxonomy">TABLE / CELL-TYPE-PROGRESS + CELL-TYPE-NUMERIC</span>
+        </div>
+        <div class="specimen-body">
+          <div class="card">
+            <span class="label">Revenue split · per payment</span>
+            <div style="margin-top:10px">
+              <div class="alloc-row">
+                <span class="alloc-name">Komunitas Koding BDG</span>
+                <span class="alloc-pct">70%</span>
+                <span class="alloc-amt">Rp 34.300</span>
+                <span class="alloc-track"><span class="alloc-fill" style="width:70%"></span></span>
+              </div>
+              <div class="alloc-row">
+                <span class="alloc-name">DesignerClub ID</span>
+                <span class="alloc-pct">20%</span>
+                <span class="alloc-amt">Rp 9.800</span>
+                <span class="alloc-track"><span class="alloc-fill dim" style="width:20%"></span></span>
+              </div>
+              <div class="alloc-row">
+                <span class="alloc-name">Treasury</span>
+                <span class="alloc-pct">10%</span>
+                <span class="alloc-amt">Rp 4.900</span>
+                <span class="alloc-track"><span class="alloc-fill dimmer" style="width:10%"></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- dashboard stat chips -->
+      <div class="specimen wide">
+        <div class="specimen-head">
+          <span class="specimen-title">Dashboard stats</span>
+          <span class="taxonomy">STAT CHIP / CELL-TYPE-NUMERIC</span>
+        </div>
+        <div class="specimen-body">
+          <div class="stat-strip">
+            <div class="stat-chip">
+              <span class="label">Subscribers</span>
+              <div class="stat-value">12,847</div>
+              <div class="stat-delta">+312 this week</div>
+            </div>
+            <div class="stat-chip">
+              <span class="label">Volume</span>
+              <div class="stat-value">84,210 XLM</div>
+              <div class="stat-delta">+6.4%</div>
+            </div>
+            <div class="stat-chip">
+              <span class="label">Payouts</span>
+              <div class="stat-value">3,120 XLM</div>
+              <div class="stat-delta">across 3 partners</div>
+            </div>
+          </div>
+        </div>
+        <div class="specimen-note">On-chain traction dashboard. Values tabular, labels mono uppercase, one accent color total.</div>
+      </div>
+
+      <!-- entitlement badges -->
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Entitlements</span>
+          <span class="taxonomy">BADGE / LOCKED · UNLOCKED</span>
+        </div>
+        <div class="specimen-body">
+          <div class="card">
+            <span class="label">Benefits</span>
+            <div style="margin-top:6px">
+              <div class="benefit-line">
+                <span>Weekly workshop access</span>
+                <span class="badge unlocked">Unlocked</span>
+              </div>
+              <div class="benefit-line">
+                <span>Private Discord channels</span>
+                <span class="badge unlocked">Unlocked</span>
+              </div>
+              <div class="benefit-line">
+                <span>1:1 mentoring slot</span>
+                <span class="badge locked">Locked</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- stepper -->
+      <div class="specimen">
+        <div class="specimen-head">
+          <span class="specimen-title">Subscribe flow</span>
+          <span class="taxonomy">STEPPER</span>
+        </div>
+        <div class="specimen-body">
+          <div class="card">
+            <div class="stepper">
+              <span class="step done">
+                <span class="step-dot">✓</span>
+                <span class="step-name">Connect</span>
+              </span>
+              <span class="step-line lit"></span>
+              <span class="step active">
+                <span class="step-dot">2</span>
+                <span class="step-name">Pay</span>
+              </span>
+              <span class="step-line"></span>
+              <span class="step todo">
+                <span class="step-dot">3</span>
+                <span class="step-name">Unlocked</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="specimen-note">Done: accent fill. Active: accent tint + accent ring. Upcoming: border only.</div>
+      </div>
+
+      <!-- toasts -->
+      <div class="specimen wide">
+        <div class="specimen-head">
+          <span class="specimen-title">Transaction status</span>
+          <span class="taxonomy">TOAST / PENDING · SUCCESS · FAIL</span>
+        </div>
+        <div class="specimen-body">
+          <div class="toast pending">
+            <span class="toast-dot"></span>
+            <span class="t-msg">Submitting payment to the network<br><span class="t-sub">Usually confirms in ~5s</span></span>
+          </div>
+          <div class="toast tx-success">
+            <span class="toast-dot"></span>
+            <span class="t-msg">Payment confirmed</span>
+            <code>f4a9…3e7c</code>
+          </div>
+          <div class="toast tx-fail">
+            <span class="toast-dot"></span>
+            <span class="t-msg">Transaction failed<br><span class="t-sub">tx_insufficient_balance · nothing was charged</span></span>
+            <button type="button" class="ghost" style="padding:6px 12px;font-size:13px">Retry</button>
+          </div>
+        </div>
+        <div class="specimen-note">Pending pulses opacity only, no movement. Success carries the tx hash as a code chip. Fail always offers a next step.</div>
+      </div>
+
+      <!-- skeleton -->
+      <div class="specimen wide">
+        <div class="specimen-head">
+          <span class="specimen-title">Loading state</span>
+          <span class="taxonomy">SKELETON / TX PENDING</span>
+        </div>
+        <div class="specimen-body">
+          <div class="card" aria-hidden="true">
+            <div class="skeleton sk-line w40" style="margin-bottom:12px"></div>
+            <div class="skeleton sk-balance" style="margin-bottom:12px"></div>
+            <div class="skeleton sk-line w80" style="margin-bottom:8px"></div>
+            <div class="skeleton sk-line w60"></div>
+          </div>
+        </div>
+        <div class="specimen-note">CSS-only shimmer between --color-bg-input stops. Respects prefers-reduced-motion.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="colophon">
+    Komunify Design System v0. Token structure adapted from
+    <a href="https://agenticui.net">Agentic Design System v1.1 (agenticui.net)</a>.
+    Built at APAC Stellar Hackathon 2026.
+  </footer>
+
+</div>
+</body>
+</html>
