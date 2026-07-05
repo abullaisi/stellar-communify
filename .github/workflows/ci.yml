@@ -36,6 +36,9 @@ jobs:
     name: Deploy to Cloudflare Pages
     needs: [contract, dapp]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # non-blocking until CLOUDFLARE_API_TOKEN is a Pages-scoped token
+    # (current secret lacks Pages:Edit; swap it and remove this line)
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
