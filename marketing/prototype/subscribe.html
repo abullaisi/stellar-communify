@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Subscribe</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .toast a { color: inherit; }
+    .tx-area { display: flex; flex-direction: column; gap: var(--space-3); }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <div class="topbar">
+    <a class="logo" href="index.html">Komunify</a>
+    <nav class="topbar-nav">
+      <a href="index.html">Connect</a>
+      <a href="subscribe.html" class="active">Subscribe</a>
+      <a href="benefits.html">Benefits</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="traction.html">Traction</a>
+      <code id="topbar-wallet" class="hidden"></code>
+    </nav>
+  </div>
+
+  <!-- guard: shown only when no wallet is connected -->
+  <section class="card center hidden" id="guard-card">
+    <h2>Connect a wallet first</h2>
+    <p class="hint">Subscribing takes one payment from your connected testnet wallet. Head back and connect to continue.</p>
+    <a class="btn" href="index.html">Go to connect</a>
+  </section>
+
+  <!-- stepper card: 1 done, 2 active, 3 todo (all done after payment) -->
+  <div class="card" id="stepper-card">
+    <div class="stepper">
+      <div class="step done" id="step-1"><span class="step-dot">✓</span><span class="step-name">Connect</span></div>
+      <div class="step-line lit"></div>
+      <div class="step active" id="step-2"><span class="step-dot">2</span><span class="step-name">Pay</span></div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step todo" id="step-3"><span class="step-dot">3</span><span class="step-name">Unlocked</span></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+
+  <!-- subscription card -->
+  <section class="card" id="sub-card">
+    <div class="num-label"><span class="num">02</span> SUBSCRIPTION</div>
+    <h2>Community Bundle, monthly</h2>
+    <p class="balance" id="price">10 XLM</p>
+    <div class="benefit-line"><span>Member benefits at every partner community</span></div>
+    <div class="benefit-line"><span>Subscriber prices across the partner listing</span></div>
+    <div class="benefit-line"><span>An on-chain receipt for every payment</span></div>
+    <div class="row tight">
+      <button id="pay-btn">Pay 10 XLM</button>
+    </div>
+  </section>
+
+  <!-- split card: the ONE sanctioned .split-flow glow in the prototype -->
+  <section class="card split-flow" id="split-card">
+    <div class="num-label"><span class="num">03</span> AUTOMATIC SPLIT</div>
+    <p class="hint">The Soroban contract splits every payment the moment it settles.</p>
+    <div id="alloc-rows"></div>
+    <p class="hint">Split contract <code id="contract-chip"></code></p>
+  </section>
+
+  </div>
+
+  <!-- tx status area: hidden until Pay is clicked -->
+  <div class="tx-area hidden" id="tx-area">
+    <div class="toast pending hidden" id="toast-pending">
+      <span class="toast-dot"></span>
+      <div class="t-msg">Confirming on Stellar testnet
+        <div class="t-sub">Waiting for signature and ledger close</div>
+      </div>
+    </div>
+    <div class="toast tx-success hidden" id="toast-success">
+      <span class="toast-dot"></span>
+      <div class="t-msg">Subscription active
+        <div class="t-sub">Tx <a id="tx-link" href="#" target="_blank" rel="noopener"><code id="tx-chip"></code></a></div>
+      </div>
+    </div>
+    <a class="btn block hidden" id="unlock-cta" href="benefits.html">See what you unlocked</a>
+  </div>
+
+  <footer>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
+    <a href="#" id="reset-proto">Reset demo</a>
+  </footer>
+</main>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    var guardCard = document.getElementById("guard-card");
+    var flowIds = ["stepper-card", "sub-card", "split-card", "tx-area"];
+
+    document.getElementById("reset-proto").addEventListener("click", function (e) {
+      e.preventDefault();
+      K.reset();
+      location.href = "index.html";
+    });
+
+    // Guard: no connected wallet, show only the connect-first card.
+    if (!K.wallet) {
+      guardCard.classList.remove("hidden");
+      flowIds.forEach(function (id) {
+        document.getElementById(id).classList.add("hidden");
+      });
+      return;
+    }
+
+    var payBtn = document.getElementById("pay-btn");
+    var txArea = document.getElementById("tx-area");
+    var toastPending = document.getElementById("toast-pending");
+    var toastSuccess = document.getElementById("toast-success");
+    var unlockCta = document.getElementById("unlock-cta");
+
+    // Price from data layer.
+    document.getElementById("price").textContent = fmtXlm(KDATA.priceXlm);
+    payBtn.textContent = "Pay " + fmtXlm(KDATA.priceXlm);
+
+    // Split rows from KDATA.split (70 / 20 / 10 of the price).
+    var allocWrap = document.getElementById("alloc-rows");
+    KDATA.split.forEach(function (s) {
+      var amt = (KDATA.priceXlm * s.pct) / 100;
+      var row = document.createElement("div");
+      row.className = "alloc-row";
+      row.innerHTML =
+        '<span class="alloc-name">' + s.name + "</span>" +
+        '<span class="alloc-pct">' + s.pct + "%</span>" +
+        '<span class="alloc-amt">' + fmtXlm(amt) + "</span>" +
+        '<div class="alloc-track"><div class="alloc-fill ' + s.cls + '" style="width:' + s.pct + '%"></div></div>';
+      allocWrap.appendChild(row);
+    });
+
+    var contractChip = document.getElementById("contract-chip");
+    contractChip.textContent = shortHash(KDATA.contractId);
+    contractChip.title = KDATA.contractId;
+
+    function setStepDone(id) {
+      var step = document.getElementById(id);
+      step.className = "step done";
+      step.querySelector(".step-dot").textContent = "✓";
+    }
+
+    function showPending() {
+      txArea.classList.remove("hidden");
+      toastSuccess.classList.add("hidden");
+      toastPending.classList.remove("hidden");
+    }
+
+    function showSuccess(hash, animate) {
+      txArea.classList.remove("hidden");
+      toastPending.classList.add("hidden");
+      toastSuccess.classList.remove("hidden");
+
+      var txChip = document.getElementById("tx-chip");
+      txChip.textContent = shortHash(hash);
+      txChip.title = hash;
+      document.getElementById("tx-link").href = KDATA.explorerBase + "/tx/" + hash;
+
+      unlockCta.classList.remove("hidden");
+      if (animate) unlockCta.classList.add("fade-in");
+
+      payBtn.disabled = true;
+      payBtn.textContent = "Subscribed";
+
+      setStepDone("step-2");
+      setStepDone("step-3");
+      document.getElementById("line-2").classList.add("lit");
+    }
+
+    payBtn.addEventListener("click", function () {
+      payBtn.disabled = true;
+      K.subscribe(showPending, function (hash) {
+        K.logActivity("Subscribed", "Community Bundle · " + fmtXlm(KDATA.priceXlm));
+        showSuccess(hash, true);
+      });
+    });
+
+    // Already subscribed on load: show the success state directly.
+    if (K.subscribed) {
+      showSuccess(KDATA.demoTxHash, false);
+    }
+  })();
+</script>
+</body>
+</html>

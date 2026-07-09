@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Benefits</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .stack { display: flex; flex-direction: column; gap: var(--space-4); }
+    .row h2 { margin: 0; }
+    .row .row.tight { margin-top: 0; }
+    .listing-name { font-size: 13px; font-weight: 600; }
+    .listing-sub { font-size: 12px; color: var(--color-content-secondary); margin-top: 2px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item" href="dashboard.html">Dashboard</a>
+    <a class="nav-item active" href="benefits.html">Benefits</a>
+    <a class="nav-item" href="traction.html">Traction</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype · testnet</span>
+  </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
+
+  <!-- guard: shown when there is no active subscription -->
+  <div class="card center hidden" id="guard">
+    <h2>No active subscription yet</h2>
+    <p class="hint">Subscribe once to unlock member benefits at every partner community in the bundle.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+
+  <!-- member dashboard: shown when subscribed -->
+  <div class="stack hidden" id="member">
+
+    <!-- stepper card: all done -->
+    <div class="card">
+      <div class="stepper">
+        <div class="step done"><span class="step-dot">✓</span><span class="step-name">Connect</span></div>
+        <div class="step-line lit"></div>
+        <div class="step done"><span class="step-dot">✓</span><span class="step-name">Pay</span></div>
+        <div class="step-line lit"></div>
+        <div class="step done"><span class="step-dot">✓</span><span class="step-name">Unlocked</span></div>
+      </div>
+    </div>
+
+    <!-- membership card -->
+    <div class="card">
+      <div class="label">MEMBERSHIP</div>
+      <div class="row">
+        <h2>Community Bundle</h2>
+        <span class="pill accent">ACTIVE</span>
+      </div>
+      <p class="hint">Renews Aug 5, 2026 · entitlement recorded on-chain</p>
+      <code id="member-addr"></code>
+      <div class="row tight" style="margin-top: 12px;">
+        <a class="btn ghost sm" href="dashboard.html">Open access dashboard</a>
+      </div>
+    </div>
+
+    <!-- partner cards render into this grid -->
+    <div class="grid-3" id="partner-grid"></div>
+
+    <!-- listing card -->
+    <div class="card" id="listing-card">
+      <div class="num-label"><span class="num">04</span> MEMBER PRICES</div>
+      <p class="hint">Partner items at subscriber prices, on Stellar.</p>
+      <div id="listing-rows"></div>
+    </div>
+
+    <div class="row tight">
+      <a class="btn" href="traction.html">View on-chain traction</a>
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet
+  </footer>
+</main>
+</div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    var guard = document.getElementById("guard");
+    var member = document.getElementById("member");
+
+    // Guard: no subscription, point back to the subscribe flow.
+    if (!K.subscribed) {
+      guard.classList.remove("hidden");
+      return;
+    }
+    member.classList.remove("hidden");
+
+    // Membership: entitlement holder address.
+    var addr = K.wallet || KDATA.demoAddress;
+    var chip = document.getElementById("member-addr");
+    chip.textContent = shortAddr(addr);
+    chip.title = addr;
+
+    // One card per partner community, rendered into the partner grid.
+    var partnerGrid = document.getElementById("partner-grid");
+    KDATA.partners.forEach(function (p) {
+      var card = document.createElement("div");
+      card.className = "card";
+      var benefits = p.benefits.map(function (b) {
+        return '<div class="benefit-line"><div>' +
+          '<div class="content-title">' + b.t + '</div>' +
+          '<div class="content-meta">' + b.d + '</div>' +
+        '</div><span class="pill ok">INCLUDED</span></div>';
+      }).join("");
+      card.innerHTML =
+        '<div class="row">' +
+          '<div class="row tight">' +
+            '<span class="avatar' + (p.avatarCls ? " " + p.avatarCls : "") + '">' + p.initial + '</span>' +
+            '<h2>' + p.name + '</h2>' +
+            '<a class="icon-link" href="partner.html?p=' + p.id + '" title="Preview member content" aria-label="Preview ' + p.name + ' member content">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+            '</a>' +
+          '</div>' +
+          '<span class="badge unlocked">UNLOCKED</span>' +
+        '</div>' +
+        benefits;
+      partnerGrid.appendChild(card);
+    });
+
+    // Listing rows: member price + a working buy flow (owned state persists).
+    var rows = document.getElementById("listing-rows");
+    function renderListings() {
+      rows.innerHTML = "";
+      var owned = K.owned;
+      KDATA.listings.forEach(function (l, i) {
+        var row = document.createElement("div");
+        row.className = "benefit-line";
+        var right;
+        if (owned.indexOf(i) !== -1) {
+          right = '<span class="pill ok">OWNED</span>';
+        } else {
+          right =
+            '<span class="price-was">' + fmtXlm(l.priceXlm) + '</span>' +
+            '<span class="price-now">' + fmtXlm(l.memberPriceXlm) + '</span>' +
+            '<button class="ghost sm" data-buy="' + i + '">Buy</button>';
+        }
+        row.innerHTML =
+          '<div>' +
+            '<div class="listing-name">' + l.name + '</div>' +
+            '<div class="listing-sub">' + l.kind + ' · ' + l.partner + '</div>' +
+          '</div>' +
+          '<div class="row tight">' + right + '</div>';
+        rows.appendChild(row);
+      });
+    }
+    renderListings();
+
+    rows.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-buy]");
+      if (!btn) return;
+      var i = parseInt(btn.getAttribute("data-buy"), 10);
+      btn.disabled = true;
+      btn.textContent = "Confirming…";
+      window.setTimeout(function () {
+        K.addOwned(i);
+        K.logActivity("Purchased", KDATA.listings[i].name + " · " + fmtXlm(KDATA.listings[i].memberPriceXlm));
+        renderListings();
+      }, 1200);
+    });
+  })();
+
+  document.getElementById("reset-proto").addEventListener("click", function (e) {
+    e.preventDefault();
+    K.reset();
+    location.href = "index.html";
+  });
+</script>
+</body>
+</html>

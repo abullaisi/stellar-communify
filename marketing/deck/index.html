@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Komunify — Pitch Deck — APAC Stellar Hackathon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  /* ============================================================
+     KOMUNIFY PITCH DECK — theme: SPLIT v4 (adopted 2026-07-05)
+     Tokens mirror stellar-hackathon/packages/dapp App.css.
+     Rule: NO raw hex in slide markup. Everything goes through tokens.
+     ============================================================ */
+  :root {
+    color-scheme: dark;
+
+    /* backgrounds */
+    --color-bg-primary: #0b0b0a;
+    --color-bg-elevated: #131311;
+    --color-bg-input: #0d0d0b;
+    --color-bg-accent-tint: rgba(250, 214, 87, 0.12);
+    --color-bg-success-tint: rgba(62, 207, 142, 0.14);
+
+    /* content */
+    --color-content-primary: #ecd9c1;
+    --color-content-secondary: #928e85;
+    --color-content-accent: #fad657;
+    --color-content-on-accent: #201607;
+    --color-content-success: #3ecf8e;
+
+    /* border */
+    --color-border-medium: #262521;
+    --color-border-accent: #fad657;
+    --color-border-hover: #3a362c;
+
+    /* board motifs */
+    --glow-split: rgba(250, 214, 87, 0.35); /* EXCLUSIVELY the split-flow visual */
+
+    /* spacing */
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 20px; --space-6: 32px; --space-7: 48px;
+
+    /* radius */
+    --radius-sm: 6px; --radius-md: 9px; --radius-lg: 14px; --radius-full: 999px;
+
+    /* fonts (Geist across the product since 2026-07-09) */
+    --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--color-bg-primary);
+    color: var(--color-content-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  /* ---------- fixed 1280x720 stage, scaled to viewport ---------- */
+  #stage-wrap {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #stage {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    transform-origin: center center;
+    flex: 0 0 auto;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 64px 80px;
+    display: none;
+    flex-direction: column;
+  }
+  .slide.active { display: flex; }
+
+  /* ---------- shared atoms ---------- */
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-content-secondary);
+    margin-bottom: var(--space-5);
+  }
+  .kicker .num { color: var(--color-content-accent); margin-right: var(--space-2); }
+
+  h1 { font-size: 72px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.06; }
+  h2 { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; margin-bottom: var(--space-6); }
+  .gold { color: var(--color-content-accent); }
+
+  .lede { font-size: 20px; color: var(--color-content-secondary); max-width: 760px; }
+
+  .card {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-medium);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+  .card h3 { font-size: 19px; font-weight: 700; margin-bottom: var(--space-2); }
+  .card p { font-size: 15px; color: var(--color-content-secondary); }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-content-secondary);
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+  .label.accent { color: var(--color-content-accent); }
+
+  .grid { display: grid; gap: var(--space-4); }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border-medium);
+    color: var(--color-content-secondary);
+  }
+  .pill.accent {
+    background: var(--color-bg-accent-tint);
+    border-color: var(--color-border-accent);
+    color: var(--color-content-accent);
+  }
+  .pill.success {
+    background: var(--color-bg-success-tint);
+    border-color: var(--color-content-success);
+    color: var(--color-content-success);
+  }
+
+  .mono { font-family: var(--font-mono); }
+
+  /* slide-scale iconography: bare gold glyphs, no UI chip chrome */
+  .glyph { font-size: 34px; color: var(--color-content-accent); display: block; margin-bottom: var(--space-4); }
+  .flow-ic { font-size: 22px; color: var(--color-content-accent); display: block; margin: 0 auto var(--space-2); }
+  .label .fa-solid { margin-right: 6px; }
+
+  /* unboxed editorial structures (cards only where they earn it) */
+  .trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 44px; }
+  .quad { display: grid; grid-template-columns: 1fr 1fr; gap: 36px 64px; }
+  .cell { border-top: 1px solid var(--color-border-medium); padding-top: var(--space-5); }
+  .cell h3 { font-size: 21px; font-weight: 700; margin-bottom: var(--space-2); }
+  .cell p { font-size: 15px; color: var(--color-content-secondary); }
+  .frow { display: flex; gap: 28px; padding: 17px 0; border-top: 1px solid var(--color-border-medium); }
+  .frow:last-of-type { border-bottom: 1px solid var(--color-border-medium); }
+  .frow .num { font-family: var(--font-mono); color: var(--color-content-accent); font-size: 15px; flex: 0 0 44px; padding-top: 3px; }
+  .frow h3 { font-size: 19px; font-weight: 700; }
+  .frow p { font-size: 14px; color: var(--color-content-secondary); margin-top: 4px; max-width: 72ch; }
+  .timeline { border-top: 1px solid var(--color-border-medium); display: flex; gap: 44px; }
+  .phase { position: relative; padding-top: 24px; flex: 1; }
+  .phase::before { content: ""; position: absolute; top: -5px; left: 0; width: 9px; height: 9px; border-radius: var(--radius-full); background: var(--color-content-accent); }
+  .phase:nth-child(2)::before { opacity: .55; }
+  .phase:nth-child(3)::before { opacity: .3; }
+  .phase ul { list-style: none; margin-top: var(--space-3); }
+  .phase li { font-size: 14px; color: var(--color-content-secondary); padding: 5px 0 5px 18px; position: relative; }
+  .phase li::before { content: ""; position: absolute; left: 0; top: 12px; width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--color-content-accent); }
+  .team-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 44px; border-top: 1px solid var(--color-border-medium); padding-top: var(--space-6); }
+  .team-strip h3 { font-size: 19px; font-weight: 700; margin: var(--space-2) 0; }
+  .team-strip p { font-size: 14px; color: var(--color-content-secondary); }
+  .num-tab { font-variant-numeric: tabular-nums; }
+
+  .logo { font-weight: 800; letter-spacing: -0.02em; }
+  .logo b { color: var(--color-content-accent); font-weight: 800; }
+
+  .foot-row {
+    margin-top: auto;
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  /* ---------- slide 1: cover ---------- */
+  .cover { justify-content: center; align-items: flex-start; }
+  .cover .logo { font-size: 30px; margin-bottom: var(--space-7); }
+  .cover h1 { font-size: 96px; }
+  .cover .lede { margin-top: var(--space-5); }
+
+  /* ---------- flow diagram (slide 4) ---------- */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+  .flow-step {
+    flex: 1;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-medium);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .flow-step .label { margin-bottom: var(--space-1); }
+  .flow-step p { font-size: 14px; color: var(--color-content-secondary); }
+  .flow-step strong { font-size: 15px; display: block; margin-bottom: 2px; }
+  .flow-step.split-node {
+    border-color: var(--color-border-accent);
+    box-shadow: 0 0 42px var(--glow-split); /* sanctioned: split-flow only */
+  }
+  .flow-arrow {
+    align-self: center;
+    color: var(--color-content-secondary);
+    font-size: 18px;
+    flex: 0 0 auto;
+  }
+
+  .split-rows { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 44px; }
+  .split-row { text-align: center; border-top: 1px solid var(--color-border-medium); padding-top: var(--space-4); }
+  .split-row .pct {
+    font-size: 60px; font-weight: 800; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .split-row .pct.gold { color: var(--color-content-accent); }
+
+  /* ---------- judging table (slide 10) ---------- */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    text-align: left;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--color-border-medium);
+    font-size: 15px;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-content-secondary);
+    font-weight: 500;
+  }
+  td.w { font-family: var(--font-mono); color: var(--color-content-accent); white-space: nowrap; }
+  td.c { font-weight: 700; white-space: nowrap; }
+  td.what { color: var(--color-content-secondary); }
+
+  /* ---------- roadmap (slide 9) ---------- */
+  .lane { display: flex; gap: var(--space-4); }
+  .lane .card { flex: 1; }
+  .lane .card ul { list-style: none; margin-top: var(--space-2); }
+  .lane .card li {
+    font-size: 14px; color: var(--color-content-secondary);
+    padding: 5px 0 5px 18px; position: relative;
+  }
+  .lane .card li::before {
+    content: ""; position: absolute; left: 0; top: 12px;
+    width: 6px; height: 6px; border-radius: var(--radius-full);
+    background: var(--color-content-accent);
+  }
+
+  /* ---------- chrome: counter + hints ---------- */
+  #hud {
+    position: fixed;
+    bottom: 18px;
+    right: 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--color-content-secondary);
+    user-select: none;
+    z-index: 10;
+  }
+  #hud b { color: var(--color-content-accent); font-weight: 500; }
+  #progress {
+    position: fixed;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: var(--color-content-accent);
+    transition: width 0.25s ease;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div id="stage-wrap">
+<div id="stage">
+
+  <!-- 1 · COVER -->
+  <section class="slide cover">
+    <div class="logo"><b>K</b>OMUNIFY</div>
+    <div class="kicker">APAC Stellar Hackathon · Payment Consumer Applications</div>
+    <h1>One payment.<br><span class="gold">Every community.</span></h1>
+    <p class="lede">Community subscription payments on Stellar. One subscription unlocks partner benefits, Soroban splits the revenue, and the traction is verifiable on-chain.</p>
+    <div class="foot-row">
+      <span class="pill success">Testnet live</span>
+      <span class="pill">Soroban</span>
+      <span class="pill">Bandung · July 2026</span>
+    </div>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+<section class="slide">
+    <div class="kicker"><span class="num">01</span>Problem</div>
+    <h2>Community access is fragmented.<br>Monetization is manual.</h2>
+    <div class="trio">
+      <div class="cell">
+        <i class="fa-solid fa-layer-group glyph"></i>
+        <span class="label">Members</span>
+        <h3>Too many separate memberships</h3>
+        <p>Every community means another payment to manage. Cost adds up, value gets hard to compare, and most people just stop joining.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-file-invoice glyph"></i>
+        <span class="label">Community managers</span>
+        <h3>No clean way to get paid</h3>
+        <p>Packaging benefits and splitting partner revenue runs on spreadsheets and trust. Manual reconciliation, every single month.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-eye-slash glyph"></i>
+        <span class="label">Project owners</span>
+        <h3>Traction is unverifiable</h3>
+        <p>Screenshots and self-reported numbers don't convince partners, ecosystems, or judges. There's no shared proof of activity.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · SOLUTION -->
+<section class="slide">
+    <div class="kicker"><span class="num">02</span>Solution</div>
+    <h2>One subscription. Automatic split.<br><span class="gold">Proof on-chain.</span></h2>
+    <div class="trio">
+      <div class="cell">
+        <i class="fa-solid fa-certificate glyph"></i>
+        <span class="label accent">Pay once</span>
+        <h3>Bundled access</h3>
+        <p>Connect a Stellar wallet and pay one subscription. It opens benefits across whitelisted partner communities.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-arrows-split-up-and-left glyph"></i>
+        <span class="label accent">Split automatically</span>
+        <h3>Soroban does the payouts</h3>
+        <p>Every payment splits between project owner, community manager, and platform by contract logic. Zero manual accounting.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-chart-line glyph"></i>
+        <span class="label accent">Verify anything</span>
+        <h3>On-chain traction dashboard</h3>
+        <p>Subscribers, volume, and payout events read straight from the chain. Anyone can check the numbers are real.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · HOW IT WORKS -->
+<section class="slide">
+    <div class="kicker"><span class="num">03</span>How it works</div>
+    <h2>Wallet to payout in one flow</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <i class="fa-solid fa-wallet flow-ic"></i>
+        <span class="label">Step 1</span>
+        <strong>Connect wallet</strong>
+        <p>Stellar Wallets Kit, multi-wallet</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <i class="fa-regular fa-credit-card flow-ic"></i>
+        <span class="label">Step 2</span>
+        <strong>Subscribe</strong>
+        <p>10 XLM on testnet, one signature</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step split-node">
+        <i class="fa-solid fa-arrows-split-up-and-left flow-ic"></i>
+        <span class="label accent">Step 3</span>
+        <strong>Soroban splits it</strong>
+        <p>70 / 20 / 10, set in the contract</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <i class="fa-solid fa-lock-open flow-ic"></i>
+        <span class="label">Step 4</span>
+        <strong>Benefits activate</strong>
+        <p>Entitlement recorded on-chain</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <i class="fa-solid fa-chart-line flow-ic"></i>
+        <span class="label">Step 5</span>
+        <strong>Dashboard verifies</strong>
+        <p>Live reads via Horizon</p>
+      </div>
+    </div>
+    <div class="split-rows">
+      <div class="split-row">
+        <span class="label">Project owner</span>
+        <div class="pct gold">70%</div>
+      </div>
+      <div class="split-row">
+        <span class="label">Community manager</span>
+        <div class="pct">20%</div>
+      </div>
+      <div class="split-row">
+        <span class="label">Platform</span>
+        <div class="pct">10%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · FEATURES -->
+<section class="slide">
+    <div class="kicker"><span class="num">04</span>Core features</div>
+    <h2>Four features, one financial loop</h2>
+    <div>
+      <div class="frow">
+        <div class="num">7.1</div>
+        <div>
+          <h3>Unified subscription</h3>
+          <p>Connect a supported wallet, pay one subscription on testnet, and the entitlement record updates in the app after confirmation.</p>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="num">7.2</div>
+        <div>
+          <h3>Partner listing layer</h3>
+          <p>Partner resources listed with metadata and subscriber discounts. Tokenization-compatible by design, marketplace comes later.</p>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="num">7.3</div>
+        <div>
+          <h3>Automated disbursement</h3>
+          <p>Fixed-percentage split runs on every successful payment. Payout state is auditable and config changes are access-controlled.</p>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="num">7.4</div>
+        <div>
+          <h3>Traction dashboard</h3>
+          <p>Subscriber count, payment volume, and payout events from testnet data. Judges can match every number to real activity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · WHY STELLAR -->
+<section class="slide">
+    <div class="kicker"><span class="num">05</span>Why Stellar</div>
+    <h2>The right rails for consumer payments</h2>
+    <div class="quad">
+      <div class="cell">
+        <i class="fa-solid fa-bolt glyph"></i>
+        <span class="label">Settlement</span>
+        <h3>Fast and near-free</h3>
+        <p>Recurring consumer payments need instant settlement at negligible fees. That's Stellar's home turf.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-file-code glyph"></i>
+        <span class="label">Soroban</span>
+        <h3>Programmable money logic</h3>
+        <p>Subscription records, entitlement checks, and the revenue split live in one Rust contract, not in a backend spreadsheet.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-satellite-dish glyph"></i>
+        <span class="label">Horizon</span>
+        <h3>Public, verifiable reads</h3>
+        <p>The traction dashboard reads the chain directly. Metrics are checkable by anyone, not self-reported.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-wallet glyph"></i>
+        <span class="label">Wallets Kit</span>
+        <h3>Non-crypto-native friendly</h3>
+        <p>One guided connect-and-pay flow. A first-time user never sees raw keys or manual transaction building.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · BUSINESS MODEL -->
+<section class="slide">
+    <div class="kicker"><span class="num">06</span>Business model</div>
+    <h2>A three-sided value exchange</h2>
+    <div class="trio" style="margin-bottom: var(--space-6);">
+      <div class="cell">
+        <i class="fa-solid fa-users glyph"></i>
+        <span class="label">Members get</span>
+        <h3>Bundled access</h3>
+        <p>One recurring payment instead of a stack of separate memberships.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-rotate glyph"></i>
+        <span class="label">Communities get</span>
+        <h3>Recurring monetization</h3>
+        <p>Automated payouts from every subscription, no reconciliation work.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-chart-simple glyph"></i>
+        <span class="label">Owners get</span>
+        <h3>Measurable adoption</h3>
+        <p>Partner-led growth with on-chain proof of engagement.</p>
+      </div>
+    </div>
+    <div style="border-top: 1px solid var(--color-border-medium); padding-top: var(--space-5);">
+      <span class="label accent"><i class="fa-solid fa-coins"></i>How Komunify earns</span>
+      <p style="font-size: 19px; color: var(--color-content-primary); max-width: 76ch;">Platform share of subscription revenue plus a share of partner transactions. Payments and payout automation first; marketplace expansion is a later phase.</p>
+    </div>
+  </section>
+
+  <!-- 8 · TRACTION / NORTH STAR -->
+<section class="slide">
+    <div class="kicker"><span class="num">07</span>North star &amp; progress</div>
+    <h2>Built and measurable, today</h2>
+    <div class="card" style="margin-bottom: var(--space-6); border-color: var(--color-border-accent);">
+      <span class="label accent"><i class="fa-solid fa-star"></i>North star metric</span>
+      <p style="font-size: 19px; color: var(--color-content-primary);">Successful active subscriptions completed on-chain. It proves the full loop: wallet connect, payment, split, entitlement.</p>
+    </div>
+    <div class="trio">
+      <div class="cell">
+        <i class="fa-solid fa-file-contract glyph"></i>
+        <span class="label">Deployed July 5</span>
+        <h3>Contract live on testnet</h3>
+        <p>Subscription + split in Soroban, 4/4 unit tests passing. Verified subscribe transaction: 10 XLM in, split 7 / 2 / 1 out on-chain.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-globe glyph"></i>
+        <span class="label accent">Live now</span>
+        <h3>komunify.pages.dev</h3>
+        <p>Full flow deployed: multi-wallet connect, testnet subscription, entitlement state, and live on-chain stats.</p>
+      </div>
+      <div class="cell">
+        <i class="fa-solid fa-circle-check glyph"></i>
+        <span class="label">Ship pipeline</span>
+        <h3>CI green, demo-ready</h3>
+        <p>Contract tests and build on every push, a clickable product prototype, and a mobile-responsive pass.</p>
+      </div>
+    </div>
+    <div class="foot-row mono" style="font-size: 12px; letter-spacing: 0.08em; color: var(--color-content-secondary);">
+      SUPPORTING METRICS&nbsp;&nbsp;·&nbsp;&nbsp;CONNECTED WALLETS&nbsp;&nbsp;·&nbsp;&nbsp;TESTNET VOLUME&nbsp;&nbsp;·&nbsp;&nbsp;PAYOUT EVENTS&nbsp;&nbsp;·&nbsp;&nbsp;BENEFITS REDEEMED
+    </div>
+  </section>
+
+  <!-- 9 · ROADMAP -->
+<section class="slide">
+    <div class="kicker"><span class="num">08</span>Roadmap</div>
+    <h2>One entry. <span class="gold">Two tracks.</span></h2>
+    <div class="timeline" style="margin-top: var(--space-4);">
+      <div class="phase">
+        <span class="label accent"><i class="fa-solid fa-rocket"></i>Track 1 · Now → July 14 · Hackathon MVP</span>
+        <ul>
+          <li>Contract + split live on testnet (done, July 5)</li>
+          <li>dApp live at komunify.pages.dev with on-chain stats (done)</li>
+          <li>CI pipeline: contract tests + build on every push (done)</li>
+          <li>Remaining: demo video and final submission pack</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="label"><i class="fa-solid fa-gavel"></i>July 18 → 24 · Judging</span>
+        <ul>
+          <li>Demo Day, July 18</li>
+          <li>Grand Finale, July 24</li>
+          <li>Pilot conversations with Bandung communities</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="label accent"><i class="fa-solid fa-people-group"></i>Track 2 · Post-hackathon · Chapter zero</span>
+        <ul>
+          <li>We run the first Komunify-powered builder collective in Bandung</li>
+          <li>Every new chapter runs on our rails: memberships, bounty splits, on-chain reporting</li>
+          <li>SCF referral path funds the road from pilot to platform</li>
+          <li>V1.0: multi-tier subscriptions, self-serve partner onboarding</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · JUDGING FIT -->
+  <section class="slide">
+    <div class="kicker"><span class="num">09</span>Judging fit</div>
+    <h2>Mapped to every criterion</h2>
+    <table>
+      <thead>
+        <tr><th style="width:120px;">Weight</th><th style="width:280px;">Criterion</th><th>What we show</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="w">25%</td><td class="c">Technical + Stellar depth</td><td class="what">Live wallet connect, testnet payment, Soroban split, Horizon-fed dashboard</td></tr>
+        <tr><td class="w">25%</td><td class="c">Real-world fit</td><td class="what">Fragmented community access and partner monetization, solved with recurring payments</td></tr>
+        <tr><td class="w">20%</td><td class="c">Innovation</td><td class="what">One subscription, many communities, automatic split, verifiable traction</td></tr>
+        <tr><td class="w">10%</td><td class="c">Viability + GTM</td><td class="what">We operate chapter zero ourselves; every future community chapter is a customer</td></tr>
+        <tr><td class="w">5%</td><td class="c">UX</td><td class="what">One guided wallet-and-pay flow, built for non-crypto-native users</td></tr>
+        <tr><td class="w">5%</td><td class="c">Team</td><td class="what">Four builders, each running a real community, with an SCF referral path to continue</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 11 · TEAM -->
+<section class="slide">
+    <div class="kicker"><span class="num">10</span>Team</div>
+    <h2>We each run a community.<br>We're building the tool we need.</h2>
+    <div class="team-strip">
+      <div>
+        <span class="label accent"><i class="fa-solid fa-pen-ruler"></i>Product + design</span>
+        <h3>Imam Abullaisi</h3>
+        <p>Design and PM operator. Brand, product flows, design system.</p>
+      </div>
+      <div>
+        <span class="label accent"><i class="fa-solid fa-code"></i>Engineering</span>
+        <h3>Jason</h3>
+        <p>dApp and contracts. Owns the team repo and build pipeline.</p>
+      </div>
+      <div>
+        <span class="label accent"><i class="fa-solid fa-code"></i>Engineering</span>
+        <h3>Faris Abdurrahman</h3>
+        <p>Engineering with PM background. Wrote the Komunify PRD.</p>
+      </div>
+      <div>
+        <span class="label accent"><i class="fa-solid fa-handshake"></i>Business</span>
+        <h3>Nada</h3>
+        <p>Business and partnerships. Partner community pipeline.</p>
+      </div>
+    </div>
+    <div class="foot-row">
+      <span class="pill">Formed at Build on Stellar Bootcamp Bandung</span>
+      <span class="pill">Dev Web3 Bandung community</span>
+    </div>
+  </section>
+
+  <!-- 12 · CLOSE -->
+  <section class="slide cover">
+    <div class="logo"><b>K</b>OMUNIFY</div>
+    <div class="kicker">Demo: one complete financial workflow</div>
+    <h1>Connect. Subscribe.<br><span class="gold">Split. Verify.</span></h1>
+    <p class="lede">Wallet connect, testnet subscription, Soroban split to three parties, entitlement activation, and a dashboard that proves it all happened on-chain.</p>
+    <div class="foot-row">
+      <span class="pill accent">komunify.pages.dev</span>
+      <span class="pill">github.com/yoms07/stellar-hackathon</span>
+      <span class="pill">Stellar Testnet</span>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div id="progress"></div>
+<div id="hud"><b>←</b> <b>→</b> &nbsp;<span id="counter">1 / 12</span></div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    document.getElementById('stage').style.transform = 'scale(' + s + ')';
+  }
+
+  // wheel/trackpad: scroll to advance slides (threshold + cooldown so
+  // trackpad momentum doesn't skip several slides per gesture)
+  let wheelLock = false;
+  addEventListener('wheel', (e) => {
+    if (wheelLock || Math.abs(e.deltaY) < 24) return;
+    wheelLock = true;
+    show(i + (e.deltaY > 0 ? 1 : -1));
+    setTimeout(() => { wheelLock = false; }, 550);
+  }, { passive: true });
+
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  addEventListener('click', (e) => {
+    if (e.clientX > innerWidth * 0.66) show(i + 1);
+    else if (e.clientX < innerWidth * 0.15) show(i - 1);
+  });
+  addEventListener('resize', fit);
+
+  fit();
+  show(i);
+</script>
+</body>
+</html>
