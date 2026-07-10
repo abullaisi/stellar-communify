@@ -112,8 +112,10 @@ Exit criteria for the whole phase: `bun typecheck` clean, `cd contracts && cargo
 
 ### Lane A — Contracts · owns `contracts/`
 
-- [ ] `usdc` crate: full `TokenInterface`, `init`, `mint`, `faucet` (500 USDC, 24h cooldown per
-      address), `faucet_available_at`. 7 decimals, symbol `USDC`.
+- [x] `usdc` crate: full `TokenInterface`, `init`, `mint`, `faucet` (500 USDC, 24h cooldown per
+      address), `faucet_available_at`. 7 decimals, symbol `USDC`. (A, 2026-07-10) — 7 unit tests
+      pass (`cargo test -p usdc`): metadata, mint, faucet+cooldown+post-cooldown, transfer,
+      approve/transfer_from. TTL bumped on every balance/allowance/instance access.
 - [ ] `komunify` crate, step 1 — money only: `init`, `set_manager`, `subscribe`, `is_active`,
       `get_subscription`, `claim`, `get_accrued`, `get_stats`. Prove this before touching reads.
 - [ ] `komunify` crate, step 2 — content registry: `register_content`, `add_content_manager`,
