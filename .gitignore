@@ -16,9 +16,12 @@ next-env.d.ts
 
 # Generated / scratch contract bindings
 .tmp-bindings/
+tmp-bindings/
 
-# Local deploy artifact (contract id — share via .env instead)
+# Local deploy artifacts (contract ids — share via .env instead)
 .contract-id
+.contract-id.usdc
+.contract-id.komunify
 
 # macOS
 .DS_Store
