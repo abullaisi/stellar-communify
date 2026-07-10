@@ -4,16 +4,21 @@ This file provides guidance to Claude Code when working in this package.
 
 ## Project Overview
 
-Next.js 15 frontend with App Router, TanStack Query, Tailwind CSS, and shadcn/ui. Part of the `komunify` monorepo.
+Next.js 15 frontend with App Router, TanStack Query, Tailwind CSS, and shadcn/ui. Part of the
+`komunify` monorepo — one app, one `/dashboard` route that renders a member or manager panel
+based on `is_manager(wallet)` (D-006). `/` stays a stub; the landing page is out of scope for
+the MVP. See `docs/PLAN.md` for the full architecture and `DESIGN.md` for the visual system.
 
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript strict mode
-- **Styling**: Tailwind CSS + shadcn/ui
+- **Styling**: Tailwind CSS + shadcn/ui, re-skinned to the `DESIGN.md` token set (D-007)
 - **Data Fetching**: TanStack Query (React Query v5)
-- **Auth**: better-auth client (cookie-based sessions)
+- **Wallet**: Freighter (`@stellar/freighter-api`) via `providers/wallet-provider.tsx`
+- **Auth**: wallet-signature session (D-001) — no better-auth, no password
 - **HTTP**: Custom `ApiClient` in `services/api/client.ts`
+- **Contracts**: `@komunify/contract-client` — generated, namespaced `Komunify` / `Usdc` clients
 
 ## Development Commands
 
@@ -28,34 +33,35 @@ pnpm lint         # ESLint
 
 ```
 app/
-├── layout.tsx          # Root layout (wraps with QueryProvider)
-└── page.tsx            # Home page
+├── layout.tsx          # Root layout (wraps with QueryProvider + WalletProvider)
+├── page.tsx             # Stub — landing page is out of scope
+└── dashboard/           # Member / manager panel, role from is_manager(wallet) (D-006)
 
 components/
-├── examples/           # Example components (delete or adapt)
-└── ui/                 # shadcn/ui components (add via: npx shadcn add <component>)
+├── wallet/              # ConnectWalletButton, NetworkGuard
+└── ui/                  # shadcn/ui primitives, re-skinned per DESIGN.md (D-007)
 
 lib/
-├── utils.ts            # cn() utility (clsx + tailwind-merge)
-└── auth-client.ts      # better-auth client — useSession, signIn, signUp, signOut
+├── utils.ts             # cn() utility (clsx + tailwind-merge)
+└── stellar.ts            # Runtime network config + komunify/usdc contract ids from env
 
 providers/
-└── query-provider.tsx  # TanStack Query setup + ReactQueryDevtools
+├── query-provider.tsx   # TanStack Query setup + ReactQueryDevtools
+└── wallet-provider.tsx  # <WalletProvider> + useWallet() (Freighter connect/disconnect)
 
 services/
 ├── api/
-│   ├── client.ts       # ApiClient — fetch wrapper with credentials: 'include'
-│   └── endpoints.ts    # API_ENDPOINTS constant
-├── auth/
-│   ├── auth.types.ts   # AuthUser, AuthSession, SignInInput, SignUpInput
-│   ├── auth.hook.ts    # useSession, useSignIn, useSignUp, useSignOut
-│   └── index.ts
-└── users/
-    ├── users.types.ts
-    ├── users.queries.ts
-    ├── users.service.ts
-    └── users.hook.ts
+│   ├── client.ts        # ApiClient — fetch wrapper with credentials: 'include'
+│   └── endpoints.ts      # API_ENDPOINTS constant
+├── auth/         challenge → signMessage → verify → kmf_session cookie
+├── subscription/ price, isActive, expiresAt, subscribe(), faucet()
+├── content/       list, upload, register, recordAccess, download
+├── manager/       myContent, reads, accrued, claim(), settleContent()
+└── traction/      GET /stats
 ```
+
+> The wallet address keys every React Query call — switching accounts in Freighter must
+> invalidate everything. See `providers/wallet-provider.tsx`.
 
 ## Architecture Patterns
 
@@ -115,35 +121,32 @@ export function useCreatePost() {
 }
 ```
 
-### Auth usage
+For domains that call the contract directly (`subscription`, `content` writes, `manager`),
+the service wraps a `Komunify.Client` / `Usdc.Client` from `@komunify/contract-client`
+instead of `ApiClient`; reads simulate over RPC with no wallet, writes sign via Freighter.
+See `lib/stellar.ts` for the network/contract-id config and `providers/wallet-provider.tsx`
+for `useWallet()`.
+
+### Wallet-signature auth (D-001)
 
 ```typescript
 'use client';
-import { useSession, useSignIn, useSignOut } from '@/services/auth';
+import { useWallet } from '@/providers/wallet-provider';
+import { useAuth } from '@/services/auth';
 
-export function ProfileButton() {
-  const { data: session, isPending } = useSession();
-  const signIn = useSignIn();
-  const signOut = useSignOut();
+export function SignInButton() {
+  const { address, connect } = useWallet();
+  const { signIn, isAuthenticated } = useAuth();
 
-  if (isPending) return <span>Loading...</span>;
-  if (!session) return <button onClick={() => signIn({ email, password })}>Sign in</button>;
-
-  return (
-    <div>
-      <span>{session.user.name}</span>
-      <button onClick={signOut}>Sign out</button>
-    </div>
-  );
+  if (isAuthenticated) return null;
+  return <button onClick={() => (address ? signIn() : connect())}>Sign in</button>;
 }
 ```
 
-For direct better-auth access:
-```typescript
-import { authClient } from '@/lib/auth-client';
-// authClient.signIn.email(), authClient.signUp.email(), authClient.signOut()
-// authClient.useSession() — React hook
-```
+`signIn()` calls `POST /auth/challenge`, prompts Freighter's `signMessage(nonce)`, then
+`POST /auth/verify` — the server sets the `kmf_session` cookie. No tokens are stored
+client-side. See `docs/API_SPEC.md` §1 and `docs/DECISIONS.md` D-001 for the exact flow and
+the Freighter `signMessage` byte-encoding gotcha.
 
 ### Adding shadcn/ui components
 
@@ -151,18 +154,20 @@ import { authClient } from '@/lib/auth-client';
 npx shadcn add button
 npx shadcn add input
 npx shadcn add dialog
-# Components are placed in components/ui/
+# Components are placed in components/ui/ — re-skin to DESIGN.md tokens before using (D-007).
+# A component rendering default shadcn colors is a bug.
 ```
 
 ### Client vs Server components
 
 - Default: Server Components (no `'use client'`)
-- Add `'use client'` when using: hooks, event handlers, browser APIs, TanStack Query, better-auth
+- Add `'use client'` when using: hooks, event handlers, browser APIs, TanStack Query, wallet state
 - Keep data fetching in Server Components where possible for performance
 
 ### Environment variables
 
 - `NEXT_PUBLIC_API_URL` — backend API URL (exposed to browser)
+- `NEXT_PUBLIC_KOMUNIFY_CONTRACT_ID` / `NEXT_PUBLIC_USDC_CONTRACT_ID` — deployed contract ids
 - All other secrets must NOT be prefixed with `NEXT_PUBLIC_`
 
 ## Type Sharing
@@ -170,14 +175,15 @@ npx shadcn add dialog
 Import shared types from the monorepo shared package:
 
 ```typescript
-import type { User, CreateUser } from '@komunify/shared';
-import { UserSchema } from '@komunify/shared';
+import type { ContentListItem } from '@komunify/shared';
+import { ContentListItemSchema } from '@komunify/shared';
 ```
 
 ## Best Practices
 
 - Use `@/` path alias for all imports (configured in tsconfig.json)
-- Never store auth tokens manually — better-auth uses HTTP-only cookies
+- Never store session tokens manually — the `kmf_session` cookie is HTTP-only
 - Use `useQuery` for reads, `useMutation` for writes
-- Keep React Query cache keys in `*.queries.ts` files
+- Keep React Query cache keys in `*.queries.ts` files, prefixed by wallet address
 - Use `cn()` from `@/lib/utils` for conditional class merging
+- A component rendering default shadcn colors is a bug (D-007)

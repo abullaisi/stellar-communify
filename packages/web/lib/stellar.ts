@@ -12,8 +12,10 @@ export function getStellarConfig() {
     networkPassphrase: net.networkPassphrase,
     rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ?? net.rpcUrl,
     horizonUrl: process.env.NEXT_PUBLIC_HORIZON_URL ?? net.horizonUrl,
-    /** Deployed notes contract id (C...). Empty until you deploy + set it. */
-    contractId: process.env.NEXT_PUBLIC_NOTES_CONTRACT_ID ?? '',
+    /** Deployed komunify contract id (C...). Empty until you deploy + set it. */
+    komunifyContractId: process.env.NEXT_PUBLIC_KOMUNIFY_CONTRACT_ID ?? '',
+    /** Deployed usdc contract id (C...). Empty until you deploy + set it. */
+    usdcContractId: process.env.NEXT_PUBLIC_USDC_CONTRACT_ID ?? '',
   };
 }
 

@@ -1,9 +1,4 @@
-import { NotesApp } from '@/components/notes/notes-app';
-
 export default function Home() {
-  return (
-    <main className="shell">
-      <NotesApp />
-    </main>
-  );
+  // Landing page is out of scope for the MVP (see docs/PLAN.md). /dashboard is the app.
+  return <main className="shell" />;
 }
