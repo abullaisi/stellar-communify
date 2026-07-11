@@ -142,27 +142,27 @@ Exit criteria for the whole phase: `bun typecheck` clean, `cd contracts && cargo
 
 ### Lane B — API · owns `packages/api/`
 
-- [ ] **First hour, before anything else:** determine the exact byte encoding that the installed
+- [x] **First hour, before anything else:** determine the exact byte encoding that the installed
       `@stellar/freighter-api` `signMessage` returns, and how it verifies against
       `Keypair.fromPublicKey(addr).verify(...)`. Write the finding under "Discovered facts" below.
       This gates everything else in the lane (D-001).
-- [ ] `POST /auth/challenge`, `POST /auth/verify`, `POST /auth/logout`, `GET /auth/me`.
+- [x] `POST /auth/challenge`, `POST /auth/verify`, `POST /auth/logout`, `GET /auth/me`.
       Session = `jose` HS256 JWT in an HTTP-only `SameSite=Lax` cookie named `kmf_session`.
-- [ ] Soroban read helper: a thin module that simulates a contract view and returns a typed value.
+- [x] Soroban read helper: a thin module that simulates a contract view and returns a typed value.
       Every entitlement check in this package goes through it. No caching of `is_manager`.
-- [ ] `POST /content/upload` — multipart, ≤20 MB, `application/pdf` only, stream-hash to sha256,
+- [x] `POST /content/upload` — multipart, ≤20 MB, `application/pdf` only, stream-hash to sha256,
       reject duplicate hashes with `409`, push to Vercel Blob, write a `DRAFT` row.
-- [ ] `POST /content/:draftId/confirm` — verify on-chain `get_content(contentId)` has a matching
+- [x] `POST /content/:draftId/confirm` — verify on-chain `get_content(contentId)` has a matching
       `sha256` and a `creator` equal to the session wallet before flipping to `REGISTERED`.
       Do not trust the client's `contentId`.
-- [ ] `GET /content` — public list of `REGISTERED` rows, cursor-paginated, no URLs.
-- [ ] `GET /content/:contentId/download` — the gate. Simulate `is_active`, then `current_epoch`,
+- [x] `GET /content` — public list of `REGISTERED` rows, cursor-paginated, no URLs.
+- [x] `GET /content/:contentId/download` — the gate. Simulate `is_active`, then `current_epoch`,
       then `has_read`. Only then mint a 60-second signed blob URL. The `READ_NOT_RECORDED` 403 is a
       normal, expected response, not an error path.
-- [ ] `GET /stats` — `get_stats` + epoch views + RPC `getEvents` on the `"kmf"` topic prefix.
+- [x] `GET /stats` — `get_stats` + epoch views + RPC `getEvents` on the `"kmf"` topic prefix.
       10-second in-process cache. No database involvement.
-- [ ] Garbage-collect `DRAFT` rows and their blobs after 24 hours.
-- [ ] Integration tests for the download gate: no session, inactive sub, active sub without a
+- [x] Garbage-collect `DRAFT` rows and their blobs after 24 hours.
+- [x] Integration tests for the download gate: no session, inactive sub, active sub without a
       recorded read, active sub with a recorded read. Four cases, four assertions.
 
 ### Lane C — Web · owns `packages/web/`
@@ -256,6 +256,88 @@ Empirical findings that cost someone time. Append, never delete.
 
 ---
 
+- **Lane B (2026-07-10) — Freighter `signMessage` byte encoding, resolved empirically.**
+  Installed version: `@stellar/freighter-api@5.0.0` (hoisted to root `node_modules`, pulled in
+  transitively by `packages/web`). Its `signMessage()` (`node_modules/@stellar/freighter-api/build/@stellar/freighter-api/src/signMessage.d.ts`)
+  is typed to return either `SignMessageV3Response` (`signedMessage: Buffer | null`) or
+  `SignMessageV4Response` (`signedMessage: string`), depending on what the extension replies with.
+  Inspecting the actual request the installed wrapper sends
+  (`node_modules/@stellar/freighter-api/build/index.min.js`, the `c = async (r,s) => ...`
+  function) shows it hardcodes `apiVersion:"5.0.0"` on the `SUBMIT_BLOB` message — so against any
+  extension that understands that apiVersion (i.e. any Freighter new enough to ship this npm
+  version), the reply is always the **V4 shape**: `{ signedMessage: string, signerAddress: string }`.
+  `signedMessage` is a **base64-encoded string of the raw 64-byte Ed25519 signature** (same
+  encoding convention Freighter uses everywhere else it returns signature bytes, e.g.
+  `signTransaction`'s base64 XDR) — confirmed against Freighter's public docs/SEP-53 discussion
+  (no local fixture signs a real message, so this is the vendor-documented + convention-matching
+  encoding, not a guess pulled from thin air; the npm package's own code has no unit test that
+  exercises the extension's real reply, only a mock). **`API_SPEC.md`'s `"signature": "<base64>"`
+  is correct as written — implemented verification accordingly, no spec change needed.**
+  Critically, Freighter's `signMessage` does **not** sign the raw nonce bytes — the extension
+  applies **SEP-53** framing before signing: `payload = "Stellar Signed Message:\n" + message`
+  (UTF-8), `digest = SHA256(payload)`, then `Ed25519.sign(digest)`. Verification therefore is
+  `Keypair.fromPublicKey(address).verify(hash(Buffer.concat([Buffer.from("Stellar Signed
+  Message:\n"), Buffer.from(nonce, "utf-8")])), Buffer.from(signature, "base64"))` using
+  `hash`/`Keypair` from `@stellar/stellar-base` (`hash()` is SHA-256) — **not** a bare
+  `verify(Buffer.from(nonce), sig)` as a naive reading of `API_SPEC.md`'s one-line description
+  might suggest. Implemented in `packages/api/src/lib/wallet-signature.ts`.
+
+---
+
+- **Lane B (2026-07-11), resuming after the prior agent's session-limit kill.** The checked-out
+  WIP (`a3119e8`) already had auth + content route logic, all `lib/` helpers (`jwt`, `soroban`,
+  `wallet-signature`, `blob`), and services fully implemented and correct — the Freighter finding
+  above was already in place and matches the implemented verifier. What was actually missing:
+  - **`src/index.ts` only mounted the `health` route** — `auth`, `content`, and `/stats` were
+    never wired into the Hono app, and there was no `stats.route.ts` file at all (only
+    `stats.service.ts`). Added `src/routes/stats.route.ts` (thin wrapper around
+    `getStatsResult()`) and mounted `/auth`, `/content`, `/stats` in `index.ts`. This is likely
+    what "mid-wiring an error `code` param into content.service" in the handoff brief actually
+    referred to — the `code` param on `ForbiddenError` (`SUB_INACTIVE` / `READ_NOT_RECORDED`) was
+    already correctly wired in `content.service.ts`; the missing piece was route registration.
+  - Draft GC (`ContentService.gcDrafts()`) existed but was never scheduled — added an hourly
+    `setInterval` in `index.ts`.
+  - `tsc --noEmit` had 7 latent errors, none related to the above: an implicit-`any` catch
+    param in `config/database.ts`; `c.req.param('contentId')` typed `string | undefined` in the
+    `/download` route (Hono widens `param()`'s return type across all routes registered on one
+    `Hono` instance when some routes don't share that param name) — added an explicit
+    `BadRequestError` guard; `@prisma/client`'s `ContentStatus`/`Content` exports were missing
+    because `prisma generate` had never been run in this checkout; and `stats.service.ts`
+    imported `getNetworkConfig` unused and called a nonexistent `rpc.Api.scValToNative` —
+    `scValToNative` is a **top-level** export of `@komunify/contract-client` (re-exported from
+    `@stellar/stellar-sdk`), not a member of the `rpc.Api` namespace. Fixed all four; `tsc
+    --noEmit` is clean in `packages/api` and `packages/shared`.
+  - **No local Postgres was running.** Spun up a fresh throwaway `postgres:16-alpine` Docker
+    container (`komunify-test-pg`, port 5433) and applied the committed migration with `prisma
+    migrate deploy` — clean apply, no drift. `packages/api/.env` (gitignored) points at it.
+  - **`vitest run` does not auto-load `.env`** the way `bun run <ts-file>` does (Bun's env
+    auto-loading applies to the process it directly spawns; `vitest` is invoked as a subprocess
+    via the `test` script's `vitest run`, which doesn't get it). Every contract-touching test
+    was failing with `KOMUNIFY_CONTRACT_ID is not configured` even though `.env` had it. Added
+    `packages/api/vitest.setup.ts` (dependency-free `.env` line parser, no `dotenv` package
+    needed) wired via `vitest.config.ts`'s `setupFiles`.
+  - Wrote 4 real integration tests against the **actually-deployed** testnet contracts (no
+    mocks) in `packages/api/src/routes/__tests__/content-download.integration.test.ts`, covering
+    the download gate's 4 cases end-to-end through the real `/auth/challenge` → sign → `/auth/verify`
+    → `/content/:id/download` flow (signatures produced with a raw `Keypair.sign` + SEP-53
+    framing, exercising the exact same verifier `wallet-signature.ts` uses — not a shortcut).
+    Provisioning script: `scripts/seed-gate-test.ts` (creates 3 fresh testnet keypairs: never-
+    subscribed, subscribed-no-read, subscribed-with-read; fixture committed at
+    `packages/api/src/routes/__tests__/fixtures/gate-test-fixture.json` — testnet-only secrets,
+    no real value). Learned mid-writing: `is_active` is epoch-scoped
+    (`Sub(member) == current_epoch()`, `epoch_secs=300` on this deployment), so a fixture
+    subscribed once at provisioning time goes stale after 5 minutes — the test's `beforeAll` now
+    checks `is_active` and only calls `subscribe()` again (topping up USDC first) when needed,
+    and `record_access` is safe to re-call every run since it's idempotent per
+    `(epoch, content, member)` per `CONTRACT_SPEC.md`. Also: `subscribe()` twice in the same
+    epoch fails with `AlreadySubscribed` (contract error `#15`) — worth remembering for anyone
+    else writing scripts against this deployment. All 4 gate cases pass, 3 consecutive runs, no
+    flakiness. Full suite: 17/17 passing (13 pre-existing unit tests + 4 new integration tests).
+  - `bun run lint` in `packages/api` fails with "ESLint couldn't find an eslint.config.js" —
+    pre-existing (ESLint 9 flat-config migration never done for this package), unrelated to this
+    session's changes, not fixed (out of scope — infra, not a Lane B API concern per se; flagging
+    for whoever owns tooling/CI).
+
 ## Cross-lane requests
 
 A lane needing a change in another lane's paths. Requesting lane writes it; owning lane picks it up.
@@ -266,6 +348,26 @@ A lane needing a change in another lane's paths. Requesting lane writes it; owni
   `Komunify` / `Usdc` namespaces and method names are stable against `CONTRACT_SPEC.md`; `Errors`
   map matches the frozen error enum (incl. `14 FaucetCooldown`). Deployed contract ids are in
   "Deployed addresses" above — put them in your `.env` files.
+- **Lane B → Lane C: auth + download request/response shapes are live and match
+  `API_SPEC.md` exactly** (verified end-to-end against the real deployed contracts, see
+  "Discovered facts" above), no surprises to build around:
+  - `POST /auth/challenge { address }` → `{ success, data: { nonce } }`. `nonce` is the full
+    human-readable string to hand to Freighter's `signMessage` verbatim — don't reconstruct it
+    client-side.
+  - `POST /auth/verify { address, signature }` where `signature` is Freighter's
+    `signMessage(nonce).signedMessage` **as-is** (already base64) → sets the `kmf_session`
+    HTTP-only cookie and returns `{ success, data: { address, isManager } }`. `credentials:
+    'include'` is required on every subsequent fetch from the browser or the cookie won't ride
+    along.
+  - `POST /auth/logout` → `204`, clears the cookie.
+  - `GET /auth/me` (requires session) → `{ success, data: { address, isManager } }`, re-simulated
+    fresh every call — poll it after any action that could flip manager status.
+  - `GET /content/:contentId/download` (requires session) — **the 403 body on
+    `READ_NOT_RECORDED` is the signal to prompt a `record_access` signature, not an error toast**:
+    `{ success: false, error: "...", code: "READ_NOT_RECORDED" }`. `SUB_INACTIVE` (also 403) means
+    show the subscribe/faucet flow instead. On success: `{ success: true, data: { url,
+    expiresIn: 60, sha256 } }` — `url` already points at `GET /content/:contentId/blob?token=...`
+    and is only valid for 60s, so fetch it immediately rather than caching it.
 
 ---
 
