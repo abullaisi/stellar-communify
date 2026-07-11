@@ -245,6 +245,32 @@ Empirical findings that cost someone time. Append, never delete.
 
 ---
 
+- **Lane B (2026-07-10) — Freighter `signMessage` byte encoding, resolved empirically.**
+  Installed version: `@stellar/freighter-api@5.0.0` (hoisted to root `node_modules`, pulled in
+  transitively by `packages/web`). Its `signMessage()` (`node_modules/@stellar/freighter-api/build/@stellar/freighter-api/src/signMessage.d.ts`)
+  is typed to return either `SignMessageV3Response` (`signedMessage: Buffer | null`) or
+  `SignMessageV4Response` (`signedMessage: string`), depending on what the extension replies with.
+  Inspecting the actual request the installed wrapper sends
+  (`node_modules/@stellar/freighter-api/build/index.min.js`, the `c = async (r,s) => ...`
+  function) shows it hardcodes `apiVersion:"5.0.0"` on the `SUBMIT_BLOB` message — so against any
+  extension that understands that apiVersion (i.e. any Freighter new enough to ship this npm
+  version), the reply is always the **V4 shape**: `{ signedMessage: string, signerAddress: string }`.
+  `signedMessage` is a **base64-encoded string of the raw 64-byte Ed25519 signature** (same
+  encoding convention Freighter uses everywhere else it returns signature bytes, e.g.
+  `signTransaction`'s base64 XDR) — confirmed against Freighter's public docs/SEP-53 discussion
+  (no local fixture signs a real message, so this is the vendor-documented + convention-matching
+  encoding, not a guess pulled from thin air; the npm package's own code has no unit test that
+  exercises the extension's real reply, only a mock). **`API_SPEC.md`'s `"signature": "<base64>"`
+  is correct as written — implemented verification accordingly, no spec change needed.**
+  Critically, Freighter's `signMessage` does **not** sign the raw nonce bytes — the extension
+  applies **SEP-53** framing before signing: `payload = "Stellar Signed Message:\n" + message`
+  (UTF-8), `digest = SHA256(payload)`, then `Ed25519.sign(digest)`. Verification therefore is
+  `Keypair.fromPublicKey(address).verify(hash(Buffer.concat([Buffer.from("Stellar Signed
+  Message:\n"), Buffer.from(nonce, "utf-8")])), Buffer.from(signature, "base64"))` using
+  `hash`/`Keypair` from `@stellar/stellar-base` (`hash()` is SHA-256) — **not** a bare
+  `verify(Buffer.from(nonce), sig)` as a naive reading of `API_SPEC.md`'s one-line description
+  might suggest. Implemented in `packages/api/src/lib/wallet-signature.ts`.
+
 ## Cross-lane requests
 
 A lane needing a change in another lane's paths. Requesting lane writes it; owning lane picks it up.
