@@ -5,6 +5,12 @@ export * from "@stellar/stellar-sdk";
 export * as contract from "@stellar/stellar-sdk/contract";
 export * as rpc from "@stellar/stellar-sdk/rpc";
 export declare const Errors: {
+    2: {
+        message: string;
+    };
+    13: {
+        message: string;
+    };
     14: {
         message: string;
     };
@@ -13,9 +19,23 @@ export type DataKey = {
     tag: "Admin";
     values: void;
 } | {
+    tag: "Balance";
+    values: readonly [string];
+} | {
+    tag: "Allowance";
+    values: readonly [AllowanceKey];
+} | {
     tag: "FaucetAt";
     values: readonly [string];
 };
+export interface AllowanceKey {
+    from: string;
+    spender: string;
+}
+export interface AllowanceValue {
+    amount: i128;
+    expiration_ledger: u32;
+}
 export interface Client {
     /**
      * Construct and simulate a burn transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
