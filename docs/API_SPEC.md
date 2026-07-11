@@ -181,6 +181,36 @@ Never as JSON numbers. A `u64` content id or an `i128` amount will silently lose
 
 ---
 
+## 6. Community brand (D-010)
+
+Added post-Phase-1 for the public per-community page (manager onboarding). Display-only identity
+keyed by the manager's wallet — not money or entitlement (the chain stays authority, D-006).
+
+### `GET /community/:wallet`
+
+Public. No auth. Returns the brand, or `404` if the manager hasn't set one up.
+
+```jsonc
+// 200
+{ "wallet": "GXXX...", "name": "Soroban Scholars", "description": "Deep dives...", "logo": "data:image/...", "updatedAt": "2026-07-11T03:24:00Z" }
+```
+
+### `PUT /community`
+
+Auth required. Caller must be a manager (`is_manager` simulated; `403` otherwise). Upserts the
+caller's own brand — the wallet comes from the session, never the body.
+
+```jsonc
+// req (multipart not needed — logo is a small data: URL string)
+{ "name": "Soroban Scholars", "description": "Deep dives...", "logo": "data:image/...|null" }
+// 200 — same shape as GET
+```
+
+`logo` is a `data:` URL of a small image (or `null`). Schemas: `CommunityBrandSchema` /
+`SaveCommunityRequestSchema` in `packages/shared`.
+
+---
+
 ## 4. Prisma schema after the rewrite
 
 Delete `user`, `session`, `account`, `verification` (better-auth, see D-001). The whole schema:
@@ -212,10 +242,20 @@ model Content {
   @@index([creatorWallet])
   @@index([status])
 }
+
+// Added by D-010 (community brand). Display-only; the chain stays authority on money/entitlement.
+model Community {
+  wallet      String   @id
+  name        String
+  description String   @default("")
+  logo        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 ```
 
-That is the entire database. If a new table feels necessary, check whether the chain already knows
-the answer.
+Nonce + Content were the original schema; `Community` was added later under D-010. If another
+table feels necessary, check whether the chain already knows the answer before adding it.
 
 ---
 

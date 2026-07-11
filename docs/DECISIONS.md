@@ -199,3 +199,27 @@ Next.js App Router tree.
 
 The **token values and component specs in DESIGN.md are canonical**. The **file paths are not.**
 Whoever does the first substantial web work updates the paths in DESIGN.md in the same PR.
+
+---
+
+## D-010 — Community brand is a server-persisted table + `/community` endpoints (extends the frozen API).
+
+**Decided:** 2026-07-11 (post-Phase-1, during Phase 2 integration, at user request)
+
+Managers need a public per-community page (logo, name, description, content list). That requires a
+brand that any visitor can load — not just the manager's own browser — so localStorage is
+insufficient. Added a `Community` Postgres table (keyed by manager wallet) plus:
+
+- `GET /community/:wallet` — public, returns the brand or `404`.
+- `PUT /community` — auth + `is_manager`-gated; upserts the caller's own brand (wallet from session).
+
+**Why this is allowed to touch the "frozen" API_SPEC:** the freeze (PROGRESS rules #3) governs
+Phase 1 lane coordination. This is an explicit Phase-2 feature request, documented here and mirrored
+into `API_SPEC.md §6` in the same change — not a silent signature change.
+
+**Scope guard:** brand is display-only identity. The chain stays authority on money and entitlement
+(D-006); nothing here gates a download or a payout. The content list on the community page comes
+from the existing public `GET /content` filtered by `creatorWallet`, not a new content path.
+
+**Rules out:** putting brand on-chain (it is not consensus-critical); a per-community route/subdomain
+(one `/community/[wallet]` page); an image-hosting service (logos are small data: URLs in the row).

@@ -6,7 +6,8 @@
 > trace here has cost the next agent an hour of rediscovery. A half-done task marked `WIP` with a
 > one-line note is worth more than a perfect task marked nothing.
 
-Last updated: 2026-07-10 — planning complete, no code written.
+Last updated: 2026-07-11 — Phase 2: manager add-content loop proven end-to-end; onboarding +
+community brand + public community page landed (D-010).
 
 ---
 
@@ -243,10 +244,54 @@ not in `API_SPEC.md` today, flagging rather than adding to a frozen spec.
 
 ## Phase 2 — Integration (blocked on all of Phase 1)
 
-- [ ] Real contract ids into every `.env` / Vercel env.
-- [ ] Walk the demo script (`PLAN.md` §1) end to end on testnet with two real Freighter wallets, a
-      member and a manager. Log every break here.
+- [x] Real contract ids into every `.env` / Vercel env. (local `.env`/`.env.local` carry the
+      deployed ids; Vercel env still TODO for Phase 3 deploy.)
+- [~] Walk the demo script (`PLAN.md` §1) end to end. The **full manager add-content loop is now
+      proven** — headless, against the live testnet + a real Postgres + real blob storage:
+      `scripts/verify-upload-download.ts` runs upload → `register_content` → confirm →
+      subscribe → `record_access` → `GET /download` → fetch the signed blob URL, and asserts the
+      PDF comes back byte-identical (content #7, #8 registered this way). The only thing it can't
+      do is click Freighter — covered by the UI sign-in gate below. Two-real-wallet browser walk
+      still wants a human with the extension.
 - [ ] Confirm TTL bumping held: re-check contract state 24h after deployment.
+
+### Phase 2 work landed 2026-07-11 (integration agent)
+
+**TASK 1 — manager add-content works end to end.** Two real gaps were closed:
+
+1. **The UI never established a session.** `useSignIn`/`useMe` existed but nothing rendered them,
+   so `/content/upload`, `/confirm`, and `/download` all 401'd from the browser (proven with a
+   no-cookie curl). Added `components/dashboard/session-card.tsx` (`SignInCard` + `SessionBadge`)
+   and gated the panels behind sign-in in `dashboard-shell.tsx`. Connecting a wallet is not a
+   session (D-001) — signing the challenge is.
+2. **Contract mismatch: the web `ApiHttp` assumed flat bodies, but the API wraps everything in
+   `{ success, data }`** (`lib/response.ts`). Every komunify web service (`auth`, `content`) read
+   the envelope as if it were the payload — so `signIn` got `nonce: undefined`, `download` got
+   `url: undefined`, etc. The whole browser flow was silently broken and had never been run
+   end-to-end (Lane C built to `API_SPEC.md`'s flat examples; Lane B shipped the envelope). Fix:
+   `ApiHttp` now unwraps `.data` for enveloped 2xx responses (one place, all services correct).
+
+   Whitelisting a test manager (set_manager is admin-gated, deployer = admin):
+   `make invoke CONTRACT=komunify ARGS="set_manager --who <G...> --enabled true"` (SOURCE defaults
+   to `deployer`). The gate-test fixture's `manager` (`GD2ZULNE…`) is already whitelisted and is
+   the wallet the verify script uses.
+
+**TASK 2 — manager onboarding + community brand + public page (D-010).** Scope confirmed with the
+user: manager-only onboarding, and managers must enter a community brand (name, logo, description).
+The follow-up ("each community gets its own page showing logo/name/description/content") forced
+brand to be **server-persisted, not localStorage** (a public page must render for any visitor):
+
+- New `Community` Postgres table + migration `20260711032425_add_community`.
+- New API: `GET /community/:wallet` (public), `PUT /community` (auth + manager). See `API_SPEC.md`
+  §6, schemas in `packages/shared/src/schemas/community.schema.ts`. Round-trip verified by
+  `scripts/verify-community.ts`.
+- Web: `services/community/*`, a guided STEPPER on the manager panel
+  (`components/dashboard/community-onboarding.tsx`, gates the upload stepper behind a saved brand),
+  and the public page `app/community/[address]/page.tsx` (logo, name, description, this community's
+  `REGISTERED` content filtered from public `GET /content`).
+
+Evidence: `bun --filter '@komunify/{web,api}' typecheck` both clean; both verify scripts PASS;
+`/dashboard` and `/community/<wallet>` both compile + serve 200 on the dev server.
 
 ## Phase 3 — Submission (blocked on Phase 2)
 
