@@ -20,6 +20,12 @@ export const API_ENDPOINTS = {
     download: (contentId: string) => `/content/${contentId}/download`,
   },
 
+  // Community brand (D-010)
+  community: {
+    save: '/community',
+    byWallet: (wallet: string) => `/community/${wallet}`,
+  },
+
   // Traction (docs/API_SPEC.md §3)
   stats: '/stats',
 

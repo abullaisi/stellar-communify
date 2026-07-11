@@ -41,3 +41,16 @@ model Content {
   @@index([creatorWallet])
   @@index([status])
 }
+
+// Community brand (D-010): display-only identity a manager sets for their public community page
+// (name, logo, description). Keyed by the manager's wallet. Not money or entitlement — the chain
+// stays authority on those — but persisted here (not localStorage) so the community page is
+// viewable by any visitor, not just the owner's browser.
+model Community {
+  wallet      String   @id
+  name        String
+  description String   @default("")
+  logo        String? // small image as a data: URL, or null
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
