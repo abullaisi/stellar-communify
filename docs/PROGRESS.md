@@ -167,26 +167,68 @@ Exit criteria for the whole phase: `bun typecheck` clean, `cd contracts && cargo
 
 ### Lane C — Web · owns `packages/web/`
 
-Build against Phase 0's stub bindings with mocked React Query data. Do not wait for Lane A.
+Real contract ids (testnet) are in `packages/web/.env.local` (gitignored). `packages/contract-client`
+bindings are the real generated ones from Lane A's deployed Wasm, not Phase 0 stubs. Lane B's API
+(`packages/api/src/routes/`) has **not landed anything yet** beyond `/health` — no auth, content, or
+stats routes exist. Everything below that needs the API is wired to the correct `API_SPEC.md`
+interface (so it activates the moment Lane B ships) but falls back to a direct on-chain read/write
+where the chain can answer the same question, per PLAN.md §2's "could the browser simulate the
+contract itself" rule. Flagged per-item below. (C, 2026-07-11)
 
-- [ ] Verify `providers/wallet-provider.tsx` still works; make the wallet address the query key
-      prefix for every React Query call, so a Freighter account switch invalidates all state.
-- [ ] Generate the shadcn primitives the panels need, and re-skin every one of them to the
-      `DESIGN.md` token set. A component rendering default shadcn colours is a bug (D-007).
-- [ ] `/dashboard` shell. Simulate `is_manager(wallet)` → manager panel or member panel. One route,
-      no separate build (D-006).
-- [ ] Member panel: subscription status card, "Get test USDC" faucet button, subscribe button,
-      content grid with locked/unlocked state.
-- [ ] The download flow (`PLAN.md` §2): `has_read` check → `record_access` signature → retry
-      `GET /download` → open the PDF. Handle the 403 `READ_NOT_RECORDED` as a prompt-to-sign, not
-      as an error toast.
-- [ ] Manager panel: PDF upload → `POST /content/upload` → sign `register_content` →
-      `POST /content/:id/confirm`. Show the three steps as a stepper (`DESIGN.md` §4.2).
-- [ ] Manager panel: my-content list with this-epoch read counts, accrued balance, `claim()` button,
-      `settle_member()` buttons for members who read the manager's content in a closed epoch.
-- [ ] Traction panel: stat chips, recent-event list from `GET /stats`, epoch countdown.
-      Every number `tabular-nums` (`DESIGN.md` §3).
-- [ ] `app/page.tsx` stays a stub. Landing page is out of scope.
+- [x] `providers/wallet-provider.tsx` verified working (connect/disconnect/watch). Every
+      `*.queries.ts` key factory in `services/{auth,content,subscription,manager}` is prefixed
+      `[domain, address]` — a Freighter account switch invalidates all of it. `services/traction`
+      is chain-global (no wallet scoping needed) by design.
+- [x] shadcn primitives (`button`, `input`, `label`, `textarea`, `progress`, `skeleton`) were
+      already re-skinned to the `DESIGN.md` CSS custom properties in the prior WIP checkpoint —
+      verified: `tailwind.config.ts` colors all resolve through `hsl(var(--*))` which
+      `globals.css` maps 1:1 from `--color-*` tokens (D-007 satisfied, no default shadcn palette
+      anywhere). Most of the UI, however, uses the plain `.card`/`.row`/`.label`/`.balance`/`.pill`
+      classes directly (already in `globals.css`) rather than shadcn wrappers, per DESIGN.md §4.1.
+- [x] `/dashboard` shell (`app/dashboard/page.tsx` → `components/dashboard/dashboard-shell.tsx`):
+      wallet gate, `NetworkGuard`, `useIsManager()` (real `is_manager` simulation via
+      `services/manager`) routes to `ManagerPanel` or `MemberPanel`. One route (D-006). `/`
+      unchanged, still a bare `<main className="shell" />` stub.
+- [x] Member panel (`components/dashboard/subscription-card.tsx` + `content-grid.tsx`): status
+      pill (real `is_active`/`get_subscription`), price + USDC balance (`.balance`,
+      tabular-nums), faucet button (real `faucet()` + cooldown read), subscribe button (real
+      `subscribe()`). Content grid falls back to `ContentService.listOnChain()`
+      (`list_content` directly) since `GET /content` doesn't exist yet — real ids/active flags
+      from the deployed contract (5 seeded contents), titles are placeholder `"Content #<id>"`
+      until Lane B ships title/description. Locked/unlocked pill from real `has_read`.
+- [x] Download flow (`services/content/content.hook.ts` `useOpenContent`, pre-existing from the
+      WIP checkpoint, verified correct): `has_read` → sign `record_access` if needed → `GET
+      /content/:id/download` → retry once on `READ_NOT_RECORDED`. Since Lane B's download route
+      doesn't exist, `content-grid.tsx` catches the resulting `ApiError` and shows a hint
+      ("read recorded on-chain, download service not live yet") instead of a bare error toast —
+      the on-chain half of the flow is real and demoable today; only blob custody is blocked on
+      Lane B.
+- [x] Manager panel upload stepper (`components/dashboard/upload-stepper.tsx`): 3-step UI
+      (Upload / Register / Confirm, `.pill.accent` for the active step). Step 2
+      (`register_content`) is a real signed contract call. Steps 1 and 3
+      (`POST /content/upload`, `POST /content/:id/confirm`) call the real `API_SPEC.md`
+      endpoints via `ContentService.upload`/`confirm` — **will error until Lane B lands them**,
+      there is no on-chain substitute for blob storage. `txHash` passed to confirm is currently
+      empty (`SentTransaction`'s hash isn't threaded through yet) — note for whoever wires this
+      up against a live API.
+- [x] Manager panel my-content list (`components/dashboard/manager-content-list.tsx`,
+      `services/manager/`): real `list_content` filtered to `managers.includes(address)`, real
+      `get_content_reads(epoch, id)` per content, real `get_accrued` + `claim()`. `settle_member`
+      is a manual form (epoch + member address) rather than an auto-populated "settle all my
+      readers" list, because that list needs `getEvents`/Postgres indexing of who-read-what that
+      only Lane B's API can provide cheaply — flagged as a cross-lane follow-up below.
+- [x] Traction panel (`components/dashboard/traction-panel.tsx`, `services/traction/`): stat
+      chips (subscribers, volume, content, managers, claimed — all real `get_stats()` +
+      `current_epoch()`/`epoch_ends_at()`, `tabular-nums`), live epoch countdown. `recentEvents`
+      is NOT shown — needs Lane B's `getEvents` indexing, out of this lane's reach without RPC
+      event-log plumbing better owned by the API. `GET /stats` itself doesn't exist yet either;
+      `TractionService.stats()` reads the same values directly off-chain in the meantime.
+- [x] `app/page.tsx` unchanged — stays a stub.
+
+**Cross-lane request for Lane B:** `settle_member` UX and the traction recent-events feed both
+want an index of `record_access`/`subscribed` events per member/content. Cheapest fix is exposing
+that from `/stats` (`recentEvents`) and, ideally, a `GET /manager/:wallet/readers?epoch=` helper —
+not in `API_SPEC.md` today, flagging rather than adding to a frozen spec.
 
 ---
 
