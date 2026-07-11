@@ -116,26 +116,29 @@ Exit criteria for the whole phase: `bun typecheck` clean, `cd contracts && cargo
       address), `faucet_available_at`. 7 decimals, symbol `USDC`. (A, 2026-07-10) — 7 unit tests
       pass (`cargo test -p usdc`): metadata, mint, faucet+cooldown+post-cooldown, transfer,
       approve/transfer_from. TTL bumped on every balance/allowance/instance access.
-- [ ] `komunify` crate, step 1 — money only: `init`, `set_manager`, `subscribe`, `is_active`,
-      `get_subscription`, `claim`, `get_accrued`, `get_stats`. Prove this before touching reads.
-- [ ] `komunify` crate, step 2 — content registry: `register_content`, `add_content_manager`,
-      `set_content_active`, `get_content`, `list_content`.
-- [ ] `komunify` crate, step 3 — read accounting: `record_access` (idempotent per epoch/content/
+- [x] `komunify` crate, step 1 — money only: `init`, `set_manager`, `subscribe`, `is_active`,
+      `get_subscription`, `claim`, `get_accrued`, `get_stats`. (A)
+- [x] `komunify` crate, step 2 — content registry: `register_content`, `add_content_manager`,
+      `set_content_active`, `get_content`, `list_content`. (A)
+- [x] `komunify` crate, step 3 — read accounting: `record_access` (idempotent per epoch/content/
       member; updates `MemberReads`, `MemberContents`, and display-only `ContentReads`), `has_read`,
-      `get_content_reads`, `current_epoch`, `epoch_ends_at`.
-- [ ] `komunify` crate, step 4 — settlement: `settle_member`, `claim_dust`, `is_settled`,
-      `get_budget`, `get_member_reads`, `get_dust`. Read `CONTRACT_SPEC.md` §3 first. Per-member
-      attribution (D-009): each subscriber's own budget splits across the content they read; idle
-      budgets go to the platform. No shared pool, no `settle_content`, no `sweep_epoch`.
-- [ ] `extend_ttl` on every persistent read and write. A shared `bump()` helper, called everywhere.
-      This will not show up in tests. It will show up in the demo.
-- [ ] All fourteen unit tests from `CONTRACT_SPEC.md` §3. **Tests 10 (conservation) and 11 (sybil
-      property) are the acceptance gate for this lane.** Paste the passing test count here when done.
-- [ ] Deploy both to testnet with `epoch_secs = 300`. `init` in order. Record the ids under
-      "Deployed addresses" below.
-- [ ] `make bindings` against the real Wasm. Commit the regenerated `dist`.
-- [ ] `scripts/seed.ts`: 3 manager wallets, 5 contents, ~12 subscribers with uneven read
-      distribution. The dashboard must not be empty on demo day.
+      `get_content_reads`, `current_epoch`, `epoch_ends_at`. (A)
+- [x] `komunify` crate, step 4 — settlement: `settle_member`, `claim_dust`, `is_settled`,
+      `get_budget`, `get_member_reads`, `get_dust`. Per-member attribution (D-009): each
+      subscriber's own budget splits across the content they read; idle budgets go to the platform.
+      No shared pool. (A)
+- [x] `extend_ttl` on every persistent read and write. `pget`/`pset` bump TTL on every persistent
+      access; `bump_instance()` bumps instance storage in every entrypoint. (A)
+- [x] All fourteen unit tests from `CONTRACT_SPEC.md` §3. **15 passed; 0 failed** (14 spec tests +
+      1 extra `claim_pays_out`) via `cargo test -p komunify`. Tests 10 (conservation) and 11 (sybil
+      property) — the acceptance gate — both pass. usdc: 7 passed. (A)
+- [x] Deploy both to testnet with `epoch_secs = 300`. `init` in order (usdc first, then komunify
+      with usdc as `Config.token`). Ids under "Deployed addresses" below. (A)
+- [x] `make bindings` against the real Wasm. Regenerated `src` + `dist` committed; real bindings
+      replaced the Phase 0 stubs. (A)
+- [x] `scripts/seed.ts`: 3 manager wallets, 5 contents, ~12 subscribers with uneven read
+      distribution (incl. 2 idle). Ran green end-to-end on testnet: total_subs=12,
+      total_volume=120 USDC, content_count=5, manager_count=3. (A)
 
 ### Lane B — API · owns `packages/api/`
 
@@ -208,11 +211,17 @@ Build against Phase 0's stub bindings with mocked React Query data. Do not wait 
 
 | What | Network | Id | Deployed |
 |---|---|---|---|
-| `usdc` | testnet | _not deployed_ | — |
-| `komunify` | testnet | _not deployed_ | — |
+| `usdc` | testnet | `CBDEVPY6JAI6KFCGNKOQTDAFONPYWFCJTAFLHHF5TVCRWBLWTNBQGVP3` | 2026-07-11 |
+| `komunify` | testnet | `CASKHPSDQ3NDP2TKJ6KXQ2GM2BHT6FX5LN6KS2BY5PRIUCO2S5BT5ADA` | 2026-07-11 |
 
-Config used at `init` (fill in when Lane A deploys): `platform_bps`, `price`, `epoch_secs`
-(= billing period; 300 for demo), `admin`, `platform`. No `period_secs` (D-009).
+Config used at `init` (komunify): `platform_bps = 1000` (10%), `price = 100000000` (10 USDC @ 7dp),
+`epoch_secs = 300` (= billing period; demo), `admin = platform = deployer`
+(`GBW65PM5E3O3TVV4JMBVSJI7NDOFLHH3MNJJDLRARXRZ562HE3ZLOXQV`), `token = usdc id above`. usdc `init`
+admin = deployer. No `period_secs` (D-009).
+
+Set these in `packages/web/.env.local` (`NEXT_PUBLIC_USDC_CONTRACT_ID` /
+`NEXT_PUBLIC_KOMUNIFY_CONTRACT_ID`) and `packages/api/.env` (`USDC_CONTRACT_ID` /
+`KOMUNIFY_CONTRACT_ID`).
 
 ---
 
@@ -251,7 +260,12 @@ Empirical findings that cost someone time. Append, never delete.
 
 A lane needing a change in another lane's paths. Requesting lane writes it; owning lane picks it up.
 
-- _(none yet)_
+- **Lane A → Lanes B & C: real generated bindings replaced the Phase 0 stub bindings in
+  `packages/contract-client` (`src/{komunify,usdc}.ts` + `dist/`).** Generated by `make bindings`
+  from the deployed Wasm and committed on `lane-a-contracts`. Rebase/merge to pick them up. The
+  `Komunify` / `Usdc` namespaces and method names are stable against `CONTRACT_SPEC.md`; `Errors`
+  map matches the frozen error enum (incl. `14 FaucetCooldown`). Deployed contract ids are in
+  "Deployed addresses" above — put them in your `.env` files.
 
 ---
 
