@@ -17,6 +17,32 @@ export function useContentList() {
   });
 }
 
+/** On-chain fallback for the content grid — see `ContentService.listOnChain`. */
+export function useContentGrid() {
+  const { address } = useWallet();
+  return useQuery({
+    queryKey: contentKeys.grid(address),
+    queryFn: () => ContentService.listOnChain(),
+  });
+}
+
+export function useUploadContent() {
+  return useMutation({
+    mutationFn: ({ file, title, description }: { file: File; title: string; description: string }) =>
+      ContentService.upload(file, title, description),
+  });
+}
+
+export function useConfirmContent() {
+  const { address } = useWallet();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ draftId, contentId, txHash }: { draftId: string; contentId: string; txHash: string }) =>
+      ContentService.confirm(draftId, contentId, txHash),
+    onSuccess: () => qc.invalidateQueries({ queryKey: contentKeys.all(address) }),
+  });
+}
+
 export function useIsActive() {
   const { address } = useWallet();
   return useQuery({
