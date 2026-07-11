@@ -7,15 +7,27 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError } from '@/services/api/http';
 import { useContentGrid, useHasRead, useOpenContent } from '@/services/content';
 import type { ContentGridItem } from '@/services/content';
+import { useSubscriptionStatus } from '@/services/subscription';
 
-/** One content row: locked/unlocked badge + open button. Download flow, PLAN.md §2. */
+/** One content row: locked/unlocked badge + open button. Download flow, PLAN.md §2.
+ *  The Open CTA (gold, the design system's one primary action) is reserved for content the
+ *  member can actually unlock — i.e. an active subscription. While inactive it degrades to a
+ *  secondary "Subscribe to open" so a locked row never wears a green-light button. */
 function ContentRow({ item }: { item: ContentGridItem }) {
+  const status = useSubscriptionStatus();
   const hasRead = useHasRead(item.contentId);
   const open = useOpenContent(item.contentId);
   const [notice, setNotice] = useState<string | null>(null);
 
+  const isActive = status.data?.isActive ?? false;
+
   async function handleOpen() {
     setNotice(null);
+    // No active subscription: don't fire a doomed download — point the member at the CTA above.
+    if (!isActive) {
+      setNotice('Subscribe first (Subscription card above) to unlock content for this epoch.');
+      return;
+    }
     try {
       const res = await open.mutateAsync();
       window.open(res.url, '_blank', 'noopener,noreferrer');
@@ -38,8 +50,14 @@ function ContentRow({ item }: { item: ContentGridItem }) {
       </div>
       <div className="row tight" style={{ marginTop: 0 }}>
         {hasRead.data ? <span className="pill accent">UNLOCKED</span> : <span className="pill">LOCKED</span>}
-        <Button type="button" size="sm" onClick={handleOpen} disabled={open.isPending}>
-          {open.isPending ? 'Opening…' : 'Open'}
+        <Button
+          type="button"
+          size="sm"
+          variant={isActive ? 'default' : 'outline'}
+          onClick={handleOpen}
+          disabled={open.isPending || status.isLoading}
+        >
+          {open.isPending ? 'Opening…' : isActive ? 'Open' : 'Subscribe to open'}
         </Button>
       </div>
       {notice ? <p className="hint" style={{ gridColumn: '1 / -1' }}>{notice}</p> : null}
