@@ -158,7 +158,7 @@ fn t04_double_settle_errors() {
     s.client.settle_member(&0, &member);
     assert_eq!(
         s.client.try_settle_member(&0, &member),
-        Err(Ok(Error::AlreadySettled))
+        Err(Ok(Error::AlreadySettled.into()))
     );
 }
 
@@ -171,7 +171,7 @@ fn t05_settle_current_epoch_errors() {
     // still in epoch 0
     assert_eq!(
         s.client.try_settle_member(&0, &member),
-        Err(Ok(Error::EpochNotClosed))
+        Err(Ok(Error::EpochNotClosed.into()))
     );
 }
 
@@ -206,7 +206,7 @@ fn t07_record_access_expired_sub() {
     advance_to_epoch(&s, 1); // now epoch 1, sub is expired
     assert_eq!(
         s.client.try_record_access(&member, &c),
-        Err(Ok(Error::SubExpired))
+        Err(Ok(Error::SubExpired.into()))
     );
 }
 
@@ -219,7 +219,7 @@ fn t08_double_subscribe_then_later_epoch() {
     s.client.subscribe(&member);
     assert_eq!(
         s.client.try_subscribe(&member),
-        Err(Ok(Error::AlreadySubscribed))
+        Err(Ok(Error::AlreadySubscribed.into()))
     );
 
     advance_to_epoch(&s, 1);
@@ -352,7 +352,7 @@ fn t13_register_content_non_manager() {
     let not_mgr = Address::generate(&s.env);
     assert_eq!(
         s.client.try_register_content(&not_mgr, &sha(&s.env, 1)),
-        Err(Ok(Error::NotManager))
+        Err(Ok(Error::NotManager.into()))
     );
 }
 
@@ -361,7 +361,7 @@ fn t13_register_content_non_manager() {
 fn t14_claim_nothing() {
     let s = setup(100_0000000, BPS);
     let who = Address::generate(&s.env);
-    assert_eq!(s.client.try_claim(&who), Err(Ok(Error::NothingToClaim)));
+    assert_eq!(s.client.try_claim(&who), Err(Ok(Error::NothingToClaim.into())));
 }
 
 // Extra: claim pays out accrued and moves tokens.

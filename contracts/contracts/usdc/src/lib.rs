@@ -6,8 +6,8 @@
 //! `faucet()` rate-limited to once per 24h per address. See docs/CONTRACT_SPEC.md §1.
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token::TokenInterface,
-    Address, Env, MuxedAddress, String,
+    contract, contracterror, contractimpl, contracttype, panic_with_error, symbol_short,
+    token::TokenInterface, Address, Env, MuxedAddress, String,
 };
 
 /// Fixed faucet payout: 500 USDC at 7 decimal places.
@@ -209,7 +209,7 @@ impl UsdcContract {
         let key = DataKey::FaucetAt(caller.clone());
         let available_at: u64 = env.storage().persistent().get(&key).unwrap_or(0);
         if now < available_at {
-            panic_with_error(Error::FaucetCooldown);
+            panic_with_error!(&env, Error::FaucetCooldown);
         }
         let next = now + FAUCET_COOLDOWN_SECS;
         env.storage().persistent().set(&key, &next);
