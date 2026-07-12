@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
+import { AppHeader } from '@/components/app-header';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryProvider } from '@/providers/query-provider';
 import { WalletProvider } from '@/providers/wallet-provider';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif' });
 
 export const metadata: Metadata = {
   title: 'komunify',
@@ -17,10 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={playfair.variable}>
       <body className={inter.className}>
         <QueryProvider>
-          <WalletProvider>{children}</WalletProvider>
+          <WalletProvider>
+            <TooltipProvider delayDuration={150}>
+              <AppHeader />
+              {children}
+            </TooltipProvider>
+          </WalletProvider>
         </QueryProvider>
       </body>
     </html>
