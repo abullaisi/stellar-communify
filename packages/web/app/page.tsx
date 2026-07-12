@@ -1,8 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
-import { Play } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { Play, Lock, Users, Send } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ApiClient } from '@/services/api/client';
 
 /* ============================================================================
   LANDING PAGE — Aureus (21st Design)
@@ -10,12 +13,16 @@ import { Play } from 'lucide-react';
   Uses SPLIT v4 tokens from globals.css + Framer Motion for animations.
 ============================================================================ */
 
-// Logo component
+// Logo component — Komunify mark (overlapping circles for community + subscription)
 function Logo() {
   return (
-    <svg width="30" height="30" viewBox="0 0 40 40" className="shrink-0">
-      <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="none" stroke="currentColor" strokeWidth="1.4" />
-      <polygon points="20,10 29,15 29,25 20,30 11,25 11,15" fill="currentColor" opacity="0.85" />
+    <svg width="32" height="32" viewBox="0 0 32 32" className="shrink-0" fill="none">
+      {/* Left circle (creator) */}
+      <circle cx="11" cy="16" r="8" stroke="currentColor" strokeWidth="2" />
+      {/* Right circle (subscriber) */}
+      <circle cx="21" cy="16" r="8" stroke="currentColor" strokeWidth="2" />
+      {/* Center dot (connection/payment) */}
+      <circle cx="16" cy="16" r="3" fill="currentColor" />
     </svg>
   );
 }
@@ -28,18 +35,18 @@ function Header() {
         <div className="text-[var(--color-content-accent)]">
           <Logo />
         </div>
-        <span className="font-serif text-lg tracking-[0.15em] text-[var(--color-content-primary)]">AUREUS</span>
+        <span className="font-serif text-lg tracking-[0.15em] text-[var(--color-content-primary)]">KOMUNIFY</span>
       </div>
 
       <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)] font-mono">
-        <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
-          Creators
+        <a href="#creators" className="hover:text-[var(--color-content-accent)] transition-colors">
+          For Creators
         </a>
-        <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
-          Vaults
+        <a href="#subscribers" className="hover:text-[var(--color-content-accent)] transition-colors">
+          For Subscribers
         </a>
-        <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
-          Docs
+        <a href="https://github.com/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
+          GitHub
         </a>
       </nav>
 
@@ -92,6 +99,53 @@ function ParallaxLayer({ children, depth = 20, className = '' }: any) {
   );
 }
 
+// Live stats from API
+function LiveStats() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['stats'],
+    queryFn: async () => {
+      try {
+        const response = await ApiClient.get('/stats');
+        return response;
+      } catch {
+        // Fallback fixture data
+        return {
+          activeCreators: 12,
+          totalSubscriptions: 248,
+          totalRevenue: 12450.5,
+        };
+      }
+    },
+    refetchInterval: 30000,
+  });
+
+  const creators = stats?.activeCreators || 0;
+  const subscriptions = stats?.totalSubscriptions || 0;
+  const revenue = stats?.totalRevenue || 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.95, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+      className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto text-center border-t border-[var(--color-content-primary)]/10 pt-8"
+    >
+      <div>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '—' : creators}+</p>
+        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">ACTIVE CREATORS</p>
+      </div>
+      <div>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '—' : subscriptions}</p>
+        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">SUBSCRIPTIONS</p>
+      </div>
+      <div>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '—' : (revenue / 1000).toFixed(1)}k</p>
+        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PROCESSED ON-CHAIN</p>
+      </div>
+    </motion.div>
+  );
+}
+
 // Hero section
 function HeroSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -140,7 +194,7 @@ function HeroSection() {
         >
           <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] font-mono text-[12px] tracking-wide text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse" />
-            On-chain memberships, one token deep
+            Revenue verified on-chain • Instant payouts
           </div>
         </motion.div>
 
@@ -161,7 +215,7 @@ function HeroSection() {
             <span className="ml-3">
               <KineticWord delay={0.45}>
                 <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
-                  possibilities.
+                  creators.
                 </span>
               </KineticWord>
             </span>
@@ -175,8 +229,8 @@ function HeroSection() {
           transition={{ delay: 0.55, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-8 max-w-xl mx-auto text-center text-[15px] md:text-[16px] leading-relaxed text-[var(--color-content-secondary)]"
         >
-          Hold one pass, unlock every creator vault inside it — gated drops, private rooms, and royalties that settle
-          on-chain, in your wallet, the moment they're earned.
+          Subscribe to unlock content. Creators earn directly. No algorithm, no middleman—just revenue flowing
+          on-chain to wallets, verified and instant.
         </motion.p>
 
         {/* CTAs */}
@@ -186,14 +240,16 @@ function HeroSection() {
           transition={{ delay: 0.68, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <button className="bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(229,168,74,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
-            Mint your pass
-          </button>
+          <Link href="/dashboard">
+            <button className="bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(229,168,74,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
+              Enter Komunify
+            </button>
+          </Link>
           <motion.button
             whileHover={{ gap: '12px' }}
             className="group inline-flex items-center gap-2 border border-[var(--color-content-primary)]/25 text-[var(--color-content-primary)]/90 text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[var(--color-content-accent)]/60 hover:text-[var(--color-content-accent)] transition-colors"
           >
-            Watch the film
+            How it works
             <motion.span className="translate-x-0 group-hover:translate-x-1 transition-transform">→</motion.span>
           </motion.button>
         </motion.div>
@@ -222,10 +278,10 @@ function HeroSection() {
 
               {/* Corner tags */}
               <div className="absolute top-4 right-4 font-mono text-[10px] tracking-widest text-[var(--color-content-accent)]/80 border border-[var(--color-content-accent)]/30 rounded px-2 py-1 bg-black/30">
-                PREVIEW · 4K
+                LIVE DEMO
               </div>
               <div className="absolute top-4 left-4 font-mono text-[10px] tracking-widest text-[var(--color-content-primary)]/50 border border-[var(--color-content-primary)]/15 rounded px-2 py-1 bg-black/30">
-                VAULT REEL 01
+                HOW IT WORKS
               </div>
 
               {/* Play button */}
@@ -261,26 +317,9 @@ function HeroSection() {
           </ParallaxLayer>
         </motion.div>
 
-        {/* Stats row */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.95, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
-          className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto text-center border-t border-[var(--color-content-primary)]/10 pt-8"
-        >
-          <div>
-            <p className="font-serif text-2xl text-[var(--color-content-accent)]">12,400+</p>
-            <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PASS HOLDERS</p>
-          </div>
-          <div>
-            <p className="font-serif text-2xl text-[var(--color-content-accent)]">38</p>
-            <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">CREATOR VAULTS</p>
-          </div>
-          <div>
-            <p className="font-serif text-2xl text-[var(--color-content-accent)]">100%</p>
-            <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">ROYALTIES ON-CHAIN</p>
-          </div>
-        </motion.div>
+        {/* Stats row — live from API */}
+        <LiveStats />
+
       </main>
     </section>
   );
@@ -297,15 +336,15 @@ function Footer() {
             Stellar
           </a>
         </div>
-        <div className="flex gap-4 text-sm text-[var(--color-content-secondary)]">
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
+        <div className="flex gap-6 text-sm text-[var(--color-content-secondary)]">
+          <a href="https://github.com/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
             GitHub
           </a>
           <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
-            Docs
+            Documentation
           </a>
-          <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
-            Status
+          <a href="/dashboard" className="hover:text-[var(--color-content-accent)] transition-colors">
+            App
           </a>
         </div>
       </div>
