@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bun --filter web build",
+  "buildCommand": "bun run build",
   "installCommand": "bun install",
-  "devCommand": "bun --filter web dev"
+  "devCommand": "bun run dev"
 }
