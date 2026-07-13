@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@/providers/wallet-provider';
+import { useMe } from '@/services/auth';
 
 function truncate(address: string) {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
@@ -13,6 +14,9 @@ function truncate(address: string) {
  */
 export function ConnectWalletButton() {
   const { isConnected, address, network, connecting, error, connect, disconnect } = useWallet();
+  // Once signed in, "Sign out" (SessionBadge) is the single leave action and handles
+  // disconnecting too — don't show a second, redundant Disconnect button.
+  const isAuthenticated = !!useMe().data;
 
   if (isConnected && address) {
     return (
@@ -21,9 +25,11 @@ export function ConnectWalletButton() {
           <code title={address}>{truncate(address)}</code>
           {network ? <span className="pill ok">{network}</span> : null}
         </span>
-        <Button variant="outline" size="sm" type="button" onClick={disconnect}>
-          Disconnect
-        </Button>
+        {!isAuthenticated ? (
+          <Button variant="outline" size="sm" type="button" onClick={disconnect}>
+            Disconnect
+          </Button>
+        ) : null}
       </div>
     );
   }

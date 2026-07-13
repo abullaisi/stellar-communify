@@ -12,8 +12,10 @@ export function getStellarConfig() {
     networkPassphrase: net.networkPassphrase,
     rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ?? net.rpcUrl,
     horizonUrl: process.env.NEXT_PUBLIC_HORIZON_URL ?? net.horizonUrl,
-    /** Deployed notes contract id (C...). Empty until you deploy + set it. */
-    contractId: process.env.NEXT_PUBLIC_NOTES_CONTRACT_ID ?? '',
+    /** Deployed komunify contract id (C...). Empty until you deploy + set it. */
+    komunifyContractId: process.env.NEXT_PUBLIC_KOMUNIFY_CONTRACT_ID ?? '',
+    /** Deployed usdc contract id (C...). Empty until you deploy + set it. */
+    usdcContractId: process.env.NEXT_PUBLIC_USDC_CONTRACT_ID ?? '',
   };
 }
 
@@ -24,7 +26,25 @@ export type StellarConfig = ReturnType<typeof getStellarConfig>;
  * explorer doesn't index (futurenet / local).
  */
 export function txExplorerUrl(hash: string, network: string): string | null {
+  return explorerUrl('tx', hash, network);
+}
+
+/** Stellar Expert URL for a contract id (C…). */
+export function contractExplorerUrl(contractId: string, network: string): string | null {
+  return explorerUrl('contract', contractId, network);
+}
+
+/** Stellar Expert URL for an account/address (G…). */
+export function accountExplorerUrl(address: string, network: string): string | null {
+  return explorerUrl('account', address, network);
+}
+
+function explorerUrl(
+  kind: 'tx' | 'contract' | 'account',
+  id: string,
+  network: string,
+): string | null {
   const segment = network === 'mainnet' ? 'public' : network === 'testnet' ? 'testnet' : null;
-  if (!segment || !hash) return null;
-  return `https://stellar.expert/explorer/${segment}/tx/${hash}`;
+  if (!segment || !id) return null;
+  return `https://stellar.expert/explorer/${segment}/${kind}/${id}`;
 }

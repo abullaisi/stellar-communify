@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import type { StatusCode } from 'hono/utils/http-status';
+import type { ContentfulStatusCode as StatusCode } from 'hono/utils/http-status';
 import type { ApiResponse } from '../types/app.types.js';
 
 /**

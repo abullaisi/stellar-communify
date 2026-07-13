@@ -1,38 +1,20 @@
 import type { Context, Next } from 'hono';
-import { auth } from '../lib/auth.js';
+import { getCookie } from 'hono/cookie';
 import { UnauthorizedError } from '../lib/errors.js';
+import { SESSION_COOKIE, verifySessionToken } from '../lib/jwt.js';
+import type { HonoEnv } from '../types/app.types.js';
 
-/**
- * Middleware to require an authenticated session.
- * Attaches the session to c.get('session') on success.
- *
- * Usage:
- *   app.get('/protected', requireAuth, (c) => {
- *     const session = c.get('session');
- *     return c.json({ user: session.user });
- *   });
- */
-export async function requireAuth(c: Context, next: Next): Promise<void> {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-
-  if (!session) {
-    throw new UnauthorizedError('Authentication required');
+/** Decodes `kmf_session`, sets `c.set('address', ...)`. Throws 401 on missing/invalid cookie. */
+export async function requireAuth(c: Context<HonoEnv>, next: Next) {
+  const token = getCookie(c, SESSION_COOKIE);
+  if (!token) {
+    throw new UnauthorizedError('No session');
   }
-
-  c.set('session', session);
-  await next();
-}
-
-/**
- * Optional auth middleware — attaches session if present, continues either way.
- * Use for routes that behave differently for authenticated vs. anonymous users.
- */
-export async function optionalAuth(c: Context, next: Next): Promise<void> {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-
-  if (session) {
-    c.set('session', session);
+  try {
+    const address = await verifySessionToken(token);
+    c.set('address', address);
+  } catch {
+    throw new UnauthorizedError('Invalid or expired session');
   }
-
   await next();
 }

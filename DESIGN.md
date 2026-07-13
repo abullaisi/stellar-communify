@@ -20,10 +20,10 @@ Token structure and component taxonomy are adapted from the **AGENTIC DESIGN SYS
 
 Before implementing **any** UI element (input, button, card, pill, form, stat, badge, modal, etc.), check the system in this order:
 
-1. **CSS custom properties + named classes in `src/App.css`.** If a token or class matches, use it.
+1. **CSS custom properties + named classes in `packages/web/app/globals.css`.** If a token or class matches, use it.
 2. **Section 4 of this file.** If a component spec exists, follow it exactly.
 3. **`/docs.html` live specimen.** The visual reference, including the three `data-theme` candidate palette preview blocks.
-4. **`grep` across the `src/` tree.** If an inline pattern is reused in 2+ places, flag it for promotion to `App.css`.
+4. **`grep` across the `packages/web/` tree.** If an inline pattern is reused in 2+ places, flag it for promotion to `globals.css`.
 
 ### When a match is found: STOP and ask
 
@@ -33,17 +33,17 @@ Do NOT silently pull in an external kit (Tailwind template, Shadcn, a random dAp
 
 ### When no match exists: propose as new
 
-> "No existing match. I'll add this as a new [X]. It should go in: [App.css named class / component-local style]."
+> "No existing match. I'll add this as a new [X]. It should go in: [globals.css named class / component-local style]."
 
 After implementing:
 - Add a live demo to `/docs.html`
 - Add a spec entry to Section 4 of this file
-- If reusable, promote it to a named class in `src/App.css`
+- If reusable, promote it to a named class in `packages/web/app/globals.css`
 
 ### When modifying an existing component: flag propagation scope
 
-- **Named class in `App.css`:** change once, every usage in `App.jsx` (and future screens) updates.
-- **Component-local pattern:** `grep` the `src/` tree for the pattern, show the list, ask "Apply to all N instances?" Better: promote to a named class first.
+- **Named class in `globals.css`:** change once, every usage in the App Router tree (and future screens) updates.
+- **Component-local pattern:** `grep` the `packages/web/` tree for the pattern, show the list, ask "Apply to all N instances?" Better: promote to a named class first.
 
 ### After implementing: propose hierarchy propagation
 
@@ -67,7 +67,7 @@ Which larger sections contain these molecules? Any layout side effects?
 
 **Ask explicitly, offer choices. Do NOT propagate silently.** The team decides scope.
 
-**If propagating:** update tokens in `App.css` + Section 2-3 of this file, then atoms in `App.css`, then molecule usage in JSX, then verify against `/docs.html`.
+**If propagating:** update tokens in `globals.css` + Section 2-3 of this file, then atoms in `globals.css`, then molecule usage in the App Router tree, then verify against `/docs.html`.
 
 ### AI-readiness adoption status (the 10 Laws, audited 2026-07-05)
 
@@ -107,7 +107,12 @@ The app is a single centered 520px column (`.shell`) of stacked cards. Density i
 - Dark by default, `color-scheme: dark` set at `:root`
 - One accent color; everything else is neutral or status feedback
 - Mono uppercase micro-labels over clean sans body (Agentic DS signature; serif headings NOT adopted in v0, reconsider if STEMPEL wins the vote)
-- Single-column card stack, no nav, no sidebar (hackathon MVP scope)
+- Single-column card stack, no sidebar (hackathon MVP scope). **Deviation (2026-07-12):** a slim
+  sticky app bar (`.app-bar` in globals.css) was added on the app pages (dashboard / explore /
+  community, not the `/` landing) — brand left, single wallet control right (`WalletControl`,
+  replacing the old ConnectWalletButton + SessionBadge pair that printed the address twice). Full
+  width, solid `--color-bg-primary`, one-token border. Still no sidebar; the `.shell` column is
+  unchanged below it.
 - Restrained motion: hover brightness only today, see Section 5
 
 ---
@@ -127,11 +132,11 @@ Naming follows the Design Systems Manual (agenticui.net) tier formats. Reference
 Non-color categories already follow `{category}-{scale}`: `--space-1..7`, `--radius-sm/md/lg/full`. Typography is class-based in v0; tokenize when primitives land. Later export target: DTCG `.tokens.json` with `$value`, `$type`, mandatory `$description` per token (post-hackathon).
 
 
-All tokens live in `:root` in `src/App.css`. The semantic names below are the canonical token names (Agentic DS naming). The "App.css var" column maps to the shorter legacy names currently in the file; when touching the token block, migrate legacy names toward the semantic names rather than adding new short names.
+All tokens live in `:root` in `packages/web/app/globals.css`. The semantic names below are the canonical token names (Agentic DS naming). The "globals.css var" column maps to the shorter legacy names currently in the file; when touching the token block, migrate legacy names toward the semantic names rather than adding new short names.
 
 ### Backgrounds
 
-| Token | Value | App.css var | Role |
+| Token | Value | globals.css var | Role |
 |-------|-------|-------------|------|
 | `--color-bg-primary` | `#0b0b0a` | same | Page background (`body`) |
 | `--color-bg-elevated` | `#131311` | same | Card surfaces (`.card`) |
@@ -142,7 +147,7 @@ All tokens live in `:root` in `src/App.css`. The semantic names below are the ca
 
 ### Content
 
-| Token | Value | App.css var | Role |
+| Token | Value | globals.css var | Role |
 |-------|-------|-------------|------|
 | `--color-content-primary` | `#ecd9c1` | same | Body text, headings, ghost button labels |
 | `--color-content-secondary` | `#928e85` | same | Labels, hints, tagline, footer, form label text |
@@ -154,7 +159,7 @@ All tokens live in `:root` in `src/App.css`. The semantic names below are the ca
 
 ### Border
 
-| Token | Value | App.css var | Role |
+| Token | Value | globals.css var | Role |
 |-------|-------|-------------|------|
 | `--color-border-medium` | `#262521` | same | Card borders, input borders, ghost button borders, code chip borders |
 | `--color-border-accent` | `#fad657` | same (promoted 2026-07-05) | Focus state border |
@@ -196,7 +201,7 @@ Documented for the vote. `split` is the live default. Each renders as a `data-th
 
 Micro-labels (`.label`) are 12px UPPERCASE with 0.06em tracking in `--color-content-secondary`, set in the mono stack. This mono-label-over-sans-body pairing is the Komunify type signature, inherited from the Agentic DS (which pairs mono UPPERCASE labels with a clean sans body; its serif headings are NOT adopted in v0, revisit only if STEMPEL wins).
 
-> **Drift resolved (2026-07-05):** `.label` in `src/App.css` now carries the mono stack. Do not add new labels in sans.
+> **Drift resolved (2026-07-05):** `.label` in `packages/web/app/globals.css` now carries the mono stack. Do not add new labels in sans.
 
 ### Hierarchy
 
@@ -245,7 +250,7 @@ Four steps, no additions without a token-level discussion. The scale reads: chip
 
 ## 4. Component Stylings
 
-### 4.1 Existing atoms and classes (live in `src/App.css`, used in `src/App.jsx`)
+### 4.1 Existing atoms and classes (live in `packages/web/app/globals.css`, used across the `packages/web/app/` Next.js App Router tree)
 
 **`.shell`** (layout root)
 ```
@@ -300,7 +305,7 @@ All 13px. `.hint`: `--color-content-secondary`, margin 8px 0 12px. `.error`: `--
 
 ### 4.2 Planned components (from Faris PRD, mapped to Agentic DS taxonomy)
 
-Statuses: **live** (in App.css/App.jsx today), **planned** (build per this table, propose per Section 0), **n/a** (Agentic category explicitly out of MVP scope).
+Statuses: **live** (in globals.css / the App Router tree today), **planned** (build per this table, propose per Section 0), **n/a** (Agentic category explicitly out of MVP scope).
 
 | Component | Agentic taxonomy | Status | One-line spec |
 |-----------|------------------|--------|---------------|
@@ -322,7 +327,7 @@ Statuses: **live** (in App.css/App.jsx today), **planned** (build per this table
 | Pagination | PAGINATION | n/a | Out of MVP scope |
 | File upload | FILE UPLOAD | n/a | Out of MVP scope |
 
-Every planned component, once built: demo in `/docs.html`, spec promoted from this table into a full 4.1-style entry, class in `App.css` if reused.
+Every planned component, once built: demo in `/docs.html`, spec promoted from this table into a full 4.1-style entry, class in `globals.css` if reused.
 
 ---
 

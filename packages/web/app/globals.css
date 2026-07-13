@@ -48,6 +48,7 @@
   --radius-full: 999px;
 
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif: var(--playfair-display, 'Playfair Display', serif);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -95,6 +96,47 @@ body {
   gap: var(--space-4);
 }
 
+/* Sticky app bar (DESIGN.md deviation from "no nav" — logged in §1, app pages only).
+   Full-width, solid canvas so cards scroll cleanly under it. */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px var(--space-5);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-medium);
+}
+.app-bar-brand-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.app-bar-brand {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-content-primary);
+  text-decoration: none;
+}
+.app-bar-brand::first-letter {
+  color: var(--color-content-accent);
+}
+.app-bar-brand-group .pill {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.app-bar-wallet {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 /* Header */
 header {
   text-align: center;
@@ -112,6 +154,25 @@ header {
   font-size: 14px;
   color: var(--color-content-secondary);
   margin: 6px 0 0;
+}
+.explore-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: var(--space-3);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-accent-tint);
+  color: var(--color-content-accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: border-color 150ms ease-out, background 150ms ease-out;
+}
+.explore-cta:hover {
+  border-color: var(--color-border-accent);
+  background: var(--color-bg-accent-tint);
 }
 
 /* Surface */
@@ -163,11 +224,15 @@ header {
 
 /* Status pill */
 .pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   font-weight: 700;
   border-radius: var(--radius-full);
   padding: 3px 9px;
+  background: var(--color-bg-elevated);
+  color: var(--color-content-secondary);
 }
 .pill.ok {
   background: var(--color-bg-success-tint);
@@ -180,6 +245,102 @@ header {
 .pill.accent {
   background: var(--color-bg-accent-tint);
   color: var(--color-content-accent);
+}
+
+/* Onboarding stepper (DESIGN.md §4.2 STEPPER, promoted to live).
+   Numbered nodes joined by a connector; the one accent marks done + active. */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+}
+.stepper-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+/* Connector runs behind the nodes, from this node's center to the next. */
+.stepper-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--color-border-medium);
+  z-index: 0;
+}
+.stepper-step.done:not(:last-child)::after {
+  background: var(--color-content-accent);
+}
+.stepper-node {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-medium);
+  background: var(--color-bg-input);
+  color: var(--color-content-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+.stepper-step.active .stepper-node {
+  border-color: var(--color-border-accent);
+  background: var(--color-bg-accent-tint);
+  color: var(--color-content-accent);
+}
+.stepper-step.done .stepper-node {
+  border-color: transparent;
+  background: var(--color-content-accent);
+  color: var(--color-content-on-accent);
+}
+.stepper-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--color-content-secondary);
+}
+.stepper-step.active .stepper-label {
+  color: var(--color-content-primary);
+}
+
+/* Onboarding value-prop bullet: leading accent icon over two lines of copy. */
+.benefit {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  text-align: left;
+}
+.benefit-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-accent-tint);
+  color: var(--color-content-accent);
+}
+.benefit p {
+  margin: 0;
+}
+.benefit-title {
+  font-weight: 600;
+  color: var(--color-content-primary);
+}
+.benefit-body {
+  font-size: 13px;
+  color: var(--color-content-secondary);
 }
 
 /* Buttons */
@@ -267,6 +428,20 @@ code {
   font-size: 13px;
   color: var(--color-content-success);
   margin: var(--space-3) 0 0;
+}
+
+/* Inline explorer link: dotted underline signals it's clickable, solid on hover */
+.explorer-link {
+  color: var(--color-content-accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: text-decoration-color 150ms ease-out;
+}
+.explorer-link:hover {
+  text-decoration-style: solid;
 }
 
 /* Transaction detail (technical panel) */

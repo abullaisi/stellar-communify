@@ -16,11 +16,21 @@ next-env.d.ts
 
 # Generated / scratch contract bindings
 .tmp-bindings/
+tmp-bindings/
 
-# Local deploy artifact (contract id — share via .env instead)
+# Local deploy artifacts (contract ids — share via .env instead)
 .contract-id
+.contract-id.usdc
+.contract-id.komunify
 
 # macOS
 .DS_Store
 dist
 *.local
+
+# Local doc conversion artifacts (e.g. .docx exported to text)
+*.docx.txt
+
+# Local blob storage (dev fallback when BLOB_READ_WRITE_TOKEN is empty)
+.blobs/
+**/.blobs/

@@ -72,14 +72,12 @@ A working end-to-end slice of the product, live at https://komunify.pages.dev on
 
 ```bash
 git clone https://github.com/yoms07/stellar-hackathon.git
-cd stellar-hackathon/packages/dapp
-npm install
-npm run dev
+cd stellar-hackathon
+bun install
+bun dev
 ```
 
-4. Open the printed localhost URL, connect a wallet, fund with Friendbot if needed, and subscribe with testnet XLM
-
-(Or from the repo root with [bun](https://bun.sh): `bun install && bun run dev` runs every package in parallel.)
+4. Open the printed localhost URL (`packages/web`, port 3000), connect a wallet, fund with Friendbot if needed, and subscribe with testnet USDC
 
 ## Smart Contract: Komunify (Soroban)
 
@@ -114,20 +112,23 @@ The Day 1 bootcamp contribution-ledger contract this evolved from lives in the g
 
 ```
 stellar-hackathon/
-  contracts/contracts/komunify/   Soroban contract (Rust): subscribe + split + reads, 4 unit tests
-  packages/dapp/                  React + Vite dapp (the live demo): wallet, subscribe, traction
-  packages/web/                   Next.js site (scaffold)
-  packages/contract-client/       generated TypeScript bindings package
-  prototype/                      static clickable prototype, 6 screens (design source of truth with DESIGN.md)
-  brand/                          SPLIT v4 brand board
+  contracts/contracts/komunify/    Soroban contract (Rust): subscriptions, content registry, read accounting, payouts
+  contracts/contracts/usdc/        mock SEP-41 token contract (testnet only)
+  packages/web/                    Next.js frontend, Freighter wallet integration
+  packages/api/                    Hono backend API
+  packages/contract-client/        generated TypeScript bindings for both contracts
+  packages/shared/                 shared Zod schemas, types, network config
+  prototype/                       static clickable prototype, 6 screens (design source of truth with DESIGN.md)
+  brand/                           SPLIT v4 brand board
 ```
 
-Data flow: the browser connects a wallet through **Stellar Wallets Kit**, builds contract calls with **`contract.Client` from `@stellar/stellar-sdk`** against **Soroban RPC** (`soroban-testnet.stellar.org`), and signs with the wallet. Balances and Friendbot go through **Horizon**. The `subscribe` call moves XLM through the Stellar Asset Contract to the three payout addresses and publishes an event; the traction cards re-read `get_count` / `get_volume` after every confirmed payment. No backend: the chain is the backend.
+Data flow: the browser connects a wallet through **Freighter**, builds contract calls with the generated `Komunify.Client` / `Usdc.Client` from `packages/contract-client` against **Soroban RPC** (`soroban-testnet.stellar.org`), and signs with the wallet. The `packages/api` backend (Hono) handles wallet-signature auth and content upload/download; entitlement and money are always re-verified against the chain, Postgres is a filing cabinet for file metadata only. See `CLAUDE.md` for the full architecture.
 
 ## Deployment
 
-- **Frontend:** Cloudflare Pages, project `komunify` → https://komunify.pages.dev. Redeploy: `cd packages/dapp && npm run build && npx wrangler pages deploy dist --project-name komunify`
-- **Contract:** `cd contracts && stellar contract build && stellar contract deploy --wasm target/wasm32v1-none/release/komunify.wasm --source-account <identity> --network testnet -- --token <XLM SAC> --owner <G...> --manager <G...> --platform <G...> --owner_bps 7000 --manager_bps 2000 --platform_bps 1000`. After a redeploy, update `CONTRACT_ID` in `packages/dapp/src/komunify.js` and republish Pages.
+- **Contract:** `make deploy-all` from repo root (deploys `usdc` then `komunify`, wires `usdc` as `komunify`'s `Config.token`). See `CLAUDE.md` → Smart Contracts for the full Makefile workflow.
+- **Frontend (`packages/web`):** Vercel.
+- **Backend (`packages/api`):** Dokploy, via `packages/api/Dockerfile`; Postgres on Neon.
 
 ## Screenshots
 

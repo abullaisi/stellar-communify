@@ -10,12 +10,17 @@ Shared TypeScript types and Zod schemas used by both the backend API and fronten
 
 ```
 src/
-├── index.ts           # Barrel export — everything exported from here
-├── types.ts           # Shared TypeScript interfaces (ApiResponse, PaginatedResponse)
-├── stellar.ts         # Stellar network config: passphrases + RPC/Horizon URLs per network
+├── index.ts             # Barrel export — everything exported from here
+├── types.ts             # Shared TypeScript interfaces (ApiResponse, PaginatedResponse)
+├── stellar.ts           # Stellar network config: passphrases + RPC/Horizon URLs per network
 └── schemas/
-    └── user.schema.ts # Zod schemas + inferred types for User domain
+    ├── auth.schema.ts    # Wallet-auth challenge/verify/me (D-001)
+    ├── content.schema.ts # Content list/upload/confirm/download
+    └── stats.schema.ts   # GET /stats traction aggregate
 ```
+
+> Every request/response body in `docs/API_SPEC.md` has a schema here. `i128` and `u64`
+> values are **always strings** at the JSON boundary — never numbers (precision loss).
 
 > `stellar.ts` is framework-agnostic (no env reads). Apps pick a network via
 > `getNetworkConfig(name)` and supply their own contract id / endpoint overrides.

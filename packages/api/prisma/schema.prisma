@@ -7,63 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Better Auth models — managed by better-auth, do not modify manually.
-// Run `npx better-auth generate` to regenerate if you change auth config.
+// Wallet-auth nonces (D-001) and content file metadata. See docs/API_SPEC.md §4.
+// The chain is the authority on money and entitlement — this is a filing cabinet.
 
-model user {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      session[]
-  accounts      account[]
-
-  @@map("user")
-}
-
-model session {
-  id        String   @id
+model Nonce {
+  id        String    @id @default(cuid())
+  wallet    String
+  nonce     String    @unique
   expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
-  @@map("session")
+  @@index([wallet])
 }
 
-model account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
-
-  @@map("account")
+enum ContentStatus {
+  DRAFT
+  REGISTERED
 }
 
-model verification {
-  id         String    @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
+model Content {
+  id            String        @id @default(cuid())
+  contractId    String?       @unique // stringified u64, null until confirmed
+  title         String
+  description   String
+  sha256        String        @unique
+  storageKey    String
+  sizeBytes     Int
+  creatorWallet String
+  status        ContentStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
 
-  @@map("verification")
+  @@index([creatorWallet])
+  @@index([status])
+}
+
+// Community brand (D-010): display-only identity a manager sets for their public community page
+// (name, logo, description). Keyed by the manager's wallet. Not money or entitlement — the chain
+// stays authority on those — but persisted here (not localStorage) so the community page is
+// viewable by any visitor, not just the owner's browser.
+model Community {
+  wallet      String   @id
+  name        String
+  description String   @default("")
+  logo        String? // small image as a data: URL, or null
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

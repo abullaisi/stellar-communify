@@ -4,15 +4,39 @@
  */
 
 export const API_ENDPOINTS = {
-  // Auth
+  // Wallet auth (D-001). See docs/API_SPEC.md §1.
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
+    challenge: '/auth/challenge',
+    verify: '/auth/verify',
     logout: '/auth/logout',
     me: '/auth/me',
   },
 
-  // Users
+  // Content (docs/API_SPEC.md §2)
+  content: {
+    list: '/content',
+    upload: '/content/upload',
+    confirm: (draftId: string) => `/content/${draftId}/confirm`,
+    download: (contentId: string) => `/content/${contentId}/download`,
+  },
+
+  // Community brand (D-010)
+  community: {
+    list: '/community',
+    save: '/community',
+    byWallet: (wallet: string) => `/community/${wallet}`,
+  },
+
+  // Manager server-side actions
+  manager: {
+    settleAll: '/manager/settle-all',
+    pending: '/manager/pending',
+  },
+
+  // Traction (docs/API_SPEC.md §3)
+  stats: '/stats',
+
+  // Users — generic pre-existing scaffold, unrelated to komunify auth (Phase 0 note)
   users: {
     list: '/users',
     byId: (id: string) => `/users/${id}`,

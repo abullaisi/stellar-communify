@@ -13,7 +13,7 @@
     "format": "bun --parallel -r format",
     "contract:test": "cd contracts && cargo test",
     "contract:build": "cd contracts && stellar contract build",
-    "contract:bindings": "rm -rf tmp-bindings && stellar contract bindings typescript --wasm contracts/target/wasm32v1-none/release/notes.wasm --output-dir tmp-bindings --overwrite && cp tmp-bindings/src/index.ts packages/contract-client/src/index.ts && rm -rf tmp-bindings && cd packages/contract-client && bun run build"
+    "contract:bindings": "make bindings"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

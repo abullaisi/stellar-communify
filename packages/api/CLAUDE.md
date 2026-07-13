@@ -243,14 +243,13 @@ pnpm prisma:migrate
 Import shared types from the shared package:
 
 ```typescript
-import { User, CreateUser, UpdateUser } from '@komunify/shared';
-import { UserSchema } from '@komunify/shared';
+import { ContentListItemSchema, type ContentListItem } from '@komunify/shared';
 
 // Use schemas for validation
-const result = UserSchema.parse(data);
+const result = ContentListItemSchema.parse(data);
 
 // Use types for type safety
-const user: User = await getUser(id);
+const item: ContentListItem = await getContent(id);
 ```
 
 ## Best Practices
@@ -315,43 +314,44 @@ logger.error('Database error', { error, query });
 - Use `prisma.$transaction()` for multiple related operations
 - Profile with `pnpm test:coverage` to find slow tests
 
-## Authentication (better-auth)
+## Authentication (wallet, D-001)
 
-If auth is enabled, the project uses [better-auth](https://better-auth.com) with cookie-based sessions.
+Wallet is the only identity. No email, no password, no better-auth, no `user` table. See
+`docs/API_SPEC.md` §1 and `docs/DECISIONS.md` D-001.
 
 ### How it works
 
-- All auth routes are mounted at `/api/auth/**` — handled automatically by better-auth
-- Sessions are stored in the database (Prisma adapter)
-- Cookies are HTTP-only — no manual token management
+1. `POST /auth/challenge { address }` — server persists a single-use `Nonce` row, returns
+   the human-readable string the user will sign.
+2. Browser calls Freighter `signMessage(nonce)`.
+3. `POST /auth/verify { address, signature }` — server verifies the Ed25519 signature
+   against the address (`@stellar/stellar-base`), marks the nonce used, sets an HTTP-only,
+   `SameSite=Lax`, signed JWT cookie named `kmf_session` (`jose`, HS256, 7-day expiry).
+4. `GET /auth/me` returns `{ address, isManager }`. `isManager` is simulated fresh against
+   the `komunify` contract on every call — never cached in the JWT, since a manager can be
+   added or removed on-chain mid-session.
+
+> Freighter's `signMessage` return shape has changed across SDK versions. Verify the exact
+> byte encoding against the installed `@stellar/freighter-api` before writing the verifier
+> — do not assume (see `docs/DECISIONS.md` D-001).
 
 ### Protecting routes
 
-```typescript
-import { requireAuth, optionalAuth } from '../middleware/auth.middleware.js';
-
-// Require a valid session
-app.get('/profile', requireAuth, (c) => {
-  const session = c.get('session'); // { user: User, session: Session }
-  return success(c, session.user);
-});
-
-// Attach session if present, but don't block
-app.get('/feed', optionalAuth, (c) => {
-  const session = c.get('session'); // null if not logged in
-  ...
-});
-```
+Session verification is a small `jose` JWT decode of the `kmf_session` cookie — there is no
+`better-auth`-style session store. Write a `requireAuth` middleware that decodes the cookie
+and sets `c.set('address', payload.sub)`; throw `UnauthorizedError` on a missing/invalid
+cookie.
 
 ### Prisma schema
 
-The schema includes `user`, `session`, `account`, and `verification` tables managed by better-auth. Do not modify them manually — run `npx better-auth generate` if you change `src/lib/auth.ts`.
+The schema is just `Nonce` (auth) and `Content` (file metadata) — see `docs/API_SPEC.md` §4.
+There is no `subscriptions` table; every entitlement question is answered by simulating a
+read against the `komunify` contract.
 
 ### Auth environment variables
 
 ```
-BETTER_AUTH_SECRET=...   # min 32 chars
-BETTER_AUTH_URL=...      # your API URL, e.g. http://localhost:3001
+SESSION_SECRET=...   # 32+ random bytes, signs the kmf_session JWT
 ```
 
 ## Security Checklist

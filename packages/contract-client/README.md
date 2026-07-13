@@ -1,38 +1,37 @@
 # @komunify/contract-client
 
-**Generated** TypeScript bindings for the Komunify `notes` Soroban contract —
-the on-chain "ABI" that lets the frontend and backend call the contract type-safely.
+**Generated** TypeScript bindings for the two Komunify Soroban contracts — the
+on-chain "ABI" that lets the frontend and backend call the contracts type-safely.
 
-> ⚠️ `src/index.ts` is generated. Do **not** edit it by hand. Only `package.json`,
-> `tsconfig.json`, and this README are hand-maintained.
+> ⚠️ `src/komunify.ts` and `src/usdc.ts` are generated. Do **not** edit them by hand.
+> `src/index.ts` (the barrel), `package.json`, `tsconfig.json`, and this README are
+> hand-maintained.
 
 ## Regenerating
 
-After changing the contract, from the repo root:
+After changing a contract, from the repo root:
 
 ```bash
-bun contract:build      # compile the contract to Wasm
-bun contract:bindings   # regenerate src/index.ts from the Wasm and rebuild dist/
+bun contract:build      # compile both contracts to Wasm
+bun contract:bindings   # regenerate src/{komunify,usdc}.ts from the Wasm and rebuild dist/
 ```
 
-`bun contract:bindings` writes only `src/index.ts` (preserving this package's scoped
-`package.json`) and rebuilds `dist/`, which is what consumers import.
+`bun contract:bindings` (== `make bindings`) writes only `src/komunify.ts` and
+`src/usdc.ts` (preserving `src/index.ts` and this package's scoped `package.json`)
+and rebuilds `dist/`, which is what consumers import.
 
 ## Usage
 
-This package is generated from the Wasm spec, so it has no baked-in `networks` constant.
-Construct a `Client` with the network + deployed contract id yourself. In the web app,
-use the ready-made factory instead:
+This package is generated from the Wasm spec, so it has no baked-in `networks`
+constant. Construct a client with the network + deployed contract id yourself. Both
+generated clients are re-exported under distinct namespaces from `src/index.ts`:
 
 ```ts
-import { getNotesClient } from '@/lib/notes-client';
+import { Komunify, Usdc } from '@komunify/contract-client';
 
-// read-only (no wallet needed)
-const client = getNotesClient();
-const notes = (await client.list_notes({ owner: publicKey })).result;
-
-// state-changing (signs via Freighter)
-const signed = getNotesClient(publicKey);
-const tx = await signed.add_note({ owner: publicKey, title: 'Hi', content: 'Yo' });
-const { result: newId } = await tx.signAndSend();
+const komunify = new Komunify.Client({ contractId, networkPassphrase, rpcUrl, publicKey, signTransaction });
+const usdc = new Usdc.Client({ contractId: usdcContractId, networkPassphrase, rpcUrl, publicKey, signTransaction });
 ```
+
+In the web app, use the ready-made factories in `lib/` instead of constructing
+clients directly (see `packages/web/CLAUDE.md`).

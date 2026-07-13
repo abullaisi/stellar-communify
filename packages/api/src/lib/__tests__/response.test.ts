@@ -17,7 +17,8 @@ describe('Response Helpers', () => {
     const res = await app.request('/success');
     expect(res.status).toBe(200);
 
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
     expect(json.success).toBe(true);
     expect(json.data).toEqual({ message: 'OK' });
   });
@@ -26,7 +27,8 @@ describe('Response Helpers', () => {
     const res = await app.request('/created', { method: 'POST' });
     expect(res.status).toBe(201);
 
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
     expect(json.success).toBe(true);
     expect(json.data).toEqual({ id: '123' });
   });
@@ -41,7 +43,8 @@ describe('Response Helpers', () => {
     const res = await app.request('/paginated');
     expect(res.status).toBe(200);
 
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
     expect(json.success).toBe(true);
     expect(json.data).toHaveLength(2);
     expect(json.pagination).toEqual({
@@ -58,7 +61,8 @@ describe('Response Helpers', () => {
     const res = await app.request('/error');
     expect(res.status).toBe(400);
 
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
     expect(json.success).toBe(false);
     expect(json.error).toBe('Something failed');
     expect(json.code).toBe('BAD_REQUEST');

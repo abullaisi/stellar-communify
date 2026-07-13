@@ -10,7 +10,8 @@ describe('Health Route', () => {
     const res = await app.request('/health');
     expect(res.status).toBe(200);
 
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
     expect(json.success).toBe(true);
     expect(json.data).toHaveProperty('status', 'ok');
     expect(json.data).toHaveProperty('timestamp');
@@ -19,7 +20,8 @@ describe('Health Route', () => {
 
   it('should return valid timestamp', async () => {
     const res = await app.request('/health');
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
 
     const timestamp = new Date(json.data.timestamp);
     expect(timestamp.getTime()).not.toBeNaN();
@@ -28,7 +30,8 @@ describe('Health Route', () => {
 
   it('should return positive uptime', async () => {
     const res = await app.request('/health');
-    const json = await res.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await res.json()) as any;
 
     expect(json.data.uptime).toBeGreaterThan(0);
     expect(typeof json.data.uptime).toBe('number');

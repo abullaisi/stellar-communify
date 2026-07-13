@@ -5,7 +5,12 @@ import { corsMiddleware } from './middleware/cors.middleware.js';
 import { loggerMiddleware } from './middleware/logger.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { health } from './routes/health.route.js';
-import { auth } from './lib/auth.js';
+import { auth } from './routes/auth.route.js';
+import { content } from './routes/content.route.js';
+import { community } from './routes/community.route.js';
+import { manager } from './routes/manager.route.js';
+import { stats } from './routes/stats.route.js';
+import { ContentService } from './services/content.service.js';
 
 const app = new Hono();
 
@@ -13,11 +18,13 @@ const app = new Hono();
 app.use('*', corsMiddleware);
 app.use('*', loggerMiddleware);
 
-// Better Auth — handles all /api/auth/* routes (sign-in, sign-up, sign-out, session, etc.)
-app.on(['POST', 'GET'], '/api/auth/**', (c) => auth.handler(c.req.raw));
-
 // Routes
 app.route('/health', health);
+app.route('/auth', auth);
+app.route('/content', content);
+app.route('/community', community);
+app.route('/manager', manager);
+app.route('/stats', stats);
 
 // Root endpoint
 app.get('/', (c) => {
@@ -39,6 +46,17 @@ app.notFound((c) => {
     message: `Route ${c.req.method} ${c.req.url} not found`,
   }, 404);
 });
+
+// Garbage-collect stale DRAFT content rows (and their blobs) hourly. 24h age cutoff is
+// enforced inside ContentService.gcDrafts().
+const DRAFT_GC_INTERVAL_MS = 60 * 60 * 1000;
+setInterval(() => {
+  ContentService.gcDrafts()
+    .then((count) => {
+      if (count > 0) logger.info(`Draft GC: removed ${count} stale draft(s)`);
+    })
+    .catch((err) => logger.error('Draft GC failed', { error: (err as Error).message }));
+}, DRAFT_GC_INTERVAL_MS);
 
 // Start server
 const port = env.PORT;
