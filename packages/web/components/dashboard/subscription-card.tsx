@@ -3,7 +3,9 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ExplorerLink, TestnetNote } from '@/components/ui/trust';
 import { formatTokenAmount } from '@/lib/contracts';
 import {
   useConfig,
@@ -47,26 +49,34 @@ export function SubscriptionCard() {
 
   return (
     <section className="card">
-      <h2>Subscription</h2>
-      <span className="label">Price / epoch</span>
+      <h2>Membership</h2>
+      <span className="label">One subscription · every community</span>
       {config.isLoading ? (
-        <Skeleton className="h-9 w-32 rounded-md" />
+        <Skeleton className="h-9 w-32 rounded-md" style={{ marginTop: 6 }} />
       ) : (
         <p className="balance">
-          {config.data ? formatTokenAmount(config.data.price) : '—'} USDC
+          {config.data ? formatTokenAmount(config.data.price) : '…'}{' '}
+          <ExplorerLink target="usdc" title="View the USDC token contract on Stellar Expert">
+            USDC
+          </ExplorerLink>
+          <span className="label" style={{ textTransform: 'none', fontSize: 13, marginLeft: 6 }}>
+            / month
+          </span>
         </p>
       )}
 
-      <div className="row tight" style={{ marginBottom: 12 }}>
+      <div className="row tight" style={{ marginBottom: 10 }}>
         {status.isLoading ? (
-          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-24 rounded-full" />
         ) : status.data?.isActive ? (
-          <span className="pill ok">ACTIVE</span>
+          <span className="pill ok">
+            <Icon name="check" size={12} /> ACTIVE
+          </span>
         ) : (
-          <span className="pill warn">INACTIVE</span>
+          <span className="pill warn">NOT A MEMBER YET</span>
         )}
         <span className="label" style={{ textTransform: 'none' }}>
-          Balance: {balance.data !== undefined ? formatTokenAmount(balance.data) : '—'} USDC
+          Wallet: {balance.data !== undefined ? formatTokenAmount(balance.data) : '…'} USDC
         </span>
       </div>
 
@@ -77,10 +87,11 @@ export function SubscriptionCard() {
           onClick={handleFaucet}
           disabled={faucet.isPending || !faucetReady}
         >
+          <Icon name="coins" size={15} />
           {faucet.isPending
             ? 'Requesting…'
             : faucetReady
-              ? 'Get test USDC'
+              ? 'Get free test USDC'
               : 'Faucet on cooldown'}
         </Button>
         <Button
@@ -88,14 +99,24 @@ export function SubscriptionCard() {
           onClick={handleSubscribe}
           disabled={subscribe.isPending || !!status.data?.isActive}
         >
-          {subscribe.isPending
-            ? 'Subscribing…'
-            : status.data?.isActive
-              ? 'Subscribed'
-              : 'Subscribe'}
+          {subscribe.isPending ? (
+            'Subscribing…'
+          ) : status.data?.isActive ? (
+            <>
+              <Icon name="check" size={15} /> You&apos;re in
+            </>
+          ) : (
+            <>
+              <Icon name="key" size={15} /> Subscribe
+            </>
+          )}
         </Button>
       </div>
       {error ? <p className="error">{error}</p> : null}
+
+      <div className="tx">
+        <TestnetNote />
+      </div>
     </section>
   );
 }

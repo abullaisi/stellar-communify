@@ -58,6 +58,7 @@ pub struct Stats {
 pub enum DataKey {
     Config,
     Stats,
+    EpochBase,
     NextContentId,
     Manager(Address),
     Content(u64),
@@ -164,11 +165,28 @@ fn add_dust(env: &Env, amount: i128) {
     env.storage().instance().set(&DataKey::Dust, &(cur + amount));
 }
 
-fn compute_epoch(cfg: &Config, now: u64) -> u32 {
+/// Epoch offset in effect since the last rebase (0 until the first
+/// `force_close_epoch`). Kept in instance storage so `Config`'s shape — and the
+/// generated bindings, `init` args, and seed — stay unchanged.
+fn read_epoch_base(env: &Env) -> u32 {
+    env.storage()
+        .instance()
+        .get(&DataKey::EpochBase)
+        .unwrap_or(0)
+}
+
+/// current_epoch = epoch_base + (now - genesis) / epoch_secs.
+///
+/// `genesis` is the timestamp the current params took effect (moved forward by
+/// each `force_close_epoch`); `epoch_base` is the epoch number at that instant.
+/// This keeps epoch numbers strictly monotonic across a rebase and never
+/// renumbers a started epoch — all state keyed by epoch number stays addressable.
+fn compute_epoch(env: &Env, cfg: &Config, now: u64) -> u32 {
+    let base = read_epoch_base(env);
     if now <= cfg.genesis {
-        return 0;
+        return base;
     }
-    ((now - cfg.genesis) / cfg.epoch_secs) as u32
+    base + ((now - cfg.genesis) / cfg.epoch_secs) as u32
 }
 
 fn topic_kmf() -> Symbol {
@@ -210,13 +228,16 @@ impl KomunifyContract {
             .instance()
             .set(&DataKey::NextContentId, &1u64);
         env.storage().instance().set(&DataKey::Dust, &0i128);
+        env.storage().instance().set(&DataKey::EpochBase, &0u32);
         bump_instance(&env);
     }
 
-    /// Admin-gated whitelist. require_auth(admin). Adjusts Stats.manager_count.
+    /// Permissionless self-service (D-011). require_auth(who): a wallet toggles only its OWN
+    /// manager status — enable to start publishing, disable to resign. No admin gate; `who`
+    /// can never be forced by anyone else, and no one but `who` can touch it. Adjusts
+    /// Stats.manager_count.
     pub fn set_manager(env: Env, who: Address, enabled: bool) {
-        let cfg = load_config(&env);
-        cfg.admin.require_auth();
+        who.require_auth();
         bump_instance(&env);
         let current: bool = pget(&env, &DataKey::Manager(who.clone())).unwrap_or(false);
         if current != enabled {
@@ -316,7 +337,7 @@ impl KomunifyContract {
         member.require_auth();
         let cfg = load_config(&env);
         bump_instance(&env);
-        let e = compute_epoch(&cfg, env.ledger().timestamp());
+        let e = compute_epoch(&env, &cfg, env.ledger().timestamp());
 
         if let Some(sub_epoch) = pget::<u32>(&env, &DataKey::Sub(member.clone())) {
             if sub_epoch == e {
@@ -366,7 +387,7 @@ impl KomunifyContract {
         }
 
         let cfg = load_config(&env);
-        let e = compute_epoch(&cfg, env.ledger().timestamp());
+        let e = compute_epoch(&env, &cfg, env.ledger().timestamp());
 
         // Idempotent per (epoch, content, member).
         let read_key = DataKey::Read(e, content_id, member.clone());
@@ -399,7 +420,7 @@ impl KomunifyContract {
     pub fn settle_member(env: Env, epoch: u32, m: Address) {
         let cfg = load_config(&env);
         bump_instance(&env);
-        let cur = compute_epoch(&cfg, env.ledger().timestamp());
+        let cur = compute_epoch(&env, &cfg, env.ledger().timestamp());
         if epoch >= cur {
             panic_with_error!(&env, Error::EpochNotClosed);
         }
@@ -501,6 +522,38 @@ impl KomunifyContract {
         token.transfer(&env.current_contract_address(), &to, &dust);
     }
 
+    /// require_auth(admin). Ends the current epoch immediately: it becomes closed
+    /// (so `settle_member`/`claim` can drain it) and a fresh epoch of the same
+    /// `epoch_secs` starts now. Does NOT distribute — distribution stays the
+    /// existing per-member pull (`settle_member`), same as a natural boundary.
+    ///
+    /// Operator/demo tool: run a real billing epoch (e.g. 30 days) but force a
+    /// close on demand to show settlement live. Epoch numbers stay strictly
+    /// monotonic and no existing epoch's state is renumbered. Emits `epoch_closed`.
+    pub fn force_close_epoch(env: Env, admin: Address) {
+        let cfg = load_config(&env);
+        if admin != cfg.admin {
+            panic_with_error!(&env, Error::NotAdmin);
+        }
+        admin.require_auth();
+        bump_instance(&env);
+
+        let now = env.ledger().timestamp();
+        let closed = compute_epoch(&env, &cfg, now);
+        let new_base = closed + 1;
+
+        // Rebase: the next epoch starts now, numbered `closed + 1`.
+        env.storage().instance().set(&DataKey::EpochBase, &new_base);
+        let mut cfg = cfg;
+        cfg.genesis = now;
+        env.storage().instance().set(&DataKey::Config, &cfg);
+
+        env.events().publish(
+            (topic_kmf(), Symbol::new(&env, "epoch_closed")),
+            (closed, new_base, now),
+        );
+    }
+
     // ----- read-only -----
 
     pub fn get_config(env: Env) -> Config {
@@ -514,12 +567,19 @@ impl KomunifyContract {
     /// (now - genesis) / epoch_secs
     pub fn current_epoch(env: Env) -> u32 {
         let cfg = load_config(&env);
-        compute_epoch(&cfg, env.ledger().timestamp())
+        compute_epoch(&env, &cfg, env.ledger().timestamp())
     }
 
     pub fn epoch_ends_at(env: Env, epoch: u32) -> u64 {
         let cfg = load_config(&env);
-        cfg.genesis + ((epoch as u64) + 1) * cfg.epoch_secs
+        let base = read_epoch_base(&env);
+        // Epochs before the current base were closed at (at latest) the last
+        // rebase; report that boundary. Current/future epochs are measured from
+        // the current base timestamp (genesis).
+        if epoch < base {
+            return cfg.genesis;
+        }
+        cfg.genesis + (((epoch - base) as u64) + 1) * cfg.epoch_secs
     }
 
     pub fn is_manager(env: Env, who: Address) -> bool {
@@ -529,7 +589,7 @@ impl KomunifyContract {
     /// Sub(member) == current_epoch()
     pub fn is_active(env: Env, member: Address) -> bool {
         let cfg = load_config(&env);
-        let e = compute_epoch(&cfg, env.ledger().timestamp());
+        let e = compute_epoch(&env, &cfg, env.ledger().timestamp());
         match pget::<u32>(&env, &DataKey::Sub(member)) {
             Some(sub_epoch) => sub_epoch == e,
             None => false,

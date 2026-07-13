@@ -26,6 +26,9 @@ tmp-bindings/
 # macOS
 .DS_Store
 
+# Local doc conversion artifacts (e.g. .docx exported to text)
+*.docx.txt
+
 # Local blob storage (dev fallback when BLOB_READ_WRITE_TOKEN is empty)
 .blobs/
 **/.blobs/

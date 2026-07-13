@@ -99,7 +99,12 @@ The app is a single centered 520px column (`.shell`) of stacked cards. Density i
 - Dark by default, `color-scheme: dark` set at `:root`
 - One accent color; everything else is neutral or status feedback
 - Mono uppercase micro-labels over clean sans body (Agentic DS signature; serif headings NOT adopted in v0, reconsider if STEMPEL wins the vote)
-- Single-column card stack, no nav, no sidebar (hackathon MVP scope)
+- Single-column card stack, no sidebar (hackathon MVP scope). **Deviation (2026-07-12):** a slim
+  sticky app bar (`.app-bar` in globals.css) was added on the app pages (dashboard / explore /
+  community, not the `/` landing) — brand left, single wallet control right (`WalletControl`,
+  replacing the old ConnectWalletButton + SessionBadge pair that printed the address twice). Full
+  width, solid `--color-bg-primary`, one-token border. Still no sidebar; the `.shell` column is
+  unchanged below it.
 - Restrained motion: hover brightness only today, see Section 5
 
 ---

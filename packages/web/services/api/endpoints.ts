@@ -22,8 +22,15 @@ export const API_ENDPOINTS = {
 
   // Community brand (D-010)
   community: {
+    list: '/community',
     save: '/community',
     byWallet: (wallet: string) => `/community/${wallet}`,
+  },
+
+  // Manager server-side actions
+  manager: {
+    settleAll: '/manager/settle-all',
+    pending: '/manager/pending',
   },
 
   // Traction (docs/API_SPEC.md §3)

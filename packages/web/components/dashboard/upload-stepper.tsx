@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,8 +16,8 @@ type Step = 'upload' | 'register' | 'confirm' | 'done';
 
 /**
  * Upload -> register_content -> confirm, shown as a 3-step stepper (DESIGN.md §4.2 STEPPER).
- * Step 1 (blob upload) needs Lane B's `POST /content/upload` — not live yet, so this step will
- * error until that route ships. Step 2 (`register_content`) is a real on-chain call.
+ * Step 1 uploads the PDF blob (`POST /content/upload`) and hashes it; step 2 signs
+ * `register_content` on-chain; step 3 confirms the draft against the chain (`POST /content/:id/confirm`).
  */
 export function UploadStepper() {
   const { address } = useWallet();
@@ -72,10 +74,22 @@ export function UploadStepper() {
     }
   }
 
+  /** Reset the form so the manager can publish another piece without reloading. */
+  function handlePublishAnother() {
+    setError(null);
+    setTitle('');
+    setDescription('');
+    setFile(null);
+    setDraftId(null);
+    setSha256Hex(null);
+    setContentId(null);
+    setStep('upload');
+  }
+
   const steps: { key: Step; label: string }[] = [
     { key: 'upload', label: '1 Upload' },
-    { key: 'register', label: '2 Register' },
-    { key: 'confirm', label: '3 Confirm' },
+    { key: 'register', label: '2 Sign' },
+    { key: 'confirm', label: '3 Publish' },
   ];
 
   return (
@@ -127,6 +141,7 @@ export function UploadStepper() {
             />
           </Label>
           <Button type="submit" disabled={upload.isPending}>
+            <Icon name="upload" size={15} />
             {upload.isPending ? 'Uploading…' : 'Upload'}
           </Button>
         </form>
@@ -134,23 +149,47 @@ export function UploadStepper() {
 
       {step === 'register' ? (
         <div>
-          <p className="hint">Draft hashed as <code>{sha256Hex?.slice(0, 16)}…</code>. Sign register_content.</p>
+          <p className="hint">
+            Your file is ready and fingerprinted (<code>{sha256Hex?.slice(0, 16)}…</code>). Sign to
+            record it on-chain. This proves you’re the author and locks the file so it can’t be
+            swapped later.
+          </p>
           <Button type="button" onClick={handleRegister} disabled={register.isPending}>
-            {register.isPending ? 'Registering…' : 'Sign register_content'}
+            <Icon name="pen" size={15} />
+            {register.isPending ? 'Check your wallet…' : 'Sign & register'}
           </Button>
         </div>
       ) : null}
 
       {step === 'confirm' ? (
         <div>
-          <p className="hint">Registered as content #{contentId}. Confirm with the API.</p>
+          <p className="hint">Almost live. One more click to publish it to your library.</p>
           <Button type="button" onClick={handleConfirm} disabled={confirm.isPending}>
-            {confirm.isPending ? 'Confirming…' : 'Confirm'}
+            <Icon name="check" size={15} />
+            {confirm.isPending ? 'Publishing…' : 'Publish'}
           </Button>
         </div>
       ) : null}
 
-      {step === 'done' ? <p className="success">Content #{contentId} published.</p> : null}
+      {step === 'done' ? (
+        <div>
+          <p className="success" style={{ marginTop: 0, display: 'flex', gap: 6, alignItems: 'center' }}>
+            <Icon name="check" size={14} /> Published on-chain. It’s live in your library.
+          </p>
+          <div className="row tight">
+            <Button type="button" onClick={handlePublishAnother}>
+              <Icon name="upload" size={15} /> Publish another
+            </Button>
+            {address ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/community/${address}`} target="_blank" rel="noreferrer">
+                  View public page →
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       {error ? <p className="error">{error}</p> : null}
     </section>
   );

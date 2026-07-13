@@ -21,7 +21,7 @@ CLIENT_DIR     := packages/contract-client
 CONTRACT_ID    := $(shell cat .contract-id.$(CONTRACT) 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test build optimize bindings deploy-all id invoke simulate fund clean
+.PHONY: help setup test build optimize bindings deploy-all id invoke simulate fund clean claim-dust force-close-epoch
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -76,6 +76,14 @@ simulate: ## Simulate (read-only): make simulate CONTRACT=komunify ARGS="get_sta
 
 fund: ## Fund the source identity via friendbot (testnet/futurenet)
 	stellar keys fund $(SOURCE) --network $(NETWORK)
+
+claim-dust: ## Admin: sweep Dust to Config.platform (make claim-dust SOURCE=deployer)
+	stellar contract invoke --id $$(cat .contract-id.komunify) --source $(SOURCE) --network $(NETWORK) \
+		-- claim_dust --admin $(SOURCE)
+
+force-close-epoch: ## Admin: end the current epoch immediately (make force-close-epoch SOURCE=deployer)
+	stellar contract invoke --id $$(cat .contract-id.komunify) --source $(SOURCE) --network $(NETWORK) \
+		-- force_close_epoch --admin $(SOURCE)
 
 clean: ## Remove Rust build artifacts
 	cd contracts && cargo clean

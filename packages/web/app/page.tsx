@@ -1,11 +1,18 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { motion, useMotionValue, useTransform, useSpring, useReducedMotion, type MotionValue } from 'framer-motion';
+import { useLenis } from 'lenis/react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Play, Lock, Users, Send } from 'lucide-react';
+import { Play, Wallet, Sparkles, BookOpen, Coins } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ApiClient } from '@/services/api/client';
+import { useWallet } from '@/providers/wallet-provider';
+import { ScrollProgress } from '@/components/ui/scroll-progress';
+
+function truncateAddress(address: string) {
+  return `${address.slice(0, 4)}…${address.slice(-4)}`;
+}
 
 /* ============================================================================
   LANDING PAGE — Aureus (21st Design)
@@ -29,6 +36,8 @@ function Logo() {
 
 // Header with nav
 function Header() {
+  const { isConnected, address, connecting, error, connect, disconnect } = useWallet();
+
   return (
     <header className="relative z-20 max-w-7xl mx-auto flex items-center justify-between px-6 md:px-10 pt-7">
       <div className="flex items-center gap-3">
@@ -39,27 +48,45 @@ function Header() {
       </div>
 
       <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)] font-mono">
-        <a href="#creators" className="hover:text-[var(--color-content-accent)] transition-colors">
+        <Link href="/start" className="hover:text-[var(--color-content-accent)] transition-colors">
           For Creators
-        </a>
-        <a href="#subscribers" className="hover:text-[var(--color-content-accent)] transition-colors">
+        </Link>
+        <Link href="/explore" className="hover:text-[var(--color-content-accent)] transition-colors">
           For Subscribers
-        </a>
+        </Link>
         <a href="https://github.com/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
           GitHub
         </a>
       </nav>
 
-      <button className="hidden md:inline-flex items-center gap-2 border border-[var(--color-content-accent)]/40 text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors">
-        Connect Wallet
-        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
-      </button>
+      {isConnected && address ? (
+        <button
+          type="button"
+          onClick={disconnect}
+          title="Disconnect"
+          className="hidden md:inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors"
+        >
+          {truncateAddress(address)}
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]"></span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={connect}
+          disabled={connecting}
+          title={error ?? undefined}
+          className="hidden md:inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors disabled:opacity-60"
+        >
+          {connecting ? 'Connecting…' : error ? 'Retry connect' : 'Connect Wallet'}
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
+        </button>
+      )}
     </header>
   );
 }
 
 // Kinetic text word
-function KineticWord({ children, delay }: { children: string; delay: number }) {
+function KineticWord({ children, delay }: { children: ReactNode; delay: number }) {
   return (
     <motion.span
       initial={{ opacity: 0, y: 12, filter: 'blur(3px)' }}
@@ -99,14 +126,21 @@ function ParallaxLayer({ children, depth = 20, className = '' }: any) {
   );
 }
 
+interface LiveStatsFixture {
+  activeCreators: number;
+  totalSubscriptions: number;
+  totalRevenue: number;
+}
+
 // Live stats from API
 function LiveStats() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
-    queryFn: async () => {
+    queryFn: async (): Promise<LiveStatsFixture> => {
       try {
-        const response = await ApiClient.get('/stats');
-        return response;
+        const response = await ApiClient.get<LiveStatsFixture>('/stats');
+        if (!response.data) throw new Error('No stats data');
+        return response.data;
       } catch {
         // Fallback fixture data
         return {
@@ -131,28 +165,154 @@ function LiveStats() {
       className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto text-center border-t border-[var(--color-content-primary)]/10 pt-8"
     >
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '—' : creators}+</p>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : creators}+</p>
         <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">ACTIVE CREATORS</p>
       </div>
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '—' : subscriptions}</p>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : subscriptions}</p>
         <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">SUBSCRIPTIONS</p>
       </div>
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '—' : (revenue / 1000).toFixed(1)}k</p>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '-' : (revenue / 1000).toFixed(1)}k</p>
         <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PROCESSED ON-CHAIN</p>
       </div>
     </motion.div>
   );
 }
 
+/* Orbital emblem — the hero signature object.
+   A tilted planetary-ring system: subscription "coins" travel elliptical orbits
+   into a glass-gold medallion carrying the Komunify mark. Pure SVG, transform-only
+   motion (GPU-safe), theme-agnostic gold on the OLED background. `uid` keeps the
+   gradient/filter/path ids unique so multiple instances don't collide. */
+function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean }) {
+  const reduce = useReducedMotion();
+  const spin = reduce ? {} : { rotate: 360 };
+
+  // Elliptical orbit paths (local space of the tilt group). Coins ride these via animateMotion.
+  const orbitOuter = 'M 20,130 a 110,42 0 1,0 220,0 a 110,42 0 1,0 -220,0';
+  const orbitMid = 'M 48,130 a 82,31 0 1,0 164,0 a 82,31 0 1,0 -164,0';
+  const orbitInner = 'M 76,130 a 54,20 0 1,0 108,0 a 54,20 0 1,0 -108,0';
+
+  return (
+    <svg viewBox="0 0 260 260" fill="none" className="w-full h-full overflow-visible">
+      <defs>
+        <radialGradient id={`medal-${uid}`} cx="38%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#fbe7bf" />
+          <stop offset="42%" stopColor="#e5a84a" />
+          <stop offset="100%" stopColor="#8f6524" />
+        </radialGradient>
+        <linearGradient id={`ring-${uid}`} x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stopColor="#f3d9a8" stopOpacity="0.05" />
+          <stop offset="50%" stopColor="#e5a84a" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#a97a34" stopOpacity="0.1" />
+        </linearGradient>
+        <radialGradient id={`core-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#e5a84a" stopOpacity="0.4" />
+          <stop offset="70%" stopColor="#e5a84a" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#e5a84a" stopOpacity="0" />
+        </radialGradient>
+        <filter id={`glow-${uid}`} x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur stdDeviation="2.4" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <path id={`pO-${uid}`} d={orbitOuter} />
+        <path id={`pM-${uid}`} d={orbitMid} />
+        <path id={`pI-${uid}`} d={orbitInner} />
+      </defs>
+
+      {/* Soft focal glow behind the medallion */}
+      <circle cx="130" cy="130" r="70" fill={`url(#core-${uid})`} />
+
+      {/* Tilted orbital system */}
+      <g transform="rotate(-22 130 130)" opacity={faint ? 0.7 : 1}>
+        <ellipse cx="130" cy="130" rx="110" ry="42" stroke={`url(#ring-${uid})`} strokeWidth="1" opacity="0.55" />
+        <ellipse cx="130" cy="130" rx="82" ry="31" stroke={`url(#ring-${uid})`} strokeWidth="1" opacity="0.5" />
+        <ellipse
+          cx="130"
+          cy="130"
+          rx="54"
+          ry="20"
+          stroke="#e5a84a"
+          strokeWidth="0.75"
+          strokeDasharray="2 5"
+          opacity="0.4"
+        />
+
+        {/* Traveling subscription coins */}
+        <circle r="3.6" fill="#f2cd8f" filter={`url(#glow-${uid})`}>
+          {!reduce && (
+            <animateMotion dur="26s" repeatCount="indefinite" rotate="auto">
+              <mpath href={`#pO-${uid}`} />
+            </animateMotion>
+          )}
+        </circle>
+        <circle r="2.8" fill="#e5a84a" filter={`url(#glow-${uid})`}>
+          {!reduce && (
+            <animateMotion dur="18s" begin="-6s" repeatCount="indefinite">
+              <mpath href={`#pM-${uid}`} />
+            </animateMotion>
+          )}
+        </circle>
+        <circle r="2.2" fill="#f3d9a8" filter={`url(#glow-${uid})`}>
+          {!reduce && (
+            <animateMotion dur="13s" begin="-3s" repeatCount="indefinite">
+              <mpath href={`#pI-${uid}`} />
+            </animateMotion>
+          )}
+        </circle>
+      </g>
+
+      {/* Upright tick ring — slow rotation adds life without touching layout */}
+      <motion.g
+        style={{ originX: '130px', originY: '130px' }}
+        animate={spin}
+        transition={reduce ? undefined : { duration: 60, ease: 'linear', repeat: Infinity }}
+        opacity="0.5"
+      >
+        <circle cx="130" cy="130" r="36" stroke="#e5a84a" strokeWidth="0.75" strokeOpacity="0.35" />
+        {Array.from({ length: 24 }).map((_, i) => (
+          <line
+            key={i}
+            x1="130"
+            y1="96"
+            x2="130"
+            y2={i % 6 === 0 ? 90 : 93}
+            stroke="#e5a84a"
+            strokeWidth="0.75"
+            strokeOpacity={i % 6 === 0 ? 0.6 : 0.28}
+            transform={`rotate(${i * 15} 130 130)`}
+          />
+        ))}
+      </motion.g>
+
+      {/* Glass medallion */}
+      <g filter={`url(#glow-${uid})`}>
+        <circle cx="130" cy="130" r="27" fill={`url(#medal-${uid})`} stroke="#ffffff" strokeOpacity="0.28" strokeWidth="1" />
+        {/* Inset top highlight */}
+        <path d="M 108,120 A 27 27 0 0 1 152,120" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1.5" strokeLinecap="round" />
+        {/* Komunify mark */}
+        <g stroke="#4a3413" strokeWidth="2" fill="none">
+          <circle cx="124" cy="130" r="8" />
+          <circle cx="136" cy="130" r="8" />
+        </g>
+        <circle cx="130" cy="130" r="2.6" fill="#4a3413" />
+      </g>
+    </svg>
+  );
+}
+
 // Hero section
 function HeroSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lenis = useLenis();
 
   useEffect(() => {
     const handleScroll = () => {
-      const glow = document.querySelector('.glow-heading');
+      const glow = document.querySelector<HTMLElement>('.glow-heading');
       if (glow) {
         glow.style.transform = `translate(-50%, ${window.scrollY * 0.15}px)`;
       }
@@ -167,21 +327,41 @@ function HeroSection() {
       {/* Ambient glow */}
       <div className="glow-heading fixed top-[-10%] left-1/2 -translate-x-1/2 w-[70rem] h-[70rem] rounded-full pointer-events-none z-0 blur-[30px] bg-[radial-gradient(closest-side,rgba(229,168,74,0.28),transparent_70%)]" />
 
-      {/* Parallax decorative elements */}
-      <ParallaxLayer depth={35} className="hidden md:block absolute -top-4 left-2 w-24 h-24">
-        <div className="w-full h-full border border-[var(--color-content-accent)]/30 rounded-full animate-spin" style={{ animationDuration: '24s' }} />
-        <div className="absolute inset-3 border border-dashed border-[var(--color-content-accent)]/25 rounded-full" />
+      {/* Signature orbital emblem — floats top-left, gently bobbing */}
+      <ParallaxLayer depth={30} className="hidden md:block absolute top-8 -left-10 lg:left-2 w-56 h-56 lg:w-72 lg:h-72 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={{ delay: 0.2, duration: 1.1, ease: [0.19, 1, 0.22, 1] }}
+          className="w-full h-full"
+        >
+          <motion.div
+            animate={{ y: [0, -12, 0] }}
+            transition={{ duration: 9, ease: 'easeInOut', repeat: Infinity }}
+            className="w-full h-full"
+          >
+            <OrbitalEmblem uid="hero" />
+          </motion.div>
+        </motion.div>
       </ParallaxLayer>
 
-      <ParallaxLayer depth={55} className="hidden md:block absolute top-24 right-6 text-[var(--color-content-accent)]/50 font-mono text-[11px] tracking-widest">
-        <div className="border border-[var(--color-content-accent)]/25 rounded-lg px-3 py-2 bg-[var(--color-content-accent)]/5 backdrop-blur-sm">
-          ◈ 0x4F2...9A2C<br />
-          ACCESS VERIFIED
-        </div>
+      {/* Quiet echo — balances the composition bottom-right, same visual DNA */}
+      <ParallaxLayer depth={50} className="hidden lg:block absolute bottom-2 right-[3%] w-40 h-40 opacity-45 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, duration: 1.1, ease: [0.19, 1, 0.22, 1] }}
+          className="w-full h-full"
+        >
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 11, ease: 'easeInOut', repeat: Infinity }}
+            className="w-full h-full"
+          >
+            <OrbitalEmblem uid="echo" faint />
+          </motion.div>
+        </motion.div>
       </ParallaxLayer>
-
-      <ParallaxLayer depth={70} className="hidden lg:block absolute top-[40%] left-[-2%] w-10 h-10 rotate-45 border border-[var(--color-content-accent)]/30" />
-      <ParallaxLayer depth={45} className="hidden lg:block absolute bottom-4 right-[6%] w-16 h-16 rounded-full border border-[var(--color-content-accent)]/25" />
 
       {/* Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 pt-14 md:pt-16 pb-24">
@@ -229,7 +409,7 @@ function HeroSection() {
           transition={{ delay: 0.55, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-8 max-w-xl mx-auto text-center text-[15px] md:text-[16px] leading-relaxed text-[var(--color-content-secondary)]"
         >
-          Subscribe to unlock content. Creators earn directly. No algorithm, no middleman—just revenue flowing
+          Subscribe to unlock content. Creators earn directly. No algorithm, no middleman. Just revenue flowing
           on-chain to wallets, verified and instant.
         </motion.p>
 
@@ -246,8 +426,14 @@ function HeroSection() {
             </button>
           </Link>
           <motion.button
+            type="button"
+            onClick={() =>
+              lenis
+                ? lenis.scrollTo('#how', { offset: -40 })
+                : document.getElementById('how')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
             whileHover={{ gap: '12px' }}
-            className="group inline-flex items-center gap-2 border border-[var(--color-content-primary)]/25 text-[var(--color-content-primary)]/90 text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[var(--color-content-accent)]/60 hover:text-[var(--color-content-accent)] transition-colors"
+            className="group inline-flex items-center gap-2 border border-solid border-[var(--color-content-primary)]/25 bg-transparent text-[var(--color-content-primary)] text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[var(--color-content-accent)]/60 hover:text-[var(--color-content-accent)] transition-colors"
           >
             How it works
             <motion.span className="translate-x-0 group-hover:translate-x-1 transition-transform">→</motion.span>
@@ -256,10 +442,11 @@ function HeroSection() {
 
         {/* Video player */}
         <motion.div
+          id="demo"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
-          className="mt-16 md:mt-20 relative max-w-4xl mx-auto"
+          className="mt-16 md:mt-20 relative max-w-4xl mx-auto scroll-mt-24"
         >
           <ParallaxLayer depth={12} className="p-[1.5px] rounded-[26px] bg-gradient-to-br from-[rgba(229,168,74,0.5)] to-[rgba(229,168,74,0.05)] via-[rgba(229,168,74,0.35)]">
             <div className="relative rounded-[24px] overflow-hidden bg-[#111110] aspect-video">
@@ -325,6 +512,214 @@ function HeroSection() {
   );
 }
 
+// How it works — editorial split: sticky heading left, connected step cascade right
+const STEPS = [
+  {
+    icon: Wallet,
+    title: 'Connect your wallet',
+    body: 'Your wallet is your identity. Sign once with Freighter. No email, no password, nothing to remember.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Subscribe once',
+    body: 'A single payment in USDC unlocks the entire library. Every creator, every PDF. No per-item paywalls.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Read anything',
+    body: 'Open what you want. Each read attributes a slice of your subscription to that creator, recorded on-chain by epoch.',
+  },
+  {
+    icon: Coins,
+    title: 'Creators get paid',
+    body: 'Revenue lands in creator wallets automatically. They claim it directly. No middleman, no payout delay.',
+  },
+];
+
+const EASE = [0.19, 1, 0.22, 1] as const;
+
+function StepCard({
+  step,
+  index,
+  total,
+  progress,
+}: {
+  step: (typeof STEPS)[number];
+  index: number;
+  total: number;
+  progress: MotionValue<number>;
+}) {
+  const Icon = step.icon;
+
+  // Activation band: this step lights up as the scroll-driven fill reaches it.
+  const start = index / total;
+  const end = (index + 0.85) / total;
+  const active = useTransform(progress, [start, end], [0, 1], { clamp: true });
+
+  // Solid-accent fill fades in (mirrors the .stepper "done" node in the design system).
+  const iconScale = useTransform(active, [0, 1], [1, 1.08]);
+  const iconColor = useTransform(active, [0, 1], ['#e5a84a', '#201607']); // accent → on-accent
+  const numOpacity = useTransform(active, [0, 1], [0.5, 1]);
+  const borderColor = useTransform(active, [0, 1], ['#262521', 'rgba(229,168,74,0.4)']);
+  const ghostY = useTransform(progress, [start, end], [18, -18]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40, filter: 'blur(6px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
+      className="relative"
+    >
+      {/* Double-bezel: outer machined shell */}
+      <div className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(229,168,74,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(229,168,74,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]">
+        {/* Inner core — border color tracks scroll activation */}
+        <motion.div
+          style={{ borderColor }}
+          className="relative rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden"
+        >
+          {/* Ghost step number — drifts as the section scrolls */}
+          <motion.span
+            style={{ y: ghostY }}
+            className="pointer-events-none absolute -top-4 right-3 font-serif text-[5.5rem] leading-none text-[var(--color-content-accent)]/[0.06] select-none"
+          >
+            {index + 1}
+          </motion.span>
+
+          <div className="relative flex items-start gap-4">
+            {/* Icon tile — fills solid accent as the step activates */}
+            <motion.span
+              style={{ scale: iconScale }}
+              className="relative shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-[var(--radius-md)] bg-[var(--color-bg-accent-tint)] ring-1 ring-[var(--color-content-accent)]/15 overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105"
+            >
+              <motion.span
+                style={{ opacity: active }}
+                className="absolute inset-0 bg-[var(--color-content-accent)]"
+              />
+              <motion.span style={{ color: iconColor }} className="relative">
+                <Icon size={20} strokeWidth={1.4} />
+              </motion.span>
+            </motion.span>
+
+            <div className="pt-0.5">
+              <div className="flex items-center gap-3">
+                <motion.span
+                  style={{ opacity: numOpacity }}
+                  className="font-mono text-[11px] tracking-[0.2em] text-[var(--color-content-accent)]"
+                >
+                  0{index + 1}
+                </motion.span>
+                <h3 className="font-serif text-[1.35rem] leading-tight text-[var(--color-content-primary)]">
+                  {step.title}
+                </h3>
+              </div>
+              <p className="mt-2.5 text-[14px] leading-relaxed text-[var(--color-content-secondary)] max-w-md">
+                {step.body}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+function HowItWorks() {
+  const cascadeRef = useRef<HTMLDivElement>(null);
+  // Drive progress off the window scroll event (fires for Lenis, native, and
+  // programmatic scroll alike — more reliable under Lenis than framer's
+  // useScroll). 0 when the cascade top hits 75% of the viewport, 1 when its
+  // bottom passes 65%.
+  const raw = useMotionValue(0);
+  useEffect(() => {
+    const update = () => {
+      const el = cascadeRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const p = (0.75 * vh - rect.top) / (0.1 * vh + rect.height);
+      raw.set(Math.min(1, Math.max(0, p)));
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [raw]);
+  // Smooth the raw progress so the connector fill glides instead of tracking 1:1.
+  const fill = useSpring(raw, { stiffness: 90, damping: 30, restDelta: 0.001 });
+
+  return (
+    <section id="how" className="relative overflow-hidden py-28 md:py-40 scroll-mt-8">
+      {/* Ambient side glow */}
+      <div className="pointer-events-none absolute top-1/3 -left-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(229,168,74,0.10),transparent_70%)]" />
+
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-14 lg:gap-20">
+        {/* Left — sticky editorial heading */}
+        <div className="lg:sticky lg:top-24 self-start">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: EASE }}
+          >
+            <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] font-mono text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
+              How it works
+            </div>
+
+            <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.6rem] md:text-[3.4rem] text-[var(--color-content-primary)]">
+              From one payment
+              <br />
+              to{' '}
+              <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
+                fair payouts.
+              </span>
+            </h2>
+
+            <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-[var(--color-content-secondary)]">
+              No accounts, no gatekeepers, no guesswork. Every step runs on-chain, and you can verify
+              exactly where each cent goes.
+            </p>
+
+            <Link href="/dashboard" className="inline-block mt-9">
+              <button className="group inline-flex items-center gap-3 bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide pl-6 pr-2 py-2 rounded-full transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] hover:shadow-[0_10px_40px_-6px_rgba(229,168,74,0.75)] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
+                Start now
+                <span className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
+                  →
+                </span>
+              </button>
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Right — connected step cascade */}
+        <div ref={cascadeRef} className="relative">
+          {/* Connector — dim rail with a scroll-driven gold fill on top */}
+          <div className="pointer-events-none absolute left-[2.85rem] top-6 bottom-6 w-px bg-[var(--color-border-medium)] hidden md:block" />
+          <motion.div
+            style={{ scaleY: fill, transformOrigin: 'top' }}
+            className="pointer-events-none absolute left-[2.85rem] top-6 bottom-6 w-px bg-gradient-to-b from-[var(--color-content-accent)] to-[var(--color-content-accent)]/40 hidden md:block"
+          />
+          <div className="flex flex-col gap-6">
+            {STEPS.map((step, i) => (
+              <StepCard
+                key={step.title}
+                step={step}
+                index={i}
+                total={STEPS.length}
+                progress={fill}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // Footer
 function Footer() {
   return (
@@ -358,7 +753,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
       <Header />
       <HeroSection />
+      <HowItWorks />
       <Footer />
+      <ScrollProgress />
     </div>
   );
 }

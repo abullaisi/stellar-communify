@@ -315,16 +315,14 @@ fn t11_sybil_property() {
     assert_eq!(s.client.get_accrued(&attacker_mgr) - s.price, -fee);
 }
 
-// 12. Admin gate on set_manager: a non-admin cannot whitelist.
-// NOTE: set_manager has no `caller` param (frozen signature); its gate is
-// require_auth(config.admin). A non-admin path is an auth failure (panic), not a
-// returned NotAdmin. We assert the gate holds by withholding the admin's auth.
+// 12. set_manager is self-authorized (permissionless, D-011): require_auth(who). No admin gate.
+// A wallet toggles only its OWN status, so the invariant to hold is "the SUBJECT must sign" —
+// withhold all auth and the call must panic (the subject didn't authorize it).
 #[test]
 #[should_panic]
-fn t12_set_manager_non_admin() {
+fn t12_set_manager_requires_subject_auth() {
     let env = Env::default();
     let admin = Address::generate(&env);
-    let non_admin = Address::generate(&env);
     let token_admin = Address::generate(&env);
     let token_addr = env.register_stellar_asset_contract_v2(token_admin).address();
     let id = env.register(KomunifyContract, ());
@@ -338,11 +336,39 @@ fn t12_set_manager_non_admin() {
         epoch_secs: EPOCH_SECS,
         genesis: 0,
     });
-    // Authorize only a non-admin address; the admin never signs.
-    env.mock_auths(&[]);
+    env.mock_auths(&[]); // nobody signs
     let who = Address::generate(&env);
-    let _ = non_admin;
-    client.set_manager(&who, &true); // require_auth(admin) fails -> panic
+    client.set_manager(&who, &true); // require_auth(who) fails -> panic
+}
+
+// 12b. Permissionless self-registration: a wallet with no admin involvement can make ITSELF a
+// manager and then register content. This is the decentralization guarantee (D-011).
+#[test]
+fn t12b_set_manager_permissionless_self_register() {
+    let env = Env::default();
+    env.mock_all_auths(); // every address can authorize its own calls
+    let admin = Address::generate(&env);
+    let token_admin = Address::generate(&env);
+    let token_addr = env.register_stellar_asset_contract_v2(token_admin).address();
+    let id = env.register(KomunifyContract, ());
+    let client = KomunifyContractClient::new(&env, &id);
+    client.init(&Config {
+        admin: admin.clone(),
+        token: token_addr,
+        platform: Address::generate(&env),
+        platform_bps: BPS,
+        price: 100_0000000,
+        epoch_secs: EPOCH_SECS,
+        genesis: 0,
+    });
+    // A random wallet, unrelated to admin, self-registers.
+    let who = Address::generate(&env);
+    assert!(!client.is_manager(&who));
+    client.set_manager(&who, &true);
+    assert!(client.is_manager(&who));
+    // ...and can now register content without ever touching the admin.
+    let cid = client.register_content(&who, &sha(&env, 42));
+    assert_eq!(client.get_content(&cid).creator, who);
 }
 
 // 13. register_content from a non-manager -> NotManager.
@@ -362,6 +388,61 @@ fn t14_claim_nothing() {
     let s = setup(100_0000000, BPS);
     let who = Address::generate(&s.env);
     assert_eq!(s.client.try_claim(&who), Err(Ok(Error::NothingToClaim.into())));
+}
+
+// 15. force_close_epoch: ends the current epoch mid-flight without corrupting
+// state. Epoch numbers stay monotonic, the pre-close budget stays settleable,
+// the old subscription expires, and a fresh epoch runs. Non-admin is rejected.
+#[test]
+fn t15_force_close_epoch() {
+    let s = setup(100_0000000, BPS);
+    let mgr = Address::generate(&s.env);
+    s.client.set_manager(&mgr, &true);
+    let c = s.client.register_content(&mgr, &sha(&s.env, 1));
+
+    // Subscribe + read partway through epoch 0 (t=100, well before the 300s boundary).
+    let member = Address::generate(&s.env);
+    s.env.ledger().with_mut(|l| l.timestamp = 100);
+    fund_and_subscribe(&s, &member);
+    s.client.record_access(&member, &c);
+
+    // Still epoch 0, still open -> settlement is illegal.
+    assert_eq!(s.client.current_epoch(), 0);
+    assert!(s.client.is_active(&member));
+    assert_eq!(
+        s.client.try_settle_member(&0, &member),
+        Err(Ok(Error::EpochNotClosed.into()))
+    );
+
+    // Non-admin cannot force-close.
+    let stranger = Address::generate(&s.env);
+    assert_eq!(
+        s.client.try_force_close_epoch(&stranger),
+        Err(Ok(Error::NotAdmin.into()))
+    );
+
+    // Admin force-closes at t=100. Epoch advances 0 -> 1 (monotonic), the new
+    // epoch starts now, and the old subscription (epoch 0) is no longer active.
+    s.client.force_close_epoch(&s.admin);
+    assert_eq!(s.client.current_epoch(), 1);
+    assert!(!s.client.is_active(&member));
+
+    // The pre-close budget survived the rebase and is now settleable.
+    let budget = budget_for(s.price, BPS);
+    assert_eq!(s.client.get_budget(&0, &member), budget);
+    s.client.settle_member(&0, &member);
+    assert_eq!(s.client.get_accrued(&mgr), budget); // single content, single manager
+
+    // A fresh epoch really runs: the member can re-subscribe, landing in epoch 1.
+    fund_and_subscribe(&s, &member);
+    assert!(s.client.is_active(&member));
+    assert_eq!(s.client.get_budget(&1, &member), budget);
+
+    // Closing again keeps numbers monotonic (1 -> 2), no collision with epoch 0/1 state.
+    s.client.force_close_epoch(&s.admin);
+    assert_eq!(s.client.current_epoch(), 2);
+    assert_eq!(s.client.get_budget(&0, &member), budget); // untouched
+    assert_eq!(s.client.get_budget(&1, &member), budget); // untouched
 }
 
 // Extra: claim pays out accrued and moves tokens.

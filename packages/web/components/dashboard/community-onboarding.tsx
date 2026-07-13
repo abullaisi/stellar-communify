@@ -23,35 +23,22 @@ function readLogo(file: File): Promise<string> {
   });
 }
 
-/** STEPPER (DESIGN §4.2): done = success pill, active = accent pill, pending = plain pill. */
-function StepIndicator({ brandDone, publishDone }: { brandDone: boolean; publishDone: boolean }) {
-  const steps = [
-    { label: '1 Brand', done: brandDone, active: !brandDone },
-    { label: '2 Publish', done: publishDone, active: brandDone && !publishDone },
-  ];
-  return (
-    <div className="row tight" style={{ marginBottom: 12 }}>
-      {steps.map((s) => (
-        <span key={s.label} className={s.done ? 'pill ok' : s.active ? 'pill accent' : 'pill'}>
-          {s.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function BrandForm({
+export function BrandForm({
   initial,
   saving,
   error,
   onSave,
   onCancel,
+  submitLabel = 'Save brand',
+  savingLabel = 'Saving…',
 }: {
   initial: CommunityBrand | null;
   saving: boolean;
   error: string | null;
   onSave: (b: SaveCommunityRequest) => void;
   onCancel?: () => void;
+  submitLabel?: string;
+  savingLabel?: string;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
@@ -81,7 +68,7 @@ function BrandForm({
   return (
     <form onSubmit={handleSubmit}>
       <p className="hint" style={{ marginTop: 0 }}>
-        Set up your community brand — how your published content is presented on your public page.
+        Set up your community brand: how your published content is presented on your public page.
         You can edit it anytime.
       </p>
       <Label htmlFor="brand-name">
@@ -102,7 +89,7 @@ function BrandForm({
           id="brand-logo"
           ref={fileRef}
           type="file"
-          accept="image/*"
+          accept="image/png,image/jpeg,image/webp,image/gif"
           onChange={(e) => handleLogo(e.target.files?.[0])}
         />
       </Label>
@@ -116,7 +103,7 @@ function BrandForm({
       ) : null}
       <div className="row tight">
         <Button type="submit" disabled={saving}>
-          {saving ? 'Saving…' : 'Save brand'}
+          {saving ? savingLabel : submitLabel}
         </Button>
         {onCancel ? (
           <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
@@ -130,74 +117,85 @@ function BrandForm({
 }
 
 /**
- * Manager onboarding (TASK 2, manager-only): a lightweight guided step indicator mirroring the
- * demo script — set your community brand, then publish your first content. Brand is persisted
- * server-side (D-010) so the public community page renders for any visitor. `ManagerPanel` gates
- * the upload stepper behind a saved brand.
+ * Manager-only brand card on the dashboard. The guided setup now lives on its own page
+ * (`/start`, `StartWizard`); here we just show the saved brand with quick edit + view-page
+ * actions. A manager who predates the brand step (legacy, no brand saved) is nudged to finish
+ * setup on `/start`. Brand is persisted server-side (D-010) for the public community page.
  */
 export function CommunityOnboarding({
   wallet,
   brand,
-  publishDone,
   saving,
   error,
   onSave,
 }: {
   wallet: string | null;
   brand: CommunityBrand | null;
-  publishDone: boolean;
   saving: boolean;
   error: string | null;
   onSave: (b: SaveCommunityRequest) => void;
 }) {
   const [editing, setEditing] = useState(false);
 
+  if (!brand) {
+    return (
+      <section className="card">
+        <h2 style={{ marginTop: 0 }}>Finish setting up</h2>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Add your community brand so members can find you and recognize your work.
+        </p>
+        <Button asChild>
+          <Link href="/start">Set up my community</Link>
+        </Button>
+      </section>
+    );
+  }
+
   return (
     <section className="card">
-      <h2>Your community</h2>
-      <StepIndicator brandDone={!!brand} publishDone={publishDone} />
-
-      {!brand || editing ? (
-        <BrandForm
-          initial={brand}
-          saving={saving}
-          error={error}
-          onSave={(b) => {
-            onSave(b);
-            setEditing(false);
-          }}
-          onCancel={brand ? () => setEditing(false) : undefined}
-        />
-      ) : (
+      {editing ? (
         <>
-          <div className="row" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="row tight" style={{ alignItems: 'center' }}>
-              {brand.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={brand.logo}
-                  alt={`${brand.name} logo`}
-                  style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 'var(--radius-md)' }}
-                />
-              ) : null}
-              <div>
-                <p style={{ margin: 0, fontWeight: 700 }}>{brand.name}</p>
-                {brand.description ? <span className="label">{brand.description}</span> : null}
-              </div>
+          <h2 style={{ marginTop: 0 }}>Edit brand</h2>
+          <BrandForm
+            initial={brand}
+            saving={saving}
+            error={error}
+            onSave={(b) => {
+              onSave(b);
+              setEditing(false);
+            }}
+            onCancel={() => setEditing(false)}
+          />
+        </>
+      ) : (
+        <div className="row" style={{ alignItems: 'center' }}>
+          <div className="row tight" style={{ alignItems: 'center', marginTop: 0 }}>
+            {brand.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brand.logo}
+                alt={`${brand.name} logo`}
+                style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: 'var(--radius-md)' }}
+              />
+            ) : null}
+            <div>
+              <p style={{ margin: 0, fontWeight: 700 }}>{brand.name}</p>
+              {brand.description ? <span className="label">{brand.description}</span> : null}
             </div>
+          </div>
+          <div className="row tight" style={{ marginTop: 0 }}>
+            {wallet ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/community/${wallet}`} target="_blank" rel="noreferrer">
+                  View page
+                </Link>
+              </Button>
+            ) : null}
             <Button type="button" variant="outline" size="sm" onClick={() => setEditing(true)}>
               Edit brand
             </Button>
           </div>
-          {wallet ? (
-            <p className="hint" style={{ marginBottom: 0 }}>
-              {publishDone ? 'Your community is live. ' : 'Next: publish your first content below. '}
-              <Link href={`/community/${wallet}`} target="_blank" rel="noreferrer">
-                View public page →
-              </Link>
-            </p>
-          ) : null}
-        </>
+        </div>
       )}
     </section>
   );

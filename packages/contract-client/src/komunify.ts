@@ -80,7 +80,7 @@ export interface Content {
   sha256: Buffer;
 }
 
-export type DataKey = {tag: "Config", values: void} | {tag: "Stats", values: void} | {tag: "NextContentId", values: void} | {tag: "Manager", values: readonly [string]} | {tag: "Content", values: readonly [u64]} | {tag: "Sub", values: readonly [string]} | {tag: "Budget", values: readonly [u32, string]} | {tag: "MemberReads", values: readonly [u32, string]} | {tag: "MemberContents", values: readonly [u32, string]} | {tag: "Read", values: readonly [u32, u64, string]} | {tag: "ContentReads", values: readonly [u32, u64]} | {tag: "Settled", values: readonly [u32, string]} | {tag: "Accrued", values: readonly [string]} | {tag: "Dust", values: void};
+export type DataKey = {tag: "Config", values: void} | {tag: "Stats", values: void} | {tag: "EpochBase", values: void} | {tag: "NextContentId", values: void} | {tag: "Manager", values: readonly [string]} | {tag: "Content", values: readonly [u64]} | {tag: "Sub", values: readonly [string]} | {tag: "Budget", values: readonly [u32, string]} | {tag: "MemberReads", values: readonly [u32, string]} | {tag: "MemberContents", values: readonly [u32, string]} | {tag: "Read", values: readonly [u32, u64, string]} | {tag: "ContentReads", values: readonly [u32, u64]} | {tag: "Settled", values: readonly [u32, string]} | {tag: "Accrued", values: readonly [string]} | {tag: "Dust", values: void};
 
 export interface Client {
   /**
@@ -166,7 +166,10 @@ export interface Client {
 
   /**
    * Construct and simulate a set_manager transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
-   * Admin-gated whitelist. require_auth(admin). Adjusts Stats.manager_count.
+   * Permissionless self-service (D-011). require_auth(who): a wallet toggles only its OWN
+   * manager status — enable to start publishing, disable to resign. No admin gate; `who`
+   * can never be forced by anyone else, and no one but `who` can touch it. Adjusts
+   * Stats.manager_count.
    */
   set_manager: ({who, enabled}: {who: string, enabled: boolean}, options?: MethodOptions) => Promise<AssembledTransaction<null>>
 
@@ -223,6 +226,19 @@ export interface Client {
   register_content: ({caller, sha256}: {caller: string, sha256: Buffer}, options?: MethodOptions) => Promise<AssembledTransaction<u64>>
 
   /**
+   * Construct and simulate a force_close_epoch transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * require_auth(admin). Ends the current epoch immediately: it becomes closed
+   * (so `settle_member`/`claim` can drain it) and a fresh epoch of the same
+   * `epoch_secs` starts now. Does NOT distribute — distribution stays the
+   * existing per-member pull (`settle_member`), same as a natural boundary.
+   * 
+   * Operator/demo tool: run a real billing epoch (e.g. 30 days) but force a
+   * close on demand to show settlement live. Epoch numbers stay strictly
+   * monotonic and no existing epoch's state is renumbered. Emits `epoch_closed`.
+   */
+  force_close_epoch: ({admin}: {admin: string}, options?: MethodOptions) => Promise<AssembledTransaction<null>>
+
+  /**
    * Construct and simulate a get_content_reads transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
    * Display only, does not drive money.
    */
@@ -264,7 +280,7 @@ export class Client extends ContractClient {
         "AAAAAQAAAAAAAAAAAAAABVN0YXRzAAAAAAAABQAAAAAAAAANY29udGVudF9jb3VudAAAAAAAAAYAAAAAAAAADW1hbmFnZXJfY291bnQAAAAAAAAEAAAAAAAAAA10b3RhbF9jbGFpbWVkAAAAAAAACwAAAAAAAAAKdG90YWxfc3VicwAAAAAABgAAAAAAAAAMdG90YWxfdm9sdW1lAAAACw==",
         "AAAAAQAAAAAAAAAAAAAABkNvbmZpZwAAAAAABwAAAAAAAAAFYWRtaW4AAAAAAAATAAAAAAAAAAplcG9jaF9zZWNzAAAAAAAGAAAAAAAAAAdnZW5lc2lzAAAAAAYAAAAAAAAACHBsYXRmb3JtAAAAEwAAAAAAAAAMcGxhdGZvcm1fYnBzAAAABAAAAAAAAAAFcHJpY2UAAAAAAAALAAAAAAAAAAV0b2tlbgAAAAAAABM=",
         "AAAAAQAAAAAAAAAAAAAAB0NvbnRlbnQAAAAABQAAAAAAAAAGYWN0aXZlAAAAAAABAAAAAAAAAAdjcmVhdG9yAAAAABMAAAAAAAAAAmlkAAAAAAAGAAAAAAAAAAhtYW5hZ2VycwAAA+oAAAATAAAAAAAAAAZzaGEyNTYAAAAAA+4AAAAg",
-        "AAAAAgAAAAAAAAAAAAAAB0RhdGFLZXkAAAAADgAAAAAAAAAAAAAABkNvbmZpZwAAAAAAAAAAAAAAAAAFU3RhdHMAAAAAAAAAAAAAAAAAAA1OZXh0Q29udGVudElkAAAAAAAAAQAAAAAAAAAHTWFuYWdlcgAAAAABAAAAEwAAAAEAAAAAAAAAB0NvbnRlbnQAAAAAAQAAAAYAAAABAAAAAAAAAANTdWIAAAAAAQAAABMAAAABAAAAAAAAAAZCdWRnZXQAAAAAAAIAAAAEAAAAEwAAAAEAAAAAAAAAC01lbWJlclJlYWRzAAAAAAIAAAAEAAAAEwAAAAEAAAAAAAAADk1lbWJlckNvbnRlbnRzAAAAAAACAAAABAAAABMAAAABAAAAAAAAAARSZWFkAAAAAwAAAAQAAAAGAAAAEwAAAAEAAAAAAAAADENvbnRlbnRSZWFkcwAAAAIAAAAEAAAABgAAAAEAAAAAAAAAB1NldHRsZWQAAAAAAgAAAAQAAAATAAAAAQAAAAAAAAAHQWNjcnVlZAAAAAABAAAAEwAAAAAAAAAAAAAABER1c3Q=",
+        "AAAAAgAAAAAAAAAAAAAAB0RhdGFLZXkAAAAADwAAAAAAAAAAAAAABkNvbmZpZwAAAAAAAAAAAAAAAAAFU3RhdHMAAAAAAAAAAAAAAAAAAAlFcG9jaEJhc2UAAAAAAAAAAAAAAAAAAA1OZXh0Q29udGVudElkAAAAAAAAAQAAAAAAAAAHTWFuYWdlcgAAAAABAAAAEwAAAAEAAAAAAAAAB0NvbnRlbnQAAAAAAQAAAAYAAAABAAAAAAAAAANTdWIAAAAAAQAAABMAAAABAAAAAAAAAAZCdWRnZXQAAAAAAAIAAAAEAAAAEwAAAAEAAAAAAAAAC01lbWJlclJlYWRzAAAAAAIAAAAEAAAAEwAAAAEAAAAAAAAADk1lbWJlckNvbnRlbnRzAAAAAAACAAAABAAAABMAAAABAAAAAAAAAARSZWFkAAAAAwAAAAQAAAAGAAAAEwAAAAEAAAAAAAAADENvbnRlbnRSZWFkcwAAAAIAAAAEAAAABgAAAAEAAAAAAAAAB1NldHRsZWQAAAAAAgAAAAQAAAATAAAAAQAAAAAAAAAHQWNjcnVlZAAAAAABAAAAEwAAAAAAAAAAAAAABER1c3Q=",
         "AAAAAAAAAEZPbmUtdGltZS4gU2V0cyBDb25maWcsIHplcm9lcyBTdGF0cywgTmV4dENvbnRlbnRJZCA9IDEsIGdlbmVzaXMgPSBub3cuAAAAAAAEaW5pdAAAAAEAAAAAAAAAA2NmZwAAAAfQAAAABkNvbmZpZwAAAAAAAA==",
         "AAAAAAAAANRyZXF1aXJlX2F1dGgoY2FsbGVyKS4gRXJyb3JzIE5vdGhpbmdUb0NsYWltIGlmIEFjY3J1ZWQoY2FsbGVyKSA9PSAwLgpUcmFuc2ZlcnMgQWNjcnVlZChjYWxsZXIpIGZyb20gY29udHJhY3QgdG8gY2FsbGVyLCB6ZXJvZXMgaXQuClRoZSBwbGF0Zm9ybSBhZGRyZXNzIGNsYWltcyBpdHMgZmVlcyB0aHJvdWdoIHRoaXMgc2FtZSBmdW5jdGlvbi4KRW1pdHMgYGNsYWltZWRgLgAAAAVjbGFpbQAAAAAAAAEAAAAAAAAABmNhbGxlcgAAAAAAEwAAAAA=",
         "AAAAAAAAAAAAAAAIZ2V0X2R1c3QAAAAAAAAAAQAAAAs=",
@@ -279,7 +295,7 @@ export class Client extends ContractClient {
         "AAAAAAAAAAAAAAAKaXNfc2V0dGxlZAAAAAAAAgAAAAAAAAAFZXBvY2gAAAAAAAAEAAAAAAAAAAZtZW1iZXIAAAAAABMAAAABAAAAAQ==",
         "AAAAAAAAAAAAAAALZ2V0X2FjY3J1ZWQAAAAAAQAAAAAAAAADd2hvAAAAABMAAAABAAAACw==",
         "AAAAAAAAABZFcnJvcnMgQ29udGVudE5vdEZvdW5kAAAAAAALZ2V0X2NvbnRlbnQAAAAAAQAAAAAAAAAKY29udGVudF9pZAAAAAAABgAAAAEAAAfQAAAAB0NvbnRlbnQA",
-        "AAAAAAAAAEhBZG1pbi1nYXRlZCB3aGl0ZWxpc3QuIHJlcXVpcmVfYXV0aChhZG1pbikuIEFkanVzdHMgU3RhdHMubWFuYWdlcl9jb3VudC4AAAALc2V0X21hbmFnZXIAAAAAAgAAAAAAAAADd2hvAAAAABMAAAAAAAAAB2VuYWJsZWQAAAAAAQAAAAA=",
+        "AAAAAAAAARBQZXJtaXNzaW9ubGVzcyBzZWxmLXNlcnZpY2UgKEQtMDExKS4gcmVxdWlyZV9hdXRoKHdobyk6IGEgd2FsbGV0IHRvZ2dsZXMgb25seSBpdHMgT1dOCm1hbmFnZXIgc3RhdHVzIOKAlCBlbmFibGUgdG8gc3RhcnQgcHVibGlzaGluZywgZGlzYWJsZSB0byByZXNpZ24uIE5vIGFkbWluIGdhdGU7IGB3aG9gCmNhbiBuZXZlciBiZSBmb3JjZWQgYnkgYW55b25lIGVsc2UsIGFuZCBubyBvbmUgYnV0IGB3aG9gIGNhbiB0b3VjaCBpdC4gQWRqdXN0cwpTdGF0cy5tYW5hZ2VyX2NvdW50LgAAAAtzZXRfbWFuYWdlcgAAAAACAAAAAAAAAAN3aG8AAAAAEwAAAAAAAAAHZW5hYmxlZAAAAAABAAAAAA==",
         "AAAAAAAAAAAAAAAMbGlzdF9jb250ZW50AAAAAgAAAAAAAAAFc3RhcnQAAAAAAAAGAAAAAAAAAAVsaW1pdAAAAAAAAAQAAAABAAAD6gAAB9AAAAAHQ29udGVudAA=",
         "AAAAAAAAABwobm93IC0gZ2VuZXNpcykgLyBlcG9jaF9zZWNzAAAADWN1cnJlbnRfZXBvY2gAAAAAAAAAAAAAAQAAAAQ=",
         "AAAAAAAAAAAAAAANZXBvY2hfZW5kc19hdAAAAAAAAAEAAAAAAAAABWVwb2NoAAAAAAAABAAAAAEAAAAG",
@@ -288,6 +304,7 @@ export class Client extends ContractClient {
         "AAAAAAAAAAAAAAAQZ2V0X21lbWJlcl9yZWFkcwAAAAIAAAAAAAAABWVwb2NoAAAAAAAABAAAAAAAAAAGbWVtYmVyAAAAAAATAAAAAQAAAAQ=",
         "AAAAAAAAACllcG9jaF9lbmRzX2F0KFN1YihtZW1iZXIpKTsgMCBpZiBpbmFjdGl2ZQAAAAAAABBnZXRfc3Vic2NyaXB0aW9uAAAAAQAAAAAAAAAGbWVtYmVyAAAAAAATAAAAAQAAAAY=",
         "AAAAAAAAAMNNYW5hZ2VyLWdhdGVkLiByZXF1aXJlX2F1dGgoY2FsbGVyKS4gY2FsbGVyIG11c3QgYmUgYSB3aGl0ZWxpc3RlZCBtYW5hZ2VyLgpDcmVhdGVzIENvbnRlbnQgeyBpZDogbmV4dCwgY3JlYXRvcjogY2FsbGVyLCBtYW5hZ2VyczogdmVjIVtjYWxsZXJdLCBzaGEyNTYsIGFjdGl2ZTogdHJ1ZSB9LgpSZXR1cm5zIHRoZSBuZXcgY29udGVudCBpZC4AAAAAEHJlZ2lzdGVyX2NvbnRlbnQAAAACAAAAAAAAAAZjYWxsZXIAAAAAABMAAAAAAAAABnNoYTI1NgAAAAAD7gAAACAAAAABAAAABg==",
+        "AAAAAAAAAf1yZXF1aXJlX2F1dGgoYWRtaW4pLiBFbmRzIHRoZSBjdXJyZW50IGVwb2NoIGltbWVkaWF0ZWx5OiBpdCBiZWNvbWVzIGNsb3NlZAooc28gYHNldHRsZV9tZW1iZXJgL2BjbGFpbWAgY2FuIGRyYWluIGl0KSBhbmQgYSBmcmVzaCBlcG9jaCBvZiB0aGUgc2FtZQpgZXBvY2hfc2Vjc2Agc3RhcnRzIG5vdy4gRG9lcyBOT1QgZGlzdHJpYnV0ZSDigJQgZGlzdHJpYnV0aW9uIHN0YXlzIHRoZQpleGlzdGluZyBwZXItbWVtYmVyIHB1bGwgKGBzZXR0bGVfbWVtYmVyYCksIHNhbWUgYXMgYSBuYXR1cmFsIGJvdW5kYXJ5LgoKT3BlcmF0b3IvZGVtbyB0b29sOiBydW4gYSByZWFsIGJpbGxpbmcgZXBvY2ggKGUuZy4gMzAgZGF5cykgYnV0IGZvcmNlIGEKY2xvc2Ugb24gZGVtYW5kIHRvIHNob3cgc2V0dGxlbWVudCBsaXZlLiBFcG9jaCBudW1iZXJzIHN0YXkgc3RyaWN0bHkKbW9ub3RvbmljIGFuZCBubyBleGlzdGluZyBlcG9jaCdzIHN0YXRlIGlzIHJlbnVtYmVyZWQuIEVtaXRzIGBlcG9jaF9jbG9zZWRgLgAAAAAAABFmb3JjZV9jbG9zZV9lcG9jaAAAAAAAAAEAAAAAAAAABWFkbWluAAAAAAAAEwAAAAA=",
         "AAAAAAAAACNEaXNwbGF5IG9ubHksIGRvZXMgbm90IGRyaXZlIG1vbmV5LgAAAAARZ2V0X2NvbnRlbnRfcmVhZHMAAAAAAAACAAAAAAAAAAVlcG9jaAAAAAAAAAQAAAAAAAAACmNvbnRlbnRfaWQAAAAAAAYAAAABAAAABA==",
         "AAAAAAAAAHpyZXF1aXJlX2F1dGgoY3JlYXRvcikuIFNldHMgQ29udGVudC5hY3RpdmUuIEluYWN0aXZlIGNvbnRlbnQgY2Fubm90IGJlIHJlYWQuCkFscmVhZHktcmVjb3JkZWQgcmVhZHMgc3RpbGwgc2V0dGxlIG5vcm1hbGx5LgAAAAAAEnNldF9jb250ZW50X2FjdGl2ZQAAAAAAAwAAAAAAAAAHY3JlYXRvcgAAAAATAAAAAAAAAApjb250ZW50X2lkAAAAAAAGAAAAAAAAAAZhY3RpdmUAAAAAAAEAAAAA",
         "AAAAAAAAAIVyZXF1aXJlX2F1dGgoY3JlYXRvcikuIE9ubHkgdGhlIGNvbnRlbnQncyBjcmVhdG9yIG1heSBhZGQgY28tbWFuYWdlcnMuCmB3aG9gIG11c3QgYmUgYSB3aGl0ZWxpc3RlZCBtYW5hZ2VyLiBOby1vcCBpZiBhbHJlYWR5IHByZXNlbnQuAAAAAAAAE2FkZF9jb250ZW50X21hbmFnZXIAAAAAAwAAAAAAAAAHY3JlYXRvcgAAAAATAAAAAAAAAApjb250ZW50X2lkAAAAAAAGAAAAAAAAAAN3aG8AAAAAEwAAAAA=" ]),
@@ -318,6 +335,7 @@ export class Client extends ContractClient {
         get_member_reads: this.txFromJSON<u32>,
         get_subscription: this.txFromJSON<u64>,
         register_content: this.txFromJSON<u64>,
+        force_close_epoch: this.txFromJSON<null>,
         get_content_reads: this.txFromJSON<u32>,
         set_content_active: this.txFromJSON<null>,
         add_content_manager: this.txFromJSON<null>

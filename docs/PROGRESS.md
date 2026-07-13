@@ -224,9 +224,10 @@ contract itself" rule. Flagged per-item below. (C, 2026-07-11)
 - [x] Manager panel my-content list (`components/dashboard/manager-content-list.tsx`,
       `services/manager/`): real `list_content` filtered to `managers.includes(address)`, real
       `get_content_reads(epoch, id)` per content, real `get_accrued` + `claim()`. `settle_member`
-      is a manual form (epoch + member address) rather than an auto-populated "settle all my
-      readers" list, because that list needs `getEvents`/Postgres indexing of who-read-what that
-      only Lane B's API can provide cheaply — flagged as a cross-lane follow-up below.
+      still has a manual form (epoch + member address) for one-off settlement, **plus** a
+      "settle all" button (`useSettleAll` → `POST /manager/settle-all`, D-013) that batches every
+      un-settled subscriber of the last closed epoch in one server-signed call — see cross-lane
+      note below, now resolved by the API side.
 - [x] Traction panel (`components/dashboard/traction-panel.tsx`, `services/traction/`): stat
       chips (subscribers, volume, content, managers, claimed — all real `get_stats()` +
       `current_epoch()`/`epoch_ends_at()`, `tabular-nums`), live epoch countdown. `recentEvents`
@@ -235,10 +236,12 @@ contract itself" rule. Flagged per-item below. (C, 2026-07-11)
       `TractionService.stats()` reads the same values directly off-chain in the meantime.
 - [x] `app/page.tsx` unchanged — stays a stub.
 
-**Cross-lane request for Lane B:** `settle_member` UX and the traction recent-events feed both
-want an index of `record_access`/`subscribed` events per member/content. Cheapest fix is exposing
-that from `/stats` (`recentEvents`) and, ideally, a `GET /manager/:wallet/readers?epoch=` helper —
-not in `API_SPEC.md` today, flagging rather than adding to a frozen spec.
+**Cross-lane request for Lane B — resolved for settle, still open for traction:** `settle_member`
+UX and the traction recent-events feed both wanted an index of `record_access`/`subscribed` events
+per member/content. For settle, this landed as `POST /manager/settle-all` (D-013): the API scans
+`getEvents` itself (no Postgres index yet — ~5.5h/4000-ledger lookback, capped at 200
+members/call) rather than exposing a new `GET /manager/:wallet/readers?epoch=` endpoint. Traction's
+`recentEvents` is still NOT shown — that gap is unchanged.
 
 ---
 
@@ -293,6 +296,80 @@ brand to be **server-persisted, not localStorage** (a public page must render fo
 Evidence: `bun --filter '@komunify/{web,api}' typecheck` both clean; both verify scripts PASS;
 `/dashboard` and `/community/<wallet>` both compile + serve 200 on the dev server.
 
+### Phase 2 work landed 2026-07-11 (manager-flow polish + self-serve managers, D-011)
+
+**Manager publish loop polish.** Fixed a real invalidation bug: `useConfirmContent` only invalidated
+`contentKeys`, but the "My content" list and the onboarding "2 Publish" step read
+`managerKeys.myContent` — so a successful publish never updated the UI without a reload. Now
+invalidates both. Also: upload stepper's "done" state gained a **Publish another** reset (was
+single-shot per page load) + a "View public page" link; stale "route not live yet" doc comment
+removed.
+
+**Permissionless managers (D-011).** Per user ("drop the admin gate"): anyone can self-register as a
+manager on-chain. `set_manager`'s auth changed from `require_auth(admin)` → `require_auth(who)` — a
+wallet toggles only its own status, no admin, no griefing.
+- Contract: `contracts/.../lib.rs` `set_manager` (auth swap); tests t12 (subject-auth required) +
+  new t12b (permissionless self-register → register_content). **`cargo test -p komunify`: 16/16.**
+- Web: `StartCommunityCard` now signs `set_manager(self, true)` with the user's wallet
+  (`ManagerService.becomeManager` / `useBecomeManager`), then `PUT /community`, then invalidates
+  the role queries → shell flips to ManagerPanel.
+- API: reverted — the `ADMIN_SECRET_KEY` / `lib/soroban-admin.ts` admin-broker path (an earlier
+  iteration this session) was **deleted**; `PUT /community` keeps a plain `is_manager` gate that
+  just confirms the user's on-chain self-registration landed.
+
+Evidence: `cargo test -p komunify` 16/16; `bun --filter '@komunify/{web,api}' typecheck` both clean.
+
+**LIVE (redeployed 2026-07-11).** Rebuilt + redeployed both contracts with the permissionless
+`set_manager`; new ids in the Deployed addresses table; env files updated. `scripts/seed.ts` updated
+so each manager **self-registers with its own keypair** (was admin-signed) and re-run green:
+`total_subs=12, total_volume=1200000000, content_count=5, manager_count=3`. The permissionless
+self-registration path is therefore proven on-chain end-to-end.
+
+### Phase 2 work landed 2026-07-11 (Explore page)
+
+Public discovery page `/explore` (no wallet), two modes:
+- **Communities** — `GET /community` (new): communities that have ≥1 REGISTERED content, sorted by
+  content count desc (`CommunityService.listWithContent`, groups `Content` by `creatorWallet`, joins
+  `Community`). Schema `CommunityListItem`/`CommunityListResponse`.
+- **Content** — the existing public `GET /content` grid, each item links to its community page.
+
+Web: `components/explore/explore-view.tsx` (tab switch via `.pill.accent`), `services/community`
+`list()`/`useCommunities()`, link from the dashboard header. `bun --filter '@komunify/{api,web}'
+typecheck` clean; both endpoints verified live via curl (correct shape + sort).
+
+**Demo-data population — `seed.ts` now drives the API** so explore is pre-populated. Managers
+self-register on-chain (D-011), then log in (SEP-53) and: `PUT /community` a brand each (3 brands),
+and publish all 5 contents through the real `upload → register_content → confirm` flow — so both the
+chain AND Postgres (`Content`/`Community`, D-010) are populated. `/explore` and the community pages
+therefore have data after a seed. **New prereqs: the API must be running and its Postgres reachable
+when seeding** (`bun --filter api dev` in another terminal); seed fails fast via `requireApi()` if
+not. seed.ts is type-clean; not re-run yet on the fresh deployment (needs the stale pre-D-011
+Postgres rows — content #7/#8, `GD2ZULNE…` community — wiped first via
+`packages/api/scripts/wipe-stale-metadata.ts`).
+
+### Phase 2 work landed 2026-07-12 (30-day epoch + force_close, D-012)
+
+Epoch is now the honest 30-day billing period, not 5 min. Added admin-only `force_close_epoch()` so
+the demo can still show settle→claim live (ends the current epoch on demand; rebases `epoch_base`/
+`genesis`, monotonic, no state corruption — D-012). Contract-only change; `Config` shape unchanged so
+bindings/init/seed signatures are untouched.
+- `contracts/.../lib.rs`: `force_close_epoch`, `EpochBase` storage key, rebased `compute_epoch`/
+  `epoch_ends_at`, `epoch_closed` event. Test **t15** proves it. `cargo test -p komunify`: **17/17.**
+- `CONTRACT_SPEC.md` + `DECISIONS.md` (D-012) updated.
+
+**DEPLOYED 2026-07-12.** komunify redeployed with the D-012 wasm:
+1. ✅ `make bindings` — `contract-client` (`src` + `dist`) regenerated with `force_close_epoch`.
+   **Commit the regenerated bindings.**
+2. ✅ komunify deployed + init with `epoch_secs = 2592000` (30 days), reusing the existing usdc as
+   `Config.token`. New id `CDRO7PJP…B7CT` in the Deployed addresses table; `.env.local` +
+   `packages/api/.env` updated. `get_config` verified on-chain.
+3. ⏳ **Re-seed still pending** (needs API + Postgres running; wipe stale pre-D-012 rows first via
+   `packages/api/scripts/wipe-stale-metadata.ts`). For the demo, drive settle→claim by calling
+   `force_close_epoch` (deployer/admin, now live) then the existing `settle_member` flow.
+
+> Uncommitted after this deploy: regenerated `packages/contract-client/{src,dist}`, and this doc.
+> The `.env*` files are gitignored (local only) — set the same new komunify id in Vercel/API host env.
+
 ## Phase 3 — Submission (blocked on Phase 2)
 
 - [ ] README: architecture, setup, Stellar usage, **the mock-USDC disclaimer (D-002)**, **the sybil
@@ -307,8 +384,18 @@ Evidence: `bun --filter '@komunify/{web,api}' typecheck` both clean; both verify
 
 | What | Network | Id | Deployed |
 |---|---|---|---|
-| `usdc` | testnet | `CBDEVPY6JAI6KFCGNKOQTDAFONPYWFCJTAFLHHF5TVCRWBLWTNBQGVP3` | 2026-07-11 |
-| `komunify` | testnet | `CASKHPSDQ3NDP2TKJ6KXQ2GM2BHT6FX5LN6KS2BY5PRIUCO2S5BT5ADA` | 2026-07-11 |
+| `usdc` | testnet | `CCT5P37F32YQNK2ER5AAEWPHV5TBMRZOGDKSDZMIBBK2K7JFAJQW4P3S` | 2026-07-11 (redeploy, D-011) — unchanged |
+| `komunify` | testnet | `CDRO7PJPVB6U4WYUSA3K3MJ7RVHLQXTNCJMUJM4KKFENRRICZAYLB7CT` | 2026-07-12 (redeploy, D-012 — 30-day epoch + force_close) |
+
+> `komunify` redeployed 2026-07-12 for D-012 (`epoch_secs = 2592000`, `force_close_epoch`).
+> `usdc` was **not** changed — the new komunify's `Config.token` points at the same usdc id above,
+> so existing faucet balances survive. `.env.local` / `packages/api/.env` updated to the new
+> komunify id. `get_config` verified on-chain: `epoch_secs=2592000`, `current_epoch=0`.
+>
+> Prior komunify (pre-D-012, `epoch_secs = 300`): `CBVVOGEPDLENFDRYE7KXGEO5X4QCRLNU4XMAOXGEZ2MOLNRS4UVA4ATK`. Dead — do not use.
+> Prior deployment (pre-D-011, admin-gated `set_manager`): usdc
+> `CBDEVPY6JAI6KFCGNKOQTDAFONPYWFCJTAFLHHF5TVCRWBLWTNBQGVP3`, komunify
+> `CASKHPSDQ3NDP2TKJ6KXQ2GM2BHT6FX5LN6KS2BY5PRIUCO2S5BT5ADA`. Dead — do not use.
 
 Config used at `init` (komunify): `platform_bps = 1000` (10%), `price = 100000000` (10 USDC @ 7dp),
 `epoch_secs = 300` (= billing period; demo), `admin = platform = deployer`

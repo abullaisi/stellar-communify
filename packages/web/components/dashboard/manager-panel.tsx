@@ -2,7 +2,6 @@
 
 import { useWallet } from '@/providers/wallet-provider';
 import { useCommunity, useSaveCommunity } from '@/services/community';
-import { useMyContent } from '@/services/manager';
 
 import { CommunityOnboarding } from './community-onboarding';
 import { ManagerContentList } from './manager-content-list';
@@ -12,10 +11,8 @@ export function ManagerPanel() {
   const { address } = useWallet();
   const community = useCommunity(address);
   const saveCommunity = useSaveCommunity(address);
-  const myContent = useMyContent();
 
   const brand = community.data ?? null;
-  const publishDone = (myContent.data?.length ?? 0) > 0;
 
   return (
     <>
@@ -23,7 +20,6 @@ export function ManagerPanel() {
         <CommunityOnboarding
           wallet={address}
           brand={brand}
-          publishDone={publishDone}
           saving={saveCommunity.isPending}
           error={saveCommunity.isError ? (saveCommunity.error as Error).message : null}
           onSave={(data) => saveCommunity.mutate(data)}

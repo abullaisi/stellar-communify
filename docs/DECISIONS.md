@@ -223,3 +223,125 @@ from the existing public `GET /content` filtered by `creatorWallet`, not a new c
 
 **Rules out:** putting brand on-chain (it is not consensus-critical); a per-community route/subdomain
 (one `/community/[wallet]` page); an image-hosting service (logos are small data: URLs in the row).
+
+---
+
+## D-011 — Permissionless managers: `set_manager` is self-authorized (`require_auth(who)`), no admin gate.
+
+**Decided:** 2026-07-11 (Phase 2, at user request — "anyone can become a manager as long as they sign in and create a community", then "I want to drop the admin gate")
+
+Anyone can become a community manager by self-registering on-chain. The contract's `set_manager`
+gate changes from `require_auth(admin)` to **`require_auth(who)`**: a wallet toggles only its OWN
+manager status (enable to start publishing, disable to resign). No admin involvement, and — because
+the subject must sign — no one can force or revoke anyone else's status. This is genuinely
+permissionless, not admin-brokered.
+
+Flow:
+- Contract: `set_manager(who, enabled)` — same signature, auth swapped to the subject (`lib.rs`).
+  Tests t12 (subject-auth required) + t12b (permissionless self-register → `register_content` works).
+- Web: a signed-in non-manager sees "Start your community"; saving (1) signs `set_manager(self, true)`
+  with their own wallet, then (2) `PUT /community` to persist the brand. The shell then re-renders
+  the ManagerPanel.
+- API: `PUT /community` keeps its `is_manager` gate — but it needs no key of its own; it just
+  confirms the user's on-chain self-registration landed before persisting a brand.
+
+**Pivot note:** an earlier iteration this session had the API hold the deployer key and broker
+`set_manager` (`ADMIN_SECRET_KEY`, `lib/soroban-admin.ts`). Superseded here — the admin key in the
+API was itself a centralization the user asked to remove. That code was deleted; no admin key exists
+anywhere in the request path now.
+
+**Why this is allowed to touch the "frozen" contract:** same reasoning as D-010 — an explicit
+Phase-2 product decision by the owner, documented here and mirrored into `CONTRACT_SPEC.md §func` +
+the test list, not a silent change.
+
+**Trust / abuse note:** permissionless means no spam control — anyone can register as a manager and
+publish. Acceptable for a testnet demo (D-002). A production system would gate publishing with
+economic skin in the game (a slashable stake on `set_manager`/`register_content`) or curation, not
+a platform whitelist. The `admin` field in `Config` is now unused by `set_manager` (still used
+elsewhere); a future stake/governance model would give it a new role or remove it.
+
+**Activation:** requires **redeploying the `komunify` contract** — the live testnet deployment still
+carries the old admin gate, so the browser self-register call fails against it until redeploy. New
+contract id + re-seed. Tracked in PROGRESS.
+
+**Rules out:** an admin whitelist for managers; the API holding the admin key; an unauthenticated
+`set_manager` (griefing — anyone disabling anyone).
+
+---
+
+## D-012 — Epoch is 30 days; `force_close_epoch()` (admin) ends it on demand for the demo.
+
+**Decided:** 2026-07-12 (Phase 2, at user request — "epoch should be 30 days")
+
+The demo ran `epoch_secs = 300` so the subscribe → read → settle → claim loop fit in a few minutes.
+But since epoch = billing period (D-009), that made the price read as "10 USDC / 5 min" (~$2,880/day)
+— a credibility problem in the demo. Fix: **deploy with `epoch_secs = 2592000` (30 days)** — the
+honest billing period — and add an admin-only `force_close_epoch()` to end the current epoch on
+demand so settlement can still be shown live.
+
+**Why not just mutate `epoch_secs` mid-flight:** the epoch number is `(now - genesis) / epoch_secs`,
+the divisor over *all* history. Overwriting it renumbers past time non-monotonically (can jump the
+current epoch backward → re-open a settled epoch, double-attribute a budget) and orphans every
+epoch-keyed entry (`Sub`, `Budget`, `Read`, `Settled`). Unsafe.
+
+**Mechanism (rebase, not renumber):** an `epoch_base: u32` (instance storage, default 0) offsets the
+epoch number; `current_epoch = epoch_base + (now - genesis) / epoch_secs`. `force_close_epoch()` sets
+`epoch_base = current + 1` and `genesis = now`, so the current epoch ends immediately, the next one
+starts now, epoch numbers stay strictly monotonic, and no started epoch is renumbered — all existing
+epoch-keyed state stays addressable. `Config`'s shape is unchanged (base lives outside it), so
+bindings / `init` args / seed are untouched. `epoch_ends_at(e)` for `e < epoch_base` returns the last
+rebase timestamp (display-only, approximate — acceptable).
+
+**Distribution is unchanged.** `force_close_epoch()` does NOT distribute. There is no pool (D-009);
+settlement stays the per-member `settle_member` pull, exactly as at a natural boundary. Closing just
+makes the epoch settleable. (An on-chain "distribute everyone" loop was rejected: D-009 keeps no
+enumerable member set on-chain, and looping N members risks the tx resource limit.)
+
+**Contract change:** `force_close_epoch(admin)` (admin-gated, `require_auth(admin)`); `epoch_base`
+storage key; `compute_epoch`/`epoch_ends_at` rebased; `epoch_closed` event. Test t15 proves
+monotonicity, that a pre-close budget survives and settles, that the old sub expires, and that a
+fresh epoch runs. `cargo test -p komunify`: 17/17.
+
+**Activation:** requires **redeploying `komunify`** (new function + storage) with `epoch_secs =
+2592000`, new id, re-seed. The UI/README should state the epoch is 30 days and that the demo uses an
+operator "force close" to compress it — not that billing is 5 minutes.
+
+**Rules out:** a general mutable `epoch_secs` setter; an on-chain distribute-all loop; any member-
+callable epoch close (admin-only — it moves everyone's billing boundary).
+
+---
+
+## D-013 — "Settle all" is a server-side batch of `settle_member` calls (approach C), not a contract function.
+
+**Decided:** 2026-07-13 (Phase 2, manager dashboard UX)
+
+D-009 already rules out an on-chain "distribute everyone" loop: there's no enumerable member set
+in contract state, and looping N members risks the tx resource limit. But a manager dashboard with
+one `settle_member(epoch, m)` button per subscriber doesn't scale past a couple of readers, and a
+wallet-signed tx per member is a bad demo (N signature prompts).
+
+**Mechanism:** `settle_member` stays permissionless and unchanged on-chain. The API adds
+`POST /manager/settle-all` (`packages/api/src/routes/manager.route.ts`,
+`packages/api/src/services/settle.service.ts`), manager-gated (`requireAuth` + `is_manager`). It:
+1. Resolves `epoch = current_epoch() - 1` (the last closed cycle — `settle_member` errors
+   `EpochNotClosed` on the open one).
+2. Scans recent `kmf` contract events (`subscribed` minus `settled`, ~5.5h/4000-ledger lookback,
+   paginated) to find that epoch's un-settled subscribers. No enumerable on-chain member list, so
+   this is the only source; upgrade path is indexing `subscribed` into Postgres at scale.
+3. Signs and submits `settle_member(epoch, m)` **sequentially**, one tx per member, from a
+   server-held `SETTLE_SIGNER_SECRET` keypair — so the manager signs nothing. Sequential keeps
+   sequence-number handling simple; each member is its own tx so one failure never reverts the rest.
+   `AlreadySettled` (a race with a concurrent per-member payout) is treated as success, not failure.
+4. Returns `{ epoch, attempted, settled, failed, truncated }`; capped at `MAX_MEMBERS = 200` per
+   call with `truncated: true` beyond that (call again to continue — no auto-pagination yet).
+
+**Why manager-gated, not permissionless like `settle_member` itself:** the endpoint burns the
+server signer's fee budget on every call, so it's kept off public traffic. The on-chain
+authorization is unaffected — `settle_member` remains callable by anyone directly.
+
+**Failure mode:** if `SETTLE_SIGNER_SECRET` is unset, the route returns 503
+(`SETTLE_SIGNER_NOT_CONFIGURED`) rather than crashing — deployable without the batch feature.
+
+**Rules out:** an on-chain `settle_all`/distribute loop (still ruled out by D-009's reasoning); a
+client-side loop that has the connected wallet sign N transactions; caching a member list anywhere
+on-chain to make enumeration cheaper.

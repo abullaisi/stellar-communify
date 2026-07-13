@@ -346,6 +346,18 @@
                       "key": {
                         "vec": [
                           {
+                            "symbol": "EpochBase"
+                          }
+                        ]
+                      },
+                      "val": {
+                        "u32": 0
+                      }
+                    },
+                    {
+                      "key": {
+                        "vec": [
+                          {
                             "symbol": "NextContentId"
                           }
                         ]

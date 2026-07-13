@@ -8,6 +8,7 @@ import { health } from './routes/health.route.js';
 import { auth } from './routes/auth.route.js';
 import { content } from './routes/content.route.js';
 import { community } from './routes/community.route.js';
+import { manager } from './routes/manager.route.js';
 import { stats } from './routes/stats.route.js';
 import { ContentService } from './services/content.service.js';
 
@@ -22,6 +23,7 @@ app.route('/health', health);
 app.route('/auth', auth);
 app.route('/content', content);
 app.route('/community', community);
+app.route('/manager', manager);
 app.route('/stats', stats);
 
 // Root endpoint

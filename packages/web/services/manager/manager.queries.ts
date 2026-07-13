@@ -4,4 +4,5 @@ export const managerKeys = {
   isManager: (address: string | null) => [...managerKeys.all(address), 'is-manager'] as const,
   myContent: (address: string | null) => [...managerKeys.all(address), 'my-content'] as const,
   accrued: (address: string | null) => [...managerKeys.all(address), 'accrued'] as const,
+  pending: (address: string | null) => [...managerKeys.all(address), 'pending'] as const,
 };

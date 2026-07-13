@@ -5,6 +5,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CommunityService } from './community.service';
 import { communityKeys } from './community.queries';
 
+/** Public list of communities with content, richest first (Explore/Communities tab). */
+export function useCommunities() {
+  return useQuery({
+    queryKey: communityKeys.list(),
+    queryFn: () => CommunityService.list(),
+  });
+}
+
 /** Public brand for a community page (or the manager's own). Null when none is set. */
 export function useCommunity(wallet: string | null) {
   return useQuery({

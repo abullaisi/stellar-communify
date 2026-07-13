@@ -81,6 +81,9 @@ export type DataKey = {
     tag: "Stats";
     values: void;
 } | {
+    tag: "EpochBase";
+    values: void;
+} | {
     tag: "NextContentId";
     values: void;
 } | {
@@ -213,7 +216,10 @@ export interface Client {
     }, options?: MethodOptions) => Promise<AssembledTransaction<Content>>;
     /**
      * Construct and simulate a set_manager transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
-     * Admin-gated whitelist. require_auth(admin). Adjusts Stats.manager_count.
+     * Permissionless self-service (D-011). require_auth(who): a wallet toggles only its OWN
+     * manager status — enable to start publishing, disable to resign. No admin gate; `who`
+     * can never be forced by anyone else, and no one but `who` can touch it. Adjusts
+     * Stats.manager_count.
      */
     set_manager: ({ who, enabled }: {
         who: string;
@@ -283,6 +289,20 @@ export interface Client {
         sha256: Buffer;
     }, options?: MethodOptions) => Promise<AssembledTransaction<u64>>;
     /**
+     * Construct and simulate a force_close_epoch transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+     * require_auth(admin). Ends the current epoch immediately: it becomes closed
+     * (so `settle_member`/`claim` can drain it) and a fresh epoch of the same
+     * `epoch_secs` starts now. Does NOT distribute — distribution stays the
+     * existing per-member pull (`settle_member`), same as a natural boundary.
+     *
+     * Operator/demo tool: run a real billing epoch (e.g. 30 days) but force a
+     * close on demand to show settlement live. Epoch numbers stay strictly
+     * monotonic and no existing epoch's state is renumbered. Emits `epoch_closed`.
+     */
+    force_close_epoch: ({ admin }: {
+        admin: string;
+    }, options?: MethodOptions) => Promise<AssembledTransaction<null>>;
+    /**
      * Construct and simulate a get_content_reads transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
      * Display only, does not drive money.
      */
@@ -348,6 +368,7 @@ export declare class Client extends ContractClient {
         get_member_reads: (json: string) => AssembledTransaction<number>;
         get_subscription: (json: string) => AssembledTransaction<bigint>;
         register_content: (json: string) => AssembledTransaction<bigint>;
+        force_close_epoch: (json: string) => AssembledTransaction<null>;
         get_content_reads: (json: string) => AssembledTransaction<number>;
         set_content_active: (json: string) => AssembledTransaction<null>;
         add_content_manager: (json: string) => AssembledTransaction<null>;

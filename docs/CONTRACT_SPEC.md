@@ -56,11 +56,13 @@ pub struct Config {
     pub platform: Address,       // receives platform fee, dust, and idle-subscriber budget
     pub platform_bps: u32,       // e.g. 1000 = 10%. Max 10_000.
     pub price: i128,             // subscription price, token base units
-    pub epoch_secs: u64,         // billing + settlement window. SHORT FOR DEMO (e.g. 300).
-    pub genesis: u64,            // ledger timestamp at init(); epoch 0 starts here
+    pub epoch_secs: u64,         // billing + settlement window. Deploy at 2592000 (30d) — D-012.
+    pub genesis: u64,            // ledger timestamp of the current epoch base (moves on force_close)
 }
 // NOTE: no period_secs. The epoch IS the billing period (D-009). Subscribing in epoch e grants
 // access for epoch e only.
+// NOTE: epoch_base (u32, instance storage, default 0) offsets the epoch number; force_close_epoch
+// rebases (genesis, epoch_base) so a demo can close a 30-day epoch on demand — D-012.
 
 #[contracttype]
 #[derive(Clone)]
@@ -143,7 +145,8 @@ pub enum Error {
 /// One-time. Sets Config, zeroes Stats, NextContentId = 1, genesis = now.
 fn init(env: Env, cfg: Config);
 
-/// Admin-gated whitelist. require_auth(admin). Adjusts Stats.manager_count.
+/// Permissionless self-service (D-011). require_auth(who): a wallet toggles only its OWN
+/// manager status (enable to publish, disable to resign). No admin gate. Adjusts Stats.manager_count.
 fn set_manager(env: Env, who: Address, enabled: bool);
 
 /// Manager-gated. require_auth(caller). caller must be a whitelisted manager.
@@ -220,6 +223,13 @@ fn claim(env: Env, caller: Address);
 
 /// require_auth(admin). Transfers Dust to Config.platform, zeroes Dust.
 fn claim_dust(env: Env, admin: Address);
+
+/// require_auth(admin). Ends the current epoch immediately (it becomes closed +
+/// settleable) and starts a fresh epoch of the same epoch_secs now. Does NOT
+/// distribute — distribution stays the per-member `settle_member` pull, exactly
+/// as at a natural boundary. Epoch numbers stay strictly monotonic; no started
+/// epoch is renumbered (D-012). Operator/demo tool. Emits `epoch_closed`.
+fn force_close_epoch(env: Env, admin: Address);
 ```
 
 ### 2.5 Read-only functions
@@ -229,7 +239,7 @@ All of these are called by the web app and the API via `simulateTransaction` —
 ```rust
 fn get_config(env: Env) -> Config;
 fn get_stats(env: Env) -> Stats;
-fn current_epoch(env: Env) -> u32;            // (now - genesis) / epoch_secs
+fn current_epoch(env: Env) -> u32;            // epoch_base + (now - genesis) / epoch_secs (D-012)
 fn epoch_ends_at(env: Env, epoch: u32) -> u64;
 
 fn is_manager(env: Env, who: Address) -> bool;
@@ -260,6 +270,7 @@ Topic prefix `"kmf"` on every event so `getEvents` can filter cheaply.
 | `("kmf", "accessed", member)` | `(content_id: u64, epoch: u32)` |
 | `("kmf", "settled", member)` | `(epoch: u32, budget: i128)` |
 | `("kmf", "claimed", who)` | `(amount: i128)` |
+| `("kmf", "epoch_closed")` | `(closed: u32, new_base: u32, at: u64)` |
 
 The traction dashboard is built from `getEvents` over these topics plus `get_stats()`. There is no
 Horizon indexer and no event table in Postgres.
@@ -300,10 +311,12 @@ backstop; an idle member's budget then routes to the platform, an active member'
 they read. Seed/demo scripts and the dashboard should settle the previous epoch's members on epoch
 rollover so nothing lingers.
 
-**Demo timing:** `epoch_secs` is the billing period AND the settlement window (D-009). Production
-intent is ~30 days. **Deploy the demo with `epoch_secs = 300`** so subscribe → read → wait → settle
-→ claim fits in a recorded video. Note this in the README so nobody thinks 5-minute billing is the
-design.
+**Demo timing (D-012):** `epoch_secs` is the billing period AND the settlement window (D-009).
+**Deploy with `epoch_secs = 2592000` (30 days)** — the honest billing period, so the price reads as
+"10 USDC / month" instead of "10 USDC / 5 min". To fit subscribe → read → settle → claim into a
+recorded video, the admin calls **`force_close_epoch()`** to end the current epoch on demand; it
+becomes settleable immediately and a fresh 30-day epoch starts. No separate short-epoch deployment,
+and no 5-minute-billing artifact to disclaim.
 
 **Required unit tests** (`contracts/contracts/komunify/src/test.rs`):
 
@@ -326,7 +339,7 @@ design.
 11. **Sybil property:** attacker is a manager, subscribes from an alt wallet, reads only their own
     single-manager content, then settles → attacker's `Accrued` gain equals `price*(1-bps)`, i.e.
     net of the paid `price` the attacker is down exactly the platform fee. Encodes D-009's claim.
-12. `set_manager` from a non-admin → `NotAdmin`.
+12. `set_manager` without the subject's auth → panic; a wallet self-registers (own auth, no admin) → `is_manager` true.
 13. `register_content` from a non-manager → `NotManager`.
 14. `claim` with zero accrued → `NothingToClaim`.
 

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useWallet } from '@/providers/wallet-provider';
 
+import { managerKeys } from '../manager/manager.queries';
 import { ApiError } from '../api/http';
 import { ContentService } from './content.service';
 import { contentKeys } from './content.queries';
@@ -39,7 +40,13 @@ export function useConfirmContent() {
   return useMutation({
     mutationFn: ({ draftId, contentId, txHash }: { draftId: string; contentId: string; txHash: string }) =>
       ContentService.confirm(draftId, contentId, txHash),
-    onSuccess: () => qc.invalidateQueries({ queryKey: contentKeys.all(address) }),
+    onSuccess: () => {
+      // A newly-confirmed content shows up in both the public grid and the manager's
+      // own list — the latter is keyed under `managerKeys`, which drives the onboarding
+      // "2 Publish" step. Invalidate both so the publish loop closes without a reload.
+      qc.invalidateQueries({ queryKey: contentKeys.all(address) });
+      qc.invalidateQueries({ queryKey: managerKeys.myContent(address) });
+    },
   });
 }
 

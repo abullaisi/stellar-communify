@@ -1,4 +1,4 @@
-import { Komunify, contract } from '@komunify/contract-client';
+import { Komunify, contract, Keypair } from '@komunify/contract-client';
 import { getNetworkConfig } from '@komunify/shared';
 import { env } from '../config/env.js';
 
@@ -19,6 +19,28 @@ function client(): Komunify.Client {
     rpcUrl: env.SOROBAN_RPC_URL,
     publicKey: contract.NULL_ACCOUNT,
   });
+}
+
+/**
+ * A `komunify` client that can sign and submit (not just simulate). Backed by the
+ * `SETTLE_SIGNER_SECRET` server keypair; used to batch the permissionless `settle_member`.
+ * Returns null when no signer is configured so callers can 503 cleanly.
+ */
+export function signingClient(): { client: Komunify.Client; address: string } | null {
+  if (!env.KOMUNIFY_CONTRACT_ID || !env.SETTLE_SIGNER_SECRET) {
+    return null;
+  }
+  const { networkPassphrase } = getNetworkConfig(env.STELLAR_NETWORK);
+  const keypair = Keypair.fromSecret(env.SETTLE_SIGNER_SECRET);
+  const signer = contract.basicNodeSigner(keypair, networkPassphrase);
+  const client = new Komunify.Client({
+    contractId: env.KOMUNIFY_CONTRACT_ID,
+    networkPassphrase,
+    rpcUrl: env.SOROBAN_RPC_URL,
+    publicKey: keypair.publicKey(),
+    signTransaction: signer.signTransaction,
+  });
+  return { client, address: keypair.publicKey() };
 }
 
 export async function isManager(address: string): Promise<boolean> {
@@ -58,5 +80,15 @@ export async function getStats(): Promise<Komunify.Stats> {
 
 export async function getContentReads(epoch: number, contentId: bigint): Promise<number> {
   const tx = await client().get_content_reads({ epoch, content_id: contentId });
+  return tx.result;
+}
+
+export async function getBudget(epoch: number, member: string): Promise<bigint> {
+  const tx = await client().get_budget({ epoch, member });
+  return tx.result;
+}
+
+export async function getMemberReads(epoch: number, member: string): Promise<number> {
+  const tx = await client().get_member_reads({ epoch, member });
   return tx.result;
 }

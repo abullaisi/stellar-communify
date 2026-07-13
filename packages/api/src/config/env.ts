@@ -24,6 +24,12 @@ const envSchema = z.object({
   SOROBAN_RPC_URL: z.string().default('https://soroban-testnet.stellar.org'),
   KOMUNIFY_CONTRACT_ID: z.string().optional(),
   USDC_CONTRACT_ID: z.string().optional(),
+
+  // Server keypair (secret seed, S...) that signs+submits the permissionless `settle_member`
+  // calls behind POST /manager/settle-all. Needs XLM for tx fees. Testnet only; when unset the
+  // settle-all endpoint is disabled (503). `settle_member` requires no auth, so this signs on the
+  // members' behalf — it never touches their budgets beyond what the contract math dictates.
+  SETTLE_SIGNER_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

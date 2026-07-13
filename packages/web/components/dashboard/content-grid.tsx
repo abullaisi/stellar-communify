@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError } from '@/services/api/http';
 import { useContentGrid, useHasRead, useOpenContent } from '@/services/content';
@@ -25,7 +26,7 @@ function ContentRow({ item }: { item: ContentGridItem }) {
     setNotice(null);
     // No active subscription: don't fire a doomed download — point the member at the CTA above.
     if (!isActive) {
-      setNotice('Subscribe first (Subscription card above) to unlock content for this epoch.');
+      setNotice('Become a member first (Membership card above) to open this.');
       return;
     }
     try {
@@ -33,11 +34,11 @@ function ContentRow({ item }: { item: ContentGridItem }) {
       window.open(res.url, '_blank', 'noopener,noreferrer');
     } catch (e) {
       if (e instanceof ApiError && e.code === 'SUB_INACTIVE') {
-        setNotice('Your subscription is not active for this epoch — subscribe first.');
+        setNotice('Your membership isn’t active. Subscribe to open this.');
       } else if (e instanceof ApiError) {
-        setNotice('Download service is not available yet — the read was still recorded on-chain.');
+        setNotice('Your read is recorded on-chain, but the file couldn’t be fetched just now. Try again in a moment.');
       } else {
-        setNotice(e instanceof Error ? e.message : 'Failed to open content');
+        setNotice(e instanceof Error ? e.message : 'Couldn’t open this. Please try again.');
       }
     }
   }
@@ -49,7 +50,15 @@ function ContentRow({ item }: { item: ContentGridItem }) {
         <span className="label">#{item.contentId}</span>
       </div>
       <div className="row tight" style={{ marginTop: 0 }}>
-        {hasRead.data ? <span className="pill accent">UNLOCKED</span> : <span className="pill">LOCKED</span>}
+        {hasRead.data ? (
+          <span className="pill accent">
+            <Icon name="unlock" size={12} /> UNLOCKED
+          </span>
+        ) : (
+          <span className="pill">
+            <Icon name="lock" size={12} /> LOCKED
+          </span>
+        )}
         <Button
           type="button"
           size="sm"
@@ -57,7 +66,15 @@ function ContentRow({ item }: { item: ContentGridItem }) {
           onClick={handleOpen}
           disabled={open.isPending || status.isLoading}
         >
-          {open.isPending ? 'Opening…' : isActive ? 'Open' : 'Subscribe to open'}
+          {open.isPending ? (
+            'Opening…'
+          ) : isActive ? (
+            <>
+              <Icon name="download" size={14} /> Open
+            </>
+          ) : (
+            'Subscribe to open'
+          )}
         </Button>
       </div>
       {notice ? <p className="hint" style={{ gridColumn: '1 / -1' }}>{notice}</p> : null}
@@ -71,7 +88,7 @@ export function ContentGrid() {
 
   return (
     <section className="card">
-      <h2>Content</h2>
+      <h2>Library</h2>
       {grid.isLoading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Skeleton className="h-12 w-full rounded-md" />
@@ -84,7 +101,10 @@ export function ContentGrid() {
           ))}
         </div>
       ) : (
-        <p className="hint">No content registered yet.</p>
+        <p className="hint" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <Icon name="sparkle" size={15} />
+          Nothing here yet. New content shows up the moment a community publishes it.
+        </p>
       )}
     </section>
   );

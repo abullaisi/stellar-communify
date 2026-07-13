@@ -48,15 +48,52 @@ export function useClaim() {
   });
 }
 
-export function useSettleMember() {
+/** Preview of what "pay out all readers" would add to this manager's balance right now. */
+export function usePendingBalance() {
+  const { address } = useWallet();
+  return useQuery({
+    queryKey: managerKeys.pending(address),
+    queryFn: () => ManagerService.pending(),
+    enabled: !!address,
+    refetchInterval: 15_000,
+  });
+}
+
+/**
+ * Settle every un-settled subscriber of the last closed cycle in one call (approach C). The API
+ * signs server-side, so no wallet prompt. Refreshes earnings/accrued/pending on success.
+ */
+export function useSettleAll() {
   const { address } = useWallet();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ epoch, member }: { epoch: number; member: string }) => {
-      if (!address) throw new Error('Connect a wallet first');
-      return ManagerService.settleMember(address, epoch, member);
-    },
+    mutationFn: () => ManagerService.settleAll(),
     onSuccess: () => qc.invalidateQueries({ queryKey: managerKeys.all(address) }),
+  });
+}
+
+/** Current billing cycle number (`current_epoch`). Chain-global, refetched periodically. */
+export function useCurrentEpoch() {
+  return useQuery({
+    queryKey: ['manager', 'current-epoch'],
+    queryFn: () => ManagerService.currentEpoch(),
+    refetchInterval: 30_000,
+  });
+}
+
+/** Admin-only: force-close the current cycle for the demo (D-012). Refreshes everything. */
+export function useForceCloseEpoch() {
+  const { address } = useWallet();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      if (!address) throw new Error('Connect a wallet first');
+      return ManagerService.forceCloseEpoch(address);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: managerKeys.all(address) });
+      qc.invalidateQueries({ queryKey: ['manager', 'current-epoch'] });
+    },
   });
 }
 
@@ -67,5 +104,18 @@ export function useRegisterContent() {
       if (!address) throw new Error('Connect a wallet first');
       return ManagerService.registerContent(address, sha256);
     },
+  });
+}
+
+/** Self-register as a manager on-chain (D-011). Invalidates the role queries on success. */
+export function useBecomeManager() {
+  const { address } = useWallet();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      if (!address) throw new Error('Connect a wallet first');
+      return ManagerService.becomeManager(address);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: managerKeys.all(address) }),
   });
 }
