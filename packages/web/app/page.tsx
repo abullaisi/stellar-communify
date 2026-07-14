@@ -746,42 +746,78 @@ const FAQ_ITEMS = [
   },
 ];
 
-function FAQItem({ item, isOpen, onToggle }: { item: (typeof FAQ_ITEMS)[number]; isOpen: boolean; onToggle: () => void }) {
+function FAQItem({
+  item,
+  index,
+  isOpen,
+  onToggle,
+}: {
+  item: (typeof FAQ_ITEMS)[number];
+  index: number;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <div className="border-b border-[var(--color-border-medium)]">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        className="w-full flex items-center justify-between gap-6 py-6 text-left"
+    <motion.div
+      initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ delay: index * 0.06, duration: 0.8, ease: EASE }}
+      className="group"
+    >
+      {/* Double-bezel: outer machined shell */}
+      <div
+        className={`p-1.5 rounded-[1.75rem] ring-1 transition-colors duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
+          isOpen
+            ? 'bg-[var(--color-content-accent)]/[0.07] ring-[rgba(229,168,74,0.3)]'
+            : 'bg-[var(--color-content-accent)]/[0.03] ring-[rgba(229,168,74,0.1)] hover:ring-[rgba(229,168,74,0.2)]'
+        }`}
       >
-        <span className="font-serif text-[1.1rem] md:text-[1.25rem] text-[var(--color-content-primary)]">
-          {item.question}
-        </span>
-        <motion.span
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3, ease: EASE }}
-          className="shrink-0 text-[var(--color-content-accent)]"
-        >
-          <ChevronDown size={20} />
-        </motion.span>
-      </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: EASE }}
-            className="overflow-hidden"
+        {/* Inner core */}
+        <div className="relative rounded-[calc(1.75rem-0.375rem)] bg-[var(--color-bg-elevated)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden">
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={isOpen}
+            className="w-full flex items-center justify-between gap-6 px-6 py-5 md:px-7 md:py-6 text-left bg-transparent border-none rounded-none"
           >
-            <p className="pb-6 max-w-2xl text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
-              {item.answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            <span className="font-serif text-[1.05rem] md:text-[1.2rem] leading-snug text-[var(--color-content-primary)]">
+              {item.question}
+            </span>
+            <span
+              className={`relative shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full ring-1 transition-colors duration-500 ${
+                isOpen
+                  ? 'bg-[var(--color-content-accent)] ring-[var(--color-content-accent)]/40'
+                  : 'bg-[var(--color-bg-accent-tint)] ring-[var(--color-content-accent)]/15'
+              }`}
+            >
+              <motion.span
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.4, ease: EASE }}
+                className={isOpen ? 'text-[var(--color-content-on-accent)]' : 'text-[var(--color-content-accent)]'}
+              >
+                <ChevronDown size={16} strokeWidth={1.5} />
+              </motion.span>
+            </span>
+          </button>
+          <AnimatePresence initial={false}>
+            {isOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: EASE }}
+                className="overflow-hidden"
+              >
+                <p className="px-6 md:px-7 pb-6 max-w-2xl text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
+                  {item.answer}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -789,8 +825,11 @@ function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative py-24 md:py-32 scroll-mt-24">
-      <div className="max-w-3xl mx-auto px-6 md:px-10">
+    <section id="faq" className="relative py-24 md:py-40 scroll-mt-24 overflow-hidden">
+      {/* Ambient side glow — mirrors the How-it-works section's atmosphere */}
+      <div className="pointer-events-none absolute top-1/4 -right-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(229,168,74,0.08),transparent_70%)]" />
+
+      <div className="relative max-w-3xl mx-auto px-6 md:px-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -807,22 +846,17 @@ function FAQSection() {
           </h2>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
-          className="mt-12 border-t border-[var(--color-border-medium)]"
-        >
+        <div className="mt-12 flex flex-col gap-4">
           {FAQ_ITEMS.map((item, i) => (
             <FAQItem
               key={item.question}
               item={item}
+              index={i}
               isOpen={openIndex === i}
               onToggle={() => setOpenIndex(openIndex === i ? null : i)}
             />
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
