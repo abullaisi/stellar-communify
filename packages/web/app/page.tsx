@@ -1,10 +1,9 @@
 'use client';
 
-import { motion, useMotionValue, useTransform, useSpring, useReducedMotion, type MotionValue } from 'framer-motion';
-import { useLenis } from 'lenis/react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useReducedMotion, type MotionValue } from 'framer-motion';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Play, Wallet, Sparkles, BookOpen, Coins } from 'lucide-react';
+import { Play, Wallet, Coins, ShieldCheck, ChevronDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ApiClient } from '@/services/api/client';
 import { useWallet } from '@/providers/wallet-provider';
@@ -48,39 +47,47 @@ function Header() {
       </div>
 
       <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)] font-mono">
-        <Link href="/start" className="hover:text-[var(--color-content-accent)] transition-colors">
-          For Creators
-        </Link>
-        <Link href="/explore" className="hover:text-[var(--color-content-accent)] transition-colors">
-          For Subscribers
-        </Link>
-        <a href="https://github.com/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
-          GitHub
+        <a href="#how" className="hover:text-[var(--color-content-accent)] transition-colors">
+          Packages
+        </a>
+        <a href="#faq" className="hover:text-[var(--color-content-accent)] transition-colors">
+          Communities
         </a>
       </nav>
 
-      {isConnected && address ? (
-        <button
-          type="button"
-          onClick={disconnect}
-          title="Disconnect"
-          className="hidden md:inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors"
+      <div className="hidden md:flex items-center gap-3">
+        <a
+          href="https://www.freighter.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] font-mono tracking-wide text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
         >
-          {truncateAddress(address)}
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]"></span>
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={connect}
-          disabled={connecting}
-          title={error ?? undefined}
-          className="hidden md:inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors disabled:opacity-60"
-        >
-          {connecting ? 'Connecting…' : error ? 'Retry connect' : 'Connect Wallet'}
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
-        </button>
-      )}
+          Get wallet
+        </a>
+
+        {isConnected && address ? (
+          <button
+            type="button"
+            onClick={disconnect}
+            title="Disconnect"
+            className="inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors"
+          >
+            {truncateAddress(address)}
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]"></span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={connect}
+            disabled={connecting}
+            title={error ?? undefined}
+            className="inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors disabled:opacity-60"
+          >
+            {connecting ? 'Connecting…' : error ? 'Retry connect' : 'Connect'}
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
+          </button>
+        )}
+      </div>
     </header>
   );
 }
@@ -166,14 +173,14 @@ function LiveStats() {
     >
       <div>
         <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : creators}+</p>
-        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">ACTIVE CREATORS</p>
+        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PARTNERS</p>
       </div>
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : subscriptions}</p>
-        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">SUBSCRIPTIONS</p>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : subscriptions}+</p>
+        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">MEMBERS</p>
       </div>
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '-' : (revenue / 1000).toFixed(1)}k</p>
+        <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '-' : (revenue / 1000).toFixed(1)}k+</p>
         <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PROCESSED ON-CHAIN</p>
       </div>
     </motion.div>
@@ -308,7 +315,6 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
 // Hero section
 function HeroSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lenis = useLenis();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -379,23 +385,26 @@ function HeroSection() {
         </motion.div>
 
         {/* Heading */}
-        <h1 className="mt-8 text-center font-serif font-medium tracking-tight leading-[1.02] text-[13vw] md:text-[6.4rem] lg:text-[7rem] text-[var(--color-content-primary)]">
+        <h1 className="mt-8 text-center font-serif font-medium tracking-tight leading-[1.02] text-[11vw] md:text-[5.2rem] lg:text-[5.8rem] text-[var(--color-content-primary)]">
           <span className="block overflow-hidden">
             <KineticWord delay={0.15}>One</KineticWord>
             <span className="ml-3">
-              <KineticWord delay={0.25}>subscription.</KineticWord>
+              <KineticWord delay={0.25}>subscription</KineticWord>
             </span>
           </span>
           <span className="block overflow-hidden mt-1 md:mt-2">
-            <KineticWord delay={0.35}>
-              <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
-                Infinite
-              </span>
-            </KineticWord>
+            <KineticWord delay={0.35}>for</KineticWord>
             <span className="ml-3">
               <KineticWord delay={0.45}>
                 <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
-                  creators.
+                  multiple
+                </span>
+              </KineticWord>
+            </span>
+            <span className="ml-3">
+              <KineticWord delay={0.55}>
+                <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
+                  community perks.
                 </span>
               </KineticWord>
             </span>
@@ -406,38 +415,35 @@ function HeroSection() {
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ delay: 0.65, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-8 max-w-xl mx-auto text-center text-[15px] md:text-[16px] leading-relaxed text-[var(--color-content-secondary)]"
         >
-          Subscribe to unlock content. Creators earn directly. No algorithm, no middleman. Just revenue flowing
-          on-chain to wallets, verified and instant.
+          Komunify helps members unlock premium access, discounts, and exclusive offers across community
+          partners with a single on-chain subscription.
         </motion.p>
 
         {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.68, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ delay: 0.78, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link href="/dashboard">
             <button className="bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(229,168,74,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
-              Enter Komunify
+              Get early access
             </button>
           </Link>
-          <motion.button
-            type="button"
-            onClick={() =>
-              lenis
-                ? lenis.scrollTo('#how', { offset: -40 })
-                : document.getElementById('how')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
-            whileHover={{ gap: '12px' }}
-            className="group inline-flex items-center gap-2 border border-solid border-[var(--color-content-primary)]/25 bg-transparent text-[var(--color-content-primary)] text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[var(--color-content-accent)]/60 hover:text-[var(--color-content-accent)] transition-colors"
-          >
-            How it works
-            <motion.span className="translate-x-0 group-hover:translate-x-1 transition-transform">→</motion.span>
-          </motion.button>
+          <Link href="/start">
+            <motion.button
+              type="button"
+              whileHover={{ gap: '12px' }}
+              className="group inline-flex items-center gap-2 border border-solid border-[var(--color-content-primary)]/25 bg-transparent text-[var(--color-content-primary)] text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[var(--color-content-accent)]/60 hover:text-[var(--color-content-accent)] transition-colors"
+            >
+              Become a partner
+              <motion.span className="translate-x-0 group-hover:translate-x-1 transition-transform">→</motion.span>
+            </motion.button>
+          </Link>
         </motion.div>
 
         {/* Video player */}
@@ -517,22 +523,17 @@ const STEPS = [
   {
     icon: Wallet,
     title: 'Connect your wallet',
-    body: 'Your wallet is your identity. Sign once with Freighter. No email, no password, nothing to remember.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Subscribe once',
-    body: 'A single payment in USDC unlocks the entire library. Every creator, every PDF. No per-item paywalls.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Read anything',
-    body: 'Open what you want. Each read attributes a slice of your subscription to that creator, recorded on-chain by epoch.',
+    body: 'Connect any Stellar-based wallet. You can use a Freighter wallet — no email, no password, nothing to remember.',
   },
   {
     icon: Coins,
-    title: 'Creators get paid',
-    body: 'Revenue lands in creator wallets automatically. They claim it directly. No middleman, no payout delay.',
+    title: 'Pay for a package',
+    body: 'Pay for your preferred package using USDC on the Stellar testnet. One payment, no per-partner checkout.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Unlock every perk',
+    body: 'Get premium access, discounted products, learning resources, and digital assets across multiple community partners.',
   },
 ];
 
@@ -671,17 +672,18 @@ function HowItWorks() {
             </div>
 
             <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.6rem] md:text-[3.4rem] text-[var(--color-content-primary)]">
-              From one payment
+              One subscription,
               <br />
-              to{' '}
+              every{' '}
               <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
-                fair payouts.
+                partner perk.
               </span>
             </h2>
 
             <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-[var(--color-content-secondary)]">
-              No accounts, no gatekeepers, no guesswork. Every step runs on-chain, and you can verify
-              exactly where each cent goes.
+              Komunify brings those pieces into one place: single subscription, multiple partner benefits,
+              discounted products, and automatic revenue distribution powered by Stellar and Soroban smart
+              contracts.
             </p>
 
             <Link href="/dashboard" className="inline-block mt-9">
@@ -715,6 +717,112 @@ function HowItWorks() {
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// FAQ — accordion of common questions
+const FAQ_ITEMS = [
+  {
+    question: 'What is Komunify?',
+    answer:
+      'Komunify is a Web3 platform that gives members access to benefits from multiple partner communities through a single subscription. It also helps community managers and project owners monetize resources, automate revenue sharing, and track growth on-chain.',
+  },
+  {
+    question: 'What can be sold on Komunify?',
+    answer:
+      'The platform is designed for tokenized digital products, learning resources, and selected tokenized RWAs made available by partner communities. Subscriber-only pricing and community-specific offers are part of the intended value proposition.',
+  },
+  {
+    question: 'How are payments and revenue shares handled?',
+    answer:
+      'Komunify uses smart contracts to split and distribute subscription revenue and marketplace fees automatically between the platform, community managers, and project owners. This reduces manual reconciliation and makes the process more transparent.',
+  },
+  {
+    question: 'Why is Komunify better?',
+    answer:
+      'A single subscription reduces cost, friction, and membership overload for users who want benefits across several communities. It also makes discovery easier by bundling value into one clearer offer.',
+  },
+];
+
+function FAQItem({ item, isOpen, onToggle }: { item: (typeof FAQ_ITEMS)[number]; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div className="border-b border-[var(--color-border-medium)]">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="w-full flex items-center justify-between gap-6 py-6 text-left"
+      >
+        <span className="font-serif text-[1.1rem] md:text-[1.25rem] text-[var(--color-content-primary)]">
+          {item.question}
+        </span>
+        <motion.span
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3, ease: EASE }}
+          className="shrink-0 text-[var(--color-content-accent)]"
+        >
+          <ChevronDown size={20} />
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <p className="pb-6 max-w-2xl text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
+              {item.answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  return (
+    <section id="faq" className="relative py-24 md:py-32 scroll-mt-24">
+      <div className="max-w-3xl mx-auto px-6 md:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="text-center"
+        >
+          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] font-mono text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
+            FAQ
+          </div>
+          <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.2rem] md:text-[2.8rem] text-[var(--color-content-primary)]">
+            Questions, answered.
+          </h2>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
+          className="mt-12 border-t border-[var(--color-border-medium)]"
+        >
+          {FAQ_ITEMS.map((item, i) => (
+            <FAQItem
+              key={item.question}
+              item={item}
+              isOpen={openIndex === i}
+              onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+            />
+          ))}
+        </motion.div>
       </div>
     </section>
   );
@@ -754,6 +862,7 @@ export default function LandingPage() {
       <Header />
       <HeroSection />
       <HowItWorks />
+      <FAQSection />
       <Footer />
       <ScrollProgress />
     </div>
