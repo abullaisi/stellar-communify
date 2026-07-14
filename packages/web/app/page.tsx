@@ -14,7 +14,7 @@ function truncateAddress(address: string) {
 }
 
 /* ============================================================================
-  LANDING PAGE — Aureus (21st Design)
+  LANDING PAGE, Aureus (21st Design)
   Premium Web3 creator platform with kinetic typography, parallax, and luxury UX.
   Uses SPLIT v4 tokens from globals.css + Framer Motion for animations.
 ============================================================================ */
@@ -41,7 +41,7 @@ function Header() {
         <a href="#how" className="hover:text-[var(--color-content-accent)] transition-colors">
           Packages
         </a>
-        <a href="#faq" className="hover:text-[var(--color-content-accent)] transition-colors">
+        <a href="#communities" className="hover:text-[var(--color-content-accent)] transition-colors">
           Communities
         </a>
         <a
@@ -186,7 +186,7 @@ function LiveStats() {
   );
 }
 
-/* Orbital emblem — the hero signature object.
+/* Orbital emblem, the hero signature object.
    A tilted planetary-ring system: subscription "coins" travel elliptical orbits
    into a glass-gold medallion carrying the Komunify mark. Pure SVG, transform-only
    motion (GPU-safe), theme-agnostic gold on the OLED background. `uid` keeps the
@@ -272,7 +272,7 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
         </circle>
       </g>
 
-      {/* Upright tick ring — slow rotation adds life without touching layout */}
+      {/* Upright tick ring, slow rotation adds life without touching layout */}
       <motion.g
         style={{ originX: '130px', originY: '130px' }}
         animate={spin}
@@ -332,7 +332,7 @@ function HeroSection() {
       {/* Ambient glow */}
       <div className="glow-heading fixed top-[-10%] left-1/2 -translate-x-1/2 w-[70rem] h-[70rem] rounded-full pointer-events-none z-0 blur-[30px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.28),transparent_70%)]" />
 
-      {/* Signature orbital emblem — floats top-left, gently bobbing */}
+      {/* Signature orbital emblem, floats top-left, gently bobbing */}
       <ParallaxLayer depth={30} className="hidden md:block absolute top-8 -left-10 lg:left-2 w-56 h-56 lg:w-72 lg:h-72 pointer-events-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
@@ -350,7 +350,7 @@ function HeroSection() {
         </motion.div>
       </ParallaxLayer>
 
-      {/* Quiet echo — balances the composition bottom-right, same visual DNA */}
+      {/* Quiet echo, balances the composition bottom-right, same visual DNA */}
       <ParallaxLayer depth={50} className="hidden lg:block absolute bottom-2 right-[3%] w-40 h-40 opacity-45 pointer-events-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -509,7 +509,7 @@ function HeroSection() {
           </ParallaxLayer>
         </motion.div>
 
-        {/* Stats row — live from API */}
+        {/* Stats row, live from API */}
         <LiveStats />
 
       </main>
@@ -517,12 +517,12 @@ function HeroSection() {
   );
 }
 
-// How it works — editorial split: sticky heading left, connected step cascade right
+// How it works, editorial split: sticky heading left, connected step cascade right
 const STEPS = [
   {
     icon: Wallet,
     title: 'Connect your wallet',
-    body: 'Connect any Stellar-based wallet. You can use a Freighter wallet — no email, no password, nothing to remember.',
+    body: 'Connect any Stellar-based wallet. You can use a Freighter wallet, no email, no password, nothing to remember.',
   },
   {
     icon: Coins,
@@ -573,12 +573,12 @@ function StepCard({
     >
       {/* Double-bezel: outer machined shell */}
       <div className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(250,214,87,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(250,214,87,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]">
-        {/* Inner core — border color tracks scroll activation */}
+        {/* Inner core, border color tracks scroll activation */}
         <motion.div
           style={{ borderColor }}
           className="relative rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden"
         >
-          {/* Ghost step number — drifts as the section scrolls */}
+          {/* Ghost step number, drifts as the section scrolls */}
           <motion.span
             style={{ y: ghostY }}
             className="pointer-events-none absolute -top-4 right-3 font-serif text-[5.5rem] leading-none text-[var(--color-content-accent)]/[0.06] select-none"
@@ -587,7 +587,7 @@ function StepCard({
           </motion.span>
 
           <div className="relative flex items-start gap-4">
-            {/* Icon tile — fills solid accent as the step activates */}
+            {/* Icon tile, fills solid accent as the step activates */}
             <motion.span
               style={{ scale: iconScale }}
               className="relative shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-[var(--radius-md)] bg-[var(--color-bg-accent-tint)] ring-1 ring-[var(--color-content-accent)]/15 overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105"
@@ -627,7 +627,7 @@ function StepCard({
 function HowItWorks() {
   const cascadeRef = useRef<HTMLDivElement>(null);
   // Drive progress off the window scroll event (fires for Lenis, native, and
-  // programmatic scroll alike — more reliable under Lenis than framer's
+  // programmatic scroll alike, more reliable under Lenis than framer's
   // useScroll). 0 when the cascade top hits 75% of the viewport, 1 when its
   // bottom passes 65%.
   const raw = useMotionValue(0);
@@ -657,7 +657,7 @@ function HowItWorks() {
       <div className="pointer-events-none absolute top-1/3 -left-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.10),transparent_70%)]" />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-14 lg:gap-20">
-        {/* Left — sticky editorial heading */}
+        {/* Left, sticky editorial heading */}
         <div className="lg:sticky lg:top-24 self-start">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -696,9 +696,9 @@ function HowItWorks() {
           </motion.div>
         </div>
 
-        {/* Right — connected step cascade */}
+        {/* Right, connected step cascade */}
         <div ref={cascadeRef} className="relative">
-          {/* Connector — dim rail with a scroll-driven gold fill on top */}
+          {/* Connector, dim rail with a scroll-driven gold fill on top */}
           <div className="pointer-events-none absolute left-[2.85rem] top-6 bottom-6 w-px bg-[var(--color-border-medium)] hidden md:block" />
           <motion.div
             style={{ scaleY: fill, transformOrigin: 'top' }}
@@ -721,7 +721,179 @@ function HowItWorks() {
   );
 }
 
-// FAQ — accordion of common questions
+function SplitLedgerSection() {
+  const payouts = [
+    { name: 'Project owner', percentage: '70%', amount: '$7.00' },
+    { name: 'Community manager', percentage: '20%', amount: '$2.00' },
+    { name: 'Komunify platform', percentage: '10%', amount: '$1.00' },
+  ];
+
+  return (
+    <section id="split" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
+      <div className="pointer-events-none absolute top-1/2 left-1/2 w-[36rem] h-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.08),transparent_70%)]" />
+
+      <div className="relative max-w-6xl mx-auto px-6 md:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="max-w-3xl mx-auto text-center"
+        >
+          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
+            Automatic split
+          </div>
+          <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.4rem] md:text-[3.2rem] text-[var(--color-content-primary)]">
+            One payment,{' '}
+            <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
+              three payouts.
+            </span>
+          </h2>
+          <p className="mt-6 max-w-2xl mx-auto text-[15px] leading-relaxed text-[var(--color-content-secondary)]">
+            Every subscription is split on-chain the moment it settles. No invoices, no reconciliation: the
+            Soroban contract routes each share instantly.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 32, filter: 'blur(6px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ delay: 0.12, duration: 0.8, ease: EASE }}
+          className="relative mt-14 md:mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-stretch"
+        >
+          <div className="relative z-10 p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.07] ring-1 ring-[rgba(250,214,87,0.3)] shadow-[0_0_24px_rgba(250,214,87,0.35)]">
+            <div className="h-full min-h-72 rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border border-[var(--color-content-accent)]/25 px-7 py-8 md:px-9 md:py-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] flex flex-col justify-between">
+              <div>
+                <p className="text-[11px] tracking-[0.22em] text-[var(--color-content-accent)]">
+                  YOUR SUBSCRIPTION
+                </p>
+                <p className="mt-7 font-serif text-[3.2rem] md:text-[4rem] leading-none tracking-tight text-[var(--color-content-primary)]">
+                  $10 <span className="text-[var(--color-content-accent)]">USDC</span>
+                </p>
+                <p className="mt-3 text-[14px] text-[var(--color-content-secondary)]">per month</p>
+              </div>
+              <span className="mt-10 self-start inline-flex rounded-full border border-[var(--color-content-accent)]/20 bg-[var(--color-bg-accent-tint)] px-3 py-1.5 font-mono text-[11px] tracking-wide text-[var(--color-content-accent)]/80">
+                29d91130…f96a78
+              </span>
+            </div>
+          </div>
+
+          <div className="relative flex flex-col justify-center gap-4">
+            <div className="pointer-events-none absolute -left-10 top-[16.66%] bottom-[16.66%] w-px bg-gradient-to-b from-[var(--color-content-accent)]/20 via-[var(--color-content-accent)]/70 to-[var(--color-content-accent)]/20 hidden lg:block" />
+            <div className="pointer-events-none absolute -left-20 top-1/2 w-10 h-px bg-gradient-to-r from-[var(--color-content-accent)]/20 to-[var(--color-content-accent)]/70 hidden lg:block" />
+            {payouts.map((payout, index) => (
+              <motion.div
+                key={payout.name}
+                initial={{ opacity: 0, x: 24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ delay: 0.18 + index * 0.08, duration: 0.7, ease: EASE }}
+                className="relative p-1 rounded-[1.4rem] bg-[var(--color-content-accent)]/[0.035] ring-1 ring-[rgba(250,214,87,0.1)]"
+              >
+                <span className="pointer-events-none absolute -left-10 top-1/2 w-10 h-px bg-gradient-to-r from-[var(--color-content-accent)]/70 to-[var(--color-content-accent)]/20 hidden lg:block" />
+                <div className="rounded-[calc(1.4rem-0.25rem)] bg-[var(--color-bg-elevated)] border border-[var(--color-border-medium)] px-5 py-5 flex items-center justify-between gap-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]">
+                  <div>
+                    <p className="font-serif text-[1.05rem] text-[var(--color-content-primary)]">{payout.name}</p>
+                    <p className="mt-1 text-[13px] text-[var(--color-content-secondary)]">{payout.amount}</p>
+                  </div>
+                  <p className="font-serif text-[2rem] leading-none text-[var(--color-content-accent)]">{payout.percentage}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+const PARTNER_COMMUNITIES = [
+  {
+    initial: 'D',
+    name: 'Dev Web3 Bandung',
+    description: 'Builder workshops, Soroban study group, and bootcamp recordings.',
+    members: '+2.4K members',
+  },
+  {
+    initial: 'S',
+    name: 'Stellar ID Collective',
+    description: 'Office hours, ecosystem playbook, and early job-board access.',
+    members: '+1.8K members',
+  },
+  {
+    initial: 'C',
+    name: 'Circolo Creative Lab',
+    description: 'Co-working passes, creative ops classes, and event vouchers.',
+    members: '+3.1K members',
+  },
+];
+
+function PartnersSection() {
+  return (
+    <section id="communities" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="text-center"
+        >
+          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
+            Partner communities
+          </div>
+          <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.4rem] md:text-[3.2rem] text-[var(--color-content-primary)]">
+            Real communities,{' '}
+            <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
+              day one.
+            </span>
+          </h2>
+        </motion.div>
+
+        <div className="mt-14 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {PARTNER_COMMUNITIES.map((community, index) => (
+            <motion.article
+              key={community.name}
+              initial={{ opacity: 0, y: 32, filter: 'blur(6px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
+              className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(250,214,87,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(250,214,87,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]"
+            >
+              <div className="h-full min-h-80 rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border border-[var(--color-border-medium)] px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] flex flex-col">
+                <div className="w-14 h-14 shrink-0 rounded-full bg-[var(--color-bg-accent-tint)] ring-1 ring-[var(--color-content-accent)]/25 flex items-center justify-center font-serif text-[1.35rem] text-[var(--color-content-accent)]">
+                  {community.initial}
+                </div>
+                <h3 className="mt-6 font-serif text-[1.35rem] leading-tight text-[var(--color-content-primary)]">
+                  {community.name}
+                </h3>
+                <p className="mt-3 text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
+                  {community.description}
+                </p>
+                <span className="mt-5 self-start inline-flex rounded-full border border-[var(--color-content-accent)]/20 bg-[var(--color-bg-accent-tint)] px-3 py-1.5 text-[11px] tracking-wide text-[var(--color-content-accent)]">
+                  {community.members}
+                </span>
+                <div className="mt-auto pt-7 border-t border-[var(--color-border-medium)]">
+                  <Link
+                    href="/dashboard"
+                    className="text-[13px] text-[var(--color-content-secondary)] group-hover:text-[var(--color-content-accent)] transition-colors"
+                  >
+                    Explore benefits →
+                  </Link>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// FAQ, accordion of common questions
 const FAQ_ITEMS = [
   {
     question: 'What is Komunify?',
@@ -825,7 +997,7 @@ function FAQSection() {
 
   return (
     <section id="faq" className="relative py-24 md:py-40 scroll-mt-24 overflow-hidden">
-      {/* Ambient side glow — mirrors the How-it-works section's atmosphere */}
+      {/* Ambient side glow, mirrors the How-it-works section's atmosphere */}
       <div className="pointer-events-none absolute top-1/4 -right-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.08),transparent_70%)]" />
 
       <div className="relative max-w-3xl mx-auto px-6 md:px-10">
@@ -857,6 +1029,37 @@ function FAQSection() {
           ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+function ClosingCTASection() {
+  return (
+    <section className="border-t border-[var(--color-border-medium)] bg-[var(--color-bg-elevated)] py-16 md:py-20 px-6 md:px-10">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.8, ease: EASE }}
+        className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center gap-9 md:gap-12"
+      >
+        <div className="flex items-center gap-6 md:gap-9 min-w-0">
+          <img src="/logo-mark.png" alt="Komunify" className="w-16 h-16 object-contain shrink-0" />
+          <div className="w-px h-16 bg-[var(--color-border-medium)] shrink-0" />
+          <p className="font-serif font-medium tracking-tight leading-[1.08] text-[1.85rem] sm:text-[2.3rem] md:text-[2.7rem] text-[var(--color-content-primary)]">
+            <span className="block">Single subscription.</span>
+            <span className="block bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
+              Multiple benefits.
+            </span>
+          </p>
+        </div>
+
+        <Link href="/dashboard" className="md:ml-auto shrink-0 self-start md:self-auto">
+          <button className="bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
+            Get early access
+          </button>
+        </Link>
+      </motion.div>
     </section>
   );
 }
@@ -895,7 +1098,10 @@ export default function LandingPage() {
       <Header />
       <HeroSection />
       <HowItWorks />
+      <SplitLedgerSection />
+      <PartnersSection />
       <FAQSection />
+      <ClosingCTASection />
       <Footer />
       <ScrollProgress />
     </div>
