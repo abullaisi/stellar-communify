@@ -19,18 +19,9 @@ function truncateAddress(address: string) {
   Uses SPLIT v4 tokens from globals.css + Framer Motion for animations.
 ============================================================================ */
 
-// Logo component — Komunify mark (overlapping circles for community + subscription)
+// Logo component
 function Logo() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" className="shrink-0" fill="none">
-      {/* Left circle (creator) */}
-      <circle cx="11" cy="16" r="8" stroke="currentColor" strokeWidth="2" />
-      {/* Right circle (subscriber) */}
-      <circle cx="21" cy="16" r="8" stroke="currentColor" strokeWidth="2" />
-      {/* Center dot (connection/payment) */}
-      <circle cx="16" cy="16" r="3" fill="currentColor" />
-    </svg>
-  );
+  return <img src="/logo-mark.png" alt="Komunify" className="h-8 w-auto shrink-0" />;
 }
 
 // Header with nav
@@ -46,12 +37,20 @@ function Header() {
         <span className="font-serif text-lg tracking-[0.15em] text-[var(--color-content-primary)]">KOMUNIFY</span>
       </div>
 
-      <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)] font-mono">
+      <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)]">
         <a href="#how" className="hover:text-[var(--color-content-accent)] transition-colors">
           Packages
         </a>
         <a href="#faq" className="hover:text-[var(--color-content-accent)] transition-colors">
           Communities
+        </a>
+        <a
+          href="https://github.com/yoms07/stellar-hackathon"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-[var(--color-content-accent)] transition-colors"
+        >
+          Github
         </a>
       </nav>
 
@@ -60,7 +59,7 @@ function Header() {
           href="https://www.freighter.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[13px] font-mono tracking-wide text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
+          className="text-[13px] tracking-wide text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
         >
           Get wallet
         </a>
@@ -81,7 +80,7 @@ function Header() {
             onClick={connect}
             disabled={connecting}
             title={error ?? undefined}
-            className="inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors disabled:opacity-60"
           >
             {connecting ? 'Connecting…' : error ? 'Retry connect' : 'Connect'}
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
@@ -173,15 +172,15 @@ function LiveStats() {
     >
       <div>
         <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : creators}+</p>
-        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PARTNERS</p>
+        <p className="text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PARTNERS</p>
       </div>
       <div>
         <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : subscriptions}+</p>
-        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">MEMBERS</p>
+        <p className="text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">MEMBERS</p>
       </div>
       <div>
         <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '-' : (revenue / 1000).toFixed(1)}k+</p>
-        <p className="font-mono text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PROCESSED ON-CHAIN</p>
+        <p className="text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PROCESSED ON-CHAIN</p>
       </div>
     </motion.div>
   );
@@ -206,18 +205,18 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
       <defs>
         <radialGradient id={`medal-${uid}`} cx="38%" cy="30%" r="75%">
           <stop offset="0%" stopColor="#fbe7bf" />
-          <stop offset="42%" stopColor="#e5a84a" />
+          <stop offset="42%" stopColor="#fad657" />
           <stop offset="100%" stopColor="#8f6524" />
         </radialGradient>
         <linearGradient id={`ring-${uid}`} x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%" stopColor="#f3d9a8" stopOpacity="0.05" />
-          <stop offset="50%" stopColor="#e5a84a" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#a97a34" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#fef0bf" stopOpacity="0.05" />
+          <stop offset="50%" stopColor="#fad657" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#b08d3e" stopOpacity="0.1" />
         </linearGradient>
         <radialGradient id={`core-${uid}`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#e5a84a" stopOpacity="0.4" />
-          <stop offset="70%" stopColor="#e5a84a" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#e5a84a" stopOpacity="0" />
+          <stop offset="0%" stopColor="#fad657" stopOpacity="0.4" />
+          <stop offset="70%" stopColor="#fad657" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#fad657" stopOpacity="0" />
         </radialGradient>
         <filter id={`glow-${uid}`} x="-120%" y="-120%" width="340%" height="340%">
           <feGaussianBlur stdDeviation="2.4" result="b" />
@@ -243,28 +242,28 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
           cy="130"
           rx="54"
           ry="20"
-          stroke="#e5a84a"
+          stroke="#fad657"
           strokeWidth="0.75"
           strokeDasharray="2 5"
           opacity="0.4"
         />
 
         {/* Traveling subscription coins */}
-        <circle r="3.6" fill="#f2cd8f" filter={`url(#glow-${uid})`}>
+        <circle r="3.6" fill="#fce27e" filter={`url(#glow-${uid})`}>
           {!reduce && (
             <animateMotion dur="26s" repeatCount="indefinite" rotate="auto">
               <mpath href={`#pO-${uid}`} />
             </animateMotion>
           )}
         </circle>
-        <circle r="2.8" fill="#e5a84a" filter={`url(#glow-${uid})`}>
+        <circle r="2.8" fill="#fad657" filter={`url(#glow-${uid})`}>
           {!reduce && (
             <animateMotion dur="18s" begin="-6s" repeatCount="indefinite">
               <mpath href={`#pM-${uid}`} />
             </animateMotion>
           )}
         </circle>
-        <circle r="2.2" fill="#f3d9a8" filter={`url(#glow-${uid})`}>
+        <circle r="2.2" fill="#fef0bf" filter={`url(#glow-${uid})`}>
           {!reduce && (
             <animateMotion dur="13s" begin="-3s" repeatCount="indefinite">
               <mpath href={`#pI-${uid}`} />
@@ -280,7 +279,7 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
         transition={reduce ? undefined : { duration: 60, ease: 'linear', repeat: Infinity }}
         opacity="0.5"
       >
-        <circle cx="130" cy="130" r="36" stroke="#e5a84a" strokeWidth="0.75" strokeOpacity="0.35" />
+        <circle cx="130" cy="130" r="36" stroke="#fad657" strokeWidth="0.75" strokeOpacity="0.35" />
         {Array.from({ length: 24 }).map((_, i) => (
           <line
             key={i}
@@ -288,7 +287,7 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
             y1="96"
             x2="130"
             y2={i % 6 === 0 ? 90 : 93}
-            stroke="#e5a84a"
+            stroke="#fad657"
             strokeWidth="0.75"
             strokeOpacity={i % 6 === 0 ? 0.6 : 0.28}
             transform={`rotate(${i * 15} 130 130)`}
@@ -331,7 +330,7 @@ function HeroSection() {
   return (
     <section ref={scrollRef} className="relative min-h-screen overflow-hidden">
       {/* Ambient glow */}
-      <div className="glow-heading fixed top-[-10%] left-1/2 -translate-x-1/2 w-[70rem] h-[70rem] rounded-full pointer-events-none z-0 blur-[30px] bg-[radial-gradient(closest-side,rgba(229,168,74,0.28),transparent_70%)]" />
+      <div className="glow-heading fixed top-[-10%] left-1/2 -translate-x-1/2 w-[70rem] h-[70rem] rounded-full pointer-events-none z-0 blur-[30px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.28),transparent_70%)]" />
 
       {/* Signature orbital emblem — floats top-left, gently bobbing */}
       <ParallaxLayer depth={30} className="hidden md:block absolute top-8 -left-10 lg:left-2 w-56 h-56 lg:w-72 lg:h-72 pointer-events-none">
@@ -378,7 +377,7 @@ function HeroSection() {
           transition={{ delay: 0.05, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="flex justify-center"
         >
-          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] font-mono text-[12px] tracking-wide text-[var(--color-content-accent)]">
+          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[12px] tracking-wide text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse" />
             Revenue verified on-chain • Instant payouts
           </div>
@@ -396,14 +395,14 @@ function HeroSection() {
             <KineticWord delay={0.35}>for</KineticWord>
             <span className="ml-3">
               <KineticWord delay={0.45}>
-                <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
                   multiple
                 </span>
               </KineticWord>
             </span>
             <span className="ml-3">
               <KineticWord delay={0.55}>
-                <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
                   community perks.
                 </span>
               </KineticWord>
@@ -430,7 +429,7 @@ function HeroSection() {
           className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link href="/dashboard">
-            <button className="bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(229,168,74,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
+            <button className="bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
               Get early access
             </button>
           </Link>
@@ -454,26 +453,26 @@ function HeroSection() {
           transition={{ delay: 0.8, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-16 md:mt-20 relative max-w-4xl mx-auto scroll-mt-24"
         >
-          <ParallaxLayer depth={12} className="p-[1.5px] rounded-[26px] bg-gradient-to-br from-[rgba(229,168,74,0.5)] to-[rgba(229,168,74,0.05)] via-[rgba(229,168,74,0.35)]">
+          <ParallaxLayer depth={12} className="p-[1.5px] rounded-[26px] bg-gradient-to-br from-[rgba(250,214,87,0.5)] to-[rgba(250,214,87,0.05)] via-[rgba(250,214,87,0.35)]">
             <div className="relative rounded-[24px] overflow-hidden bg-[#111110] aspect-video">
               {/* Backdrop texture */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(229,168,74,0.12),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(229,168,74,0.08),transparent_50%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(250,214,87,0.12),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(250,214,87,0.08),transparent_50%)]" />
               <div
                 className="absolute inset-0 opacity-[0.08]"
                 style={{
                   backgroundImage:
-                    'linear-gradient(to right, #e5a84a 1px, transparent 1px), linear-gradient(to bottom, #e5a84a 1px, transparent 1px)',
+                    'linear-gradient(to right, #fad657 1px, transparent 1px), linear-gradient(to bottom, #fad657 1px, transparent 1px)',
                   backgroundSize: '40px 40px',
                 }}
               />
               {/* Scanline */}
-              <div className="scanline absolute left-0 right-0 h-1/3 bg-gradient-to-b from-transparent via-[rgba(229,168,74,0.16)] to-transparent animate-[scan_5s_linear_infinite]" />
+              <div className="scanline absolute left-0 right-0 h-1/3 bg-gradient-to-b from-transparent via-[rgba(250,214,87,0.16)] to-transparent animate-[scan_5s_linear_infinite]" />
 
               {/* Corner tags */}
-              <div className="absolute top-4 right-4 font-mono text-[10px] tracking-widest text-[var(--color-content-accent)]/80 border border-[var(--color-content-accent)]/30 rounded px-2 py-1 bg-black/30">
+              <div className="absolute top-4 right-4 text-[10px] tracking-widest text-[var(--color-content-accent)]/80 border border-[var(--color-content-accent)]/30 rounded px-2 py-1 bg-black/30">
                 LIVE DEMO
               </div>
-              <div className="absolute top-4 left-4 font-mono text-[10px] tracking-widest text-[var(--color-content-primary)]/50 border border-[var(--color-content-primary)]/15 rounded px-2 py-1 bg-black/30">
+              <div className="absolute top-4 left-4 text-[10px] tracking-widest text-[var(--color-content-primary)]/50 border border-[var(--color-content-primary)]/15 rounded px-2 py-1 bg-black/30">
                 HOW IT WORKS
               </div>
 
@@ -490,7 +489,7 @@ function HeroSection() {
                     className="absolute inset-0 rounded-full border border-[var(--color-content-accent)]/50"
                   />
                   <span className="absolute inset-0 rounded-full border border-[var(--color-content-accent)]/30" />
-                  <span className="relative w-full h-full rounded-full bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] flex items-center justify-center group-hover:scale-105 transition-transform shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
+                  <span className="relative w-full h-full rounded-full bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] flex items-center justify-center group-hover:scale-105 transition-transform shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
                     <Play size={22} className="text-[var(--color-content-on-accent)] fill-current" />
                   </span>
                 </motion.button>
@@ -498,7 +497,7 @@ function HeroSection() {
 
               {/* Bottom bar */}
               <div className="absolute bottom-0 left-0 right-0 px-5 py-4 flex items-center gap-4">
-                <span className="font-mono text-[11px] text-[var(--color-content-primary)]/60">00:00 / 02:14</span>
+                <span className="text-[11px] text-[var(--color-content-primary)]/60">00:00 / 02:14</span>
                 <div className="flex-1 h-[2px] bg-[var(--color-content-primary)]/15 rounded-full overflow-hidden">
                   <div className="h-full w-[8%] bg-[var(--color-content-accent)]" />
                 </div>
@@ -559,9 +558,9 @@ function StepCard({
 
   // Solid-accent fill fades in (mirrors the .stepper "done" node in the design system).
   const iconScale = useTransform(active, [0, 1], [1, 1.08]);
-  const iconColor = useTransform(active, [0, 1], ['#e5a84a', '#201607']); // accent → on-accent
+  const iconColor = useTransform(active, [0, 1], ['#fad657', '#201607']); // accent → on-accent
   const numOpacity = useTransform(active, [0, 1], [0.5, 1]);
-  const borderColor = useTransform(active, [0, 1], ['#262521', 'rgba(229,168,74,0.4)']);
+  const borderColor = useTransform(active, [0, 1], ['#262521', 'rgba(250,214,87,0.4)']);
   const ghostY = useTransform(progress, [start, end], [18, -18]);
 
   return (
@@ -573,7 +572,7 @@ function StepCard({
       className="relative"
     >
       {/* Double-bezel: outer machined shell */}
-      <div className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(229,168,74,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(229,168,74,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]">
+      <div className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(250,214,87,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(250,214,87,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]">
         {/* Inner core — border color tracks scroll activation */}
         <motion.div
           style={{ borderColor }}
@@ -606,7 +605,7 @@ function StepCard({
               <div className="flex items-center gap-3">
                 <motion.span
                   style={{ opacity: numOpacity }}
-                  className="font-mono text-[11px] tracking-[0.2em] text-[var(--color-content-accent)]"
+                  className="text-[11px] tracking-[0.2em] text-[var(--color-content-accent)]"
                 >
                   0{index + 1}
                 </motion.span>
@@ -655,7 +654,7 @@ function HowItWorks() {
   return (
     <section id="how" className="relative overflow-hidden py-28 md:py-40 scroll-mt-8">
       {/* Ambient side glow */}
-      <div className="pointer-events-none absolute top-1/3 -left-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(229,168,74,0.10),transparent_70%)]" />
+      <div className="pointer-events-none absolute top-1/3 -left-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.10),transparent_70%)]" />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-14 lg:gap-20">
         {/* Left — sticky editorial heading */}
@@ -666,7 +665,7 @@ function HowItWorks() {
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.7, ease: EASE }}
           >
-            <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] font-mono text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+            <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
               How it works
             </div>
@@ -675,7 +674,7 @@ function HowItWorks() {
               One subscription,
               <br />
               every{' '}
-              <span className="bg-gradient-to-r from-[#f3d9a8] via-[#e5a84a] to-[#a97a34] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
                 partner perk.
               </span>
             </h2>
@@ -687,7 +686,7 @@ function HowItWorks() {
             </p>
 
             <Link href="/dashboard" className="inline-block mt-9">
-              <button className="group inline-flex items-center gap-3 bg-gradient-to-br from-[#f2cd8f] via-[#e5a84a] to-[#b9852f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide pl-6 pr-2 py-2 rounded-full transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] hover:shadow-[0_10px_40px_-6px_rgba(229,168,74,0.75)] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(229,168,74,0.55)]">
+              <button className="group inline-flex items-center gap-3 bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide pl-6 pr-2 py-2 rounded-full transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] active:scale-[0.98] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
                 Start now
                 <span className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
                   →
@@ -769,8 +768,8 @@ function FAQItem({
       <div
         className={`p-1.5 rounded-[1.75rem] ring-1 transition-colors duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
           isOpen
-            ? 'bg-[var(--color-content-accent)]/[0.07] ring-[rgba(229,168,74,0.3)]'
-            : 'bg-[var(--color-content-accent)]/[0.03] ring-[rgba(229,168,74,0.1)] hover:ring-[rgba(229,168,74,0.2)]'
+            ? 'bg-[var(--color-content-accent)]/[0.07] ring-[rgba(250,214,87,0.3)]'
+            : 'bg-[var(--color-content-accent)]/[0.03] ring-[rgba(250,214,87,0.1)] hover:ring-[rgba(250,214,87,0.2)]'
         }`}
       >
         {/* Inner core */}
@@ -827,7 +826,7 @@ function FAQSection() {
   return (
     <section id="faq" className="relative py-24 md:py-40 scroll-mt-24 overflow-hidden">
       {/* Ambient side glow — mirrors the How-it-works section's atmosphere */}
-      <div className="pointer-events-none absolute top-1/4 -right-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(229,168,74,0.08),transparent_70%)]" />
+      <div className="pointer-events-none absolute top-1/4 -right-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.08),transparent_70%)]" />
 
       <div className="relative max-w-3xl mx-auto px-6 md:px-10">
         <motion.div
@@ -837,7 +836,7 @@ function FAQSection() {
           transition={{ duration: 0.7, ease: EASE }}
           className="text-center"
         >
-          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] font-mono text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
             FAQ
           </div>
@@ -874,7 +873,7 @@ function Footer() {
           </a>
         </div>
         <div className="flex gap-6 text-sm text-[var(--color-content-secondary)]">
-          <a href="https://github.com/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
+          <a href="https://github.com/yoms07/stellar-hackathon" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
             GitHub
           </a>
           <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">

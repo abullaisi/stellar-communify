@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -47,8 +49,7 @@
   --radius-lg: 14px;
   --radius-full: 999px;
 
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-serif: var(--playfair-display, 'Playfair Display', serif);
+  --font-serif: 'Geist', sans-serif;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,8 +83,13 @@
 body {
   background: var(--color-bg-primary);
   color: var(--color-content-primary);
+  font-family: 'Geist', sans-serif;
   font-size: 14px;
   line-height: 1.5;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
 }
 
 /* Layout root — single centered column, one per page */
@@ -205,9 +211,8 @@ header {
   margin-top: var(--space-1);
 }
 
-/* Micro label — mono uppercase signature */
+/* Micro label */
 .label {
-  font-family: var(--font-mono);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -287,7 +292,6 @@ header {
   border: 1px solid var(--color-border-medium);
   background: var(--color-bg-input);
   color: var(--color-content-secondary);
-  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
 }
@@ -302,7 +306,6 @@ header {
   color: var(--color-content-on-accent);
 }
 .stepper-label {
-  font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -405,7 +408,6 @@ textarea:focus {
 
 /* Code chip */
 code {
-  font-family: var(--font-mono);
   font-size: 13px;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-medium);
