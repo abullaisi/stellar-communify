@@ -3,7 +3,7 @@
 | Site | Source | Deploy method | Owner notes |
 |---|---|---|---|
 | `komunify-prototype.pages.dev` | `prototype/` folder in this repo (static HTML) | manual wrangler (command below) | Cloudflare account: Imam's (iabullaisi@gmail.com), account id `04f2a27477cfd3c7032cedf47c428039` |
-| `komunify.pages.dev` | `packages/web` (Next.js app) | currently blocked: local static build fails on a machine-specific workspace-root issue, deploy from Jason's environment or fix the build first | same Cloudflare account |
+| `komunify.pages.dev` | `packages/web` (Next.js app, static export: `STATIC_EXPORT=1 bun run build` then deploy `out/`) | manual wrangler: `npx wrangler pages deploy out --project-name=komunify --branch=main --commit-dirty=true` from packages/web | same Cloudflare account. Build fixed 2026-07-15 (workspace-root pin in next.config.ts). /community/[address] ships one placeholder page in the export. |
 | `komunify-slides.pages.dev` | external slides folder, NOT in this repo | manual wrangler | same account, deployed 2026-07-09 |
 
 ## Prototype deploy
