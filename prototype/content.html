@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Content</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* candidate for promotion */
+    .stack { display: flex; flex-direction: column; gap: var(--space-4); }
+    .module-line .sm { margin-left: auto; }
+    #c-pct { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #progress-card .progress { margin: var(--space-2) 0; }
+    .media-ph.hero { margin: var(--space-3) 0; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item" href="dashboard.html">Dashboard</a>
+    <a class="nav-item" href="benefits.html">Benefits</a>
+    <a class="nav-item" href="traction.html">Traction</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype · testnet</span>
+  </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
+
+  <!-- guard: shown when there is no active subscription -->
+  <div class="card center hidden" id="guard">
+    <h2>Members only</h2>
+    <p class="hint">This content unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+
+  <!-- content detail: shown when subscribed -->
+  <div class="stack hidden" id="detail">
+
+    <div class="grid-detail">
+
+      <div class="stack">
+        <div class="card">
+          <div class="row">
+            <div class="row tight">
+              <span class="avatar" id="c-avatar"></span>
+              <h2 id="c-partner"></h2>
+            </div>
+            <span class="badge unlocked">UNLOCKED</span>
+          </div>
+          <p class="hint">Included with your Community Bundle.</p>
+        </div>
+
+        <div class="card" id="progress-card">
+          <div class="label">PROGRESS</div>
+          <div id="c-pct"></div>
+          <div class="progress"><div class="fill" id="c-fill"></div></div>
+          <div class="content-meta" id="c-progtext"></div>
+        </div>
+
+        <div class="card hidden" id="cert-card">
+          <div class="label">CERTIFICATE</div>
+          <div class="row" style="margin-top: 8px;">
+            <span class="content-meta" id="cert-text">Finish every module to earn it.</span>
+            <span class="badge locked" id="cert-badge">LOCKED</span>
+          </div>
+        </div>
+
+        <div class="stack">
+          <a class="btn ghost" id="back-partner" href="#">Back to partner</a>
+          <a class="btn ghost" href="dashboard.html">Access dashboard</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb hero" id="c-thumb"></div>
+        <div class="num-label"><span class="num">08</span> <span id="c-type-label"></span></div>
+        <h2 id="c-title"></h2>
+        <p class="hint" id="c-meta"></p>
+        <div id="c-body"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet
+  </footer>
+</main>
+</div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    var guard = document.getElementById("guard");
+    var detail = document.getElementById("detail");
+
+    if (!K.subscribed) {
+      guard.classList.remove("hidden");
+      return;
+    }
+
+    var params = new URLSearchParams(location.search);
+    var pid = params.get("p");
+    var idx = parseInt(params.get("i") || "0", 10);
+    var partner = null;
+    KDATA.partners.forEach(function (p) { if (p.id === pid) partner = p; });
+    if (!partner) partner = KDATA.partners[0];
+    var item = (partner.content || [])[idx];
+    if (!item || item.type === "link") { item = partner.content[0]; idx = 0; }
+
+    detail.classList.remove("hidden");
+    K.setLastViewed({ pid: partner.id, idx: idx });
+
+    document.title = "Komunify · " + item.title;
+    var typeLabels = { course: "COURSE", video: "VIDEO", ebook: "EBOOK" };
+
+    var av = document.getElementById("c-avatar");
+    av.textContent = partner.initial;
+    if (partner.avatarCls) av.classList.add(partner.avatarCls);
+    document.getElementById("c-partner").textContent = partner.name;
+    var cThumb = document.getElementById("c-thumb");
+    cThumb.className = "thumb hero " + item.type;
+    cThumb.innerHTML = contentIcon(item.type);
+    document.getElementById("c-type-label").textContent = typeLabels[item.type];
+    document.getElementById("c-title").textContent = item.title;
+    document.getElementById("c-meta").textContent = item.meta;
+    document.getElementById("back-partner").href = "partner.html?p=" + partner.id;
+
+    var body = document.getElementById("c-body");
+    var certCard = document.getElementById("cert-card");
+
+    function prog() { return K.getProgress(partner.id, idx); }
+
+    function renderProgress() {
+      var pct = itemPct(item, prog());
+      document.getElementById("c-pct").textContent = pct + "%";
+      document.getElementById("c-fill").style.width = pct + "%";
+      var txt;
+      if (item.modules) {
+        txt = (prog().doneModules || []).length + " of " + item.modules.length + " modules done";
+      } else {
+        txt = pct === 100 ? "Done. Nice." : "Not started yet.";
+      }
+      document.getElementById("c-progtext").textContent = txt;
+      if (item.modules) {
+        certCard.classList.remove("hidden");
+        var badge = document.getElementById("cert-badge");
+        if (pct === 100) {
+          badge.className = "badge unlocked";
+          badge.textContent = "EARNED";
+          document.getElementById("cert-text").textContent = "Course complete. Certificate is yours.";
+        } else {
+          badge.className = "badge locked";
+          badge.textContent = "LOCKED";
+          document.getElementById("cert-text").textContent = "Finish every module to earn it.";
+        }
+      }
+    }
+
+    function renderCourse() {
+      var doneList = prog().doneModules || [];
+      body.innerHTML = item.modules.map(function (m, i) {
+        var done = doneList.indexOf(i) !== -1;
+        return '<div class="module-line">' +
+          '<span class="mod-dot' + (done ? ' done' : '') + '">' + (done ? '✓' : '') + '</span>' +
+          '<span class="module-num">0' + (i + 1) + '</span>' +
+          '<span>' + m + '</span>' +
+          '<button class="ghost sm" data-mod="' + i + '">' + (done ? 'Undo' : 'Mark done') + '</button>' +
+        '</div>';
+      }).join("");
+    }
+
+    if (item.type === "course") {
+      renderCourse();
+      body.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-mod]");
+        if (!btn) return;
+        var i = parseInt(btn.getAttribute("data-mod"), 10);
+        var pr = prog();
+        var doneList = pr.doneModules || [];
+        var at = doneList.indexOf(i);
+        if (at === -1) {
+          doneList.push(i);
+          K.logActivity("Module done", item.modules[i]);
+        } else {
+          doneList.splice(at, 1);
+        }
+        pr.doneModules = doneList;
+        var wasCertified = pr.certified;
+        pr.certified = doneList.length === item.modules.length;
+        if (pr.certified && !wasCertified) K.logActivity("Certificate earned", item.title);
+        K.setProgress(partner.id, idx, pr);
+        renderCourse();
+        renderProgress();
+      });
+    }
+
+    if (item.type === "video") {
+      var watched = itemPct(item, prog()) === 100;
+      body.innerHTML =
+        '<div class="media-ph hero"><span class="play-dot"></span></div>' +
+        '<p class="content-meta">The full recording streams here in the real app. Mark it watched to track your progress.</p>' +
+        '<div class="row tight"><button id="watch-btn"' + (watched ? ' class="ghost" disabled' : '') + '>' + (watched ? 'Watched ✓' : 'Mark watched') + '</button></div>';
+      var wb = document.getElementById("watch-btn");
+      wb.addEventListener("click", function () {
+        K.setProgress(partner.id, idx, { pct: 100 });
+        K.logActivity("Watched", item.title);
+        wb.className = "ghost";
+        wb.disabled = true;
+        wb.textContent = "Watched ✓";
+        renderProgress();
+      });
+    }
+
+    if (item.type === "ebook") {
+      var read = itemPct(item, prog()) === 100;
+      body.innerHTML =
+        '<div class="preview-pane">' +
+          '<div class="skeleton sk-line w80"></div>' +
+          '<div class="skeleton sk-line w60" style="margin-top: 8px;"></div>' +
+          '<div class="skeleton sk-line w40" style="margin-top: 8px;"></div>' +
+        '</div>' +
+        '<p class="content-meta">Sample pages. The full PDF downloads in the real app.</p>' +
+        '<div class="row tight"><button id="read-btn"' + (read ? ' class="ghost" disabled' : '') + '>' + (read ? 'Read ✓' : 'Mark as read') + '</button></div>';
+      var rb = document.getElementById("read-btn");
+      rb.addEventListener("click", function () {
+        K.setProgress(partner.id, idx, { pct: 100 });
+        K.logActivity("Read", item.title);
+        rb.className = "ghost";
+        rb.disabled = true;
+        rb.textContent = "Read ✓";
+        renderProgress();
+      });
+    }
+
+    renderProgress();
+  })();
+
+  document.getElementById("reset-proto").addEventListener("click", function (e) {
+    e.preventDefault();
+    K.reset();
+    location.href = "index.html";
+  });
+</script>
+</body>
+</html>

@@ -134,6 +134,52 @@ Added 2026-07-05. The member's single hub for everything the subscription unlock
 - Access library card: `.num-label` (`07 ACCESS LIBRARY`), one `.content-line` row per content item across ALL partners (type label, title, meta prefixed with the partner name), right side ghost `sm` "Open" linking `partner.html?p=<id>`.
 - Bottom `.row.tight`: ghost "All benefits" + ghost "On-chain traction".
 
+## Mobbin-pattern revisions (2026-07-09, from the Figma inspiration board)
+
+Reference: Figma file Komunify, page "Inspiration", section MOBBIN INSPIRATION. Implemented:
+
+- **dashboard.html**: "CONTINUE WHERE YOU LEFT OFF" hero card above the library (Uxcel home pattern): content-type label, item title, partner + % viewed, `.progress` bar, primary Resume CTA to the item's partner page. Library is now grouped by partner (Coinbase learning-rewards pattern): `.lib-group` per partner with avatar + name + "N items included" header; item meta no longer repeats the partner name.
+- **partner.html**: records engagement to `K.lastViewed` (on load if unset for this partner; on every Preview open, pct +15 capped 85, new item starts at 25). Course previews show `.mod-dot` completion circles per module (Uxcel lesson pattern) driven by `content[].done`, plus "X of Y modules done" meta.
+- **benefits.html**: benefit rows are title + one-line description (Reddit Premium pattern); `KDATA.partners[].benefits` is now `{t, d}` objects.
+- **traction.html**: activity feed rows carry member address chips and a right-aligned reward column (+N XLM) with the timestamp below (OpenSea Voyages pattern); `KDATA.activity` gained `addr` and `reward`.
+- **styles.css additions**: `.progress`/`.fill` (the DESIGN.md 4.2 PROGRESS spec), `.lib-group`/`.lib-head`, `.mod-dot`(.done), `.feed-right`/`.feed-reward`.
+- Gamification refs (Duolingo/leagues) intentionally NOT implemented: out of MVP scope.
+
+## Disconnect (2026-07-09)
+
+app.js injects a Disconnect link (`.disconnect-link`, quiet secondary that warms to `--color-content-danger` on hover) next to whichever wallet chip is shown: the sidenav foot on app pages (after the chip, before Reset demo) and the topbar on funnel pages. Calls `K.disconnect()` (clears wallet + subscription) then redirects to index.html, which shows the fresh connect state. Guarded by `#disconnect-btn`: index.html has its own disconnect control in the connect card, so no duplicate is injected there.
+
+## Light + dark mode (2026-07-09)
+
+Two themes, one token contract. Dark is the brand default; `:root[data-theme="light"]` overrides the full token set (warm cream surfaces, white cards). The accent is SPLIT in two tokens: `--color-content-accent` is the TEXT accent (vivid #fad657 in dark; deep gold #8f6b00 in light for contrast) and `--color-bg-accent` is the FILL accent (vivid #fad657 in both modes: buttons, progress fills, done dots, lit step lines). Never use the text accent as a fill or vice versa. Theme persists in `k_theme` (a device preference: NOT cleared by Reset demo), applied to `<html data-theme>` at app.js load. app.js injects a `#theme-toggle` ghost button into the topbar nav (funnel pages) and the sidenav foot (app pages); the label names the target mode.
+
+## Typography + tile consistency (2026-07-09)
+
+**Monospace scope:** Geist Mono is limited to the `code` chip only (blockchain identifiers: wallet address, contract ID, tx hash). All casual chrome (labels, num-labels, nav, timestamps, badges, stepper, percentages, avatars) is Geist sans. This overrides the DESIGN.md "mono-uppercase-label signature" for the prototype, per Imam: no mono for casual text. Uppercase + tracking are kept; only the face changed.
+
+**Content tiles unified to icons:** every content tile (course/video/ebook/link) uses one treatment: a Feather line icon in a type-tinted tile (gold=course, orange=video, green=ebook, neutral=link), matching the external-link/WhatsApp row. Themeable via currentColor. The Magnific stock photos were removed from rendering for consistency but the files stay in `assets/` for possible later use on a single surface (e.g. content-detail hero only). `KDATA...thumb` fields remain in the data but are unused by `contentThumb()`.
+
+## Nav icons + mobile drawer (2026-07-09)
+
+**Nav icons:** MEMBER nav items carry Feather monoline icons (grid/Dashboard, gift/Benefits, trending-up/Traction), injected by app.js via an href->icon map so they inherit `currentColor` (gold in the active state, theme-aware). Partner nav items keep their letter avatars. NOTE: Magnific's icon catalog is flat multicolor PNG (Flaticon-style), which cannot recolor for the active state or flip with the theme, so it is wrong for nav chrome; Feather SVG is the sanctioned icon set for UI chrome. Magnific stays the source for photographic thumbnails.
+
+**Mobile nav (supersedes the old wrapped-strip fallback):** under 900px the sidenav becomes an off-canvas drawer (`position: fixed`, `translateX(-100%)`, slides in on `body.nav-open`). app.js injects a sticky `.mobile-topbar` (hamburger + logo) at the top of `.app-main` and a `.nav-overlay` scrim; the hamburger toggles the drawer, the overlay and any nav-item tap close it. Injected only on app-shell pages (`.app` + `.sidenav` present); funnel pages keep their topbar. Respects prefers-reduced-motion.
+
+## App shell with sidenav (2026-07-09, third pass)
+
+Member-area pages (dashboard, benefits, partner, content, traction) use the app shell (Uxcel/Coinbase pattern): `.app` flex row = `.sidenav` (232px, sticky, full height) + `.app-main` containing the `.shell`. Sidenav: logo, MEMBER nav group (Dashboard/Benefits/Traction, `.nav-item.active` on the current page), PARTNERS nav group rendered by app.js from KDATA (avatar + name, active when `?p=` matches), foot with `#side-wallet` chip + Reset demo + Prototype label. Funnel pages (index, subscribe) keep the `.topbar` chrome: they are the marketing/onboarding surface, not the app. Page footers no longer carry the reset link (it lives in the sidenav on app pages). Under 900px the sidenav collapses to a top strip (fallback only).
+
+## Feature build-out (2026-07-09, second pass: real flows, not previews)
+
+The Mobbin patterns are now working features, not visual dressing. New state layer in app.js (all localStorage, cleared by Reset demo): `k_progress` (per-item progress keyed `pid:idx`; courses store `doneModules[]`, video/ebook store `pct`), `k_owned` (purchased listing indexes), `k_act` (personal activity log, capped 8), `k_last` is now `{pid, idx}`.
+
+- **content.html?p=<pid>&i=<idx>** (Screen 7, `08 <TYPE>` num-label): the real content detail page. Rail: partner mini card, PROGRESS card (`stat`-size pct + `.progress` bar + modules-done text), CERTIFICATE card for courses (LOCKED until every module done, then EARNED, Uxcel pattern), back links. Body by type: course = module rows with `.mod-dot` + Mark done/Undo buttons; video = `.media-ph` player placeholder + Mark watched; ebook = sample skeleton + Mark as read. Every completion logs to the activity feed; finishing all modules logs "Certificate earned" once.
+- **partner.html**: preview panes REMOVED. Content rows now link to content.html (courses show live `N/M done` from the progress store). Link rows unchanged. The `?open` param is gone.
+- **dashboard.html**: hero reads real progress (courses: "N of M modules done"; CTA flips Resume→Review at 100%) and links to content.html. Library rows link to content.html. New MY ACTIVITY card in the rail: last 5 personal events with `timeAgo` stamps, empty-state hint.
+- **benefits.html**: member-price listings have a working buy flow: Buy → "Confirming…" (1.2s) → OWNED pill, persisted in `k_owned`, "Purchased" logged to activity.
+- **subscribe.html**: a real payment logs "Subscribed" to the activity feed.
+- **?demo=sub** now seeds `{pid:"dwb", idx:0}`, module 1 done, and two activity entries so captures look lived-in.
+
 ## Definition of done per screen
 
 - Renders correctly standalone at 520px and at 375px wide (mobile).

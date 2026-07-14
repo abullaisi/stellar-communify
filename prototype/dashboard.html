@@ -8,23 +8,33 @@
   <style>
     /* candidate for promotion */
     .stack { display: flex; flex-direction: column; gap: var(--space-4); }
+    #continue-card .progress { margin: var(--space-3) 0 var(--space-3); }
+    #continue-card h2 { margin: 2px 0 4px; }
     .content-line { align-items: flex-start; }
     .content-line .row.tight { margin-top: 0; }
   </style>
 </head>
 <body>
-<main class="shell">
-  <div class="topbar">
-    <a class="logo" href="index.html">Komunify</a>
-    <nav class="topbar-nav">
-      <a href="index.html">Connect</a>
-      <a href="subscribe.html">Subscribe</a>
-      <a href="benefits.html">Benefits</a>
-      <a href="dashboard.html" class="active">Dashboard</a>
-      <a href="traction.html">Traction</a>
-      <code id="topbar-wallet" class="hidden"></code>
-    </nav>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item active" href="dashboard.html">Dashboard</a>
+    <a class="nav-item" href="benefits.html">Benefits</a>
+    <a class="nav-item" href="traction.html">Traction</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype · testnet</span>
   </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
 
   <!-- guard: shown when there is no active subscription -->
   <div class="card center hidden" id="guard">
@@ -38,10 +48,26 @@
 
     <div class="grid-dash">
 
+      <div class="stack">
+
+      <div class="card" id="continue-card">
+        <div class="label">CONTINUE WHERE YOU LEFT OFF</div>
+        <div class="thumb hero" id="cont-thumb"></div>
+        <div class="content-type" id="cont-type"></div>
+        <h2 id="cont-title"></h2>
+        <div class="content-meta" id="cont-partner"></div>
+        <div class="progress"><div class="fill" id="cont-fill"></div></div>
+        <div class="row tight">
+          <a class="btn" id="cont-btn" href="#">Resume</a>
+        </div>
+      </div>
+
       <div class="card">
         <div class="num-label"><span class="num">07</span> ACCESS LIBRARY</div>
         <p class="hint">Everything your subscription unlocks, across every partner. Open an item to preview it in the partner's space.</p>
         <div id="library-rows"></div>
+      </div>
+
       </div>
 
       <div class="stack">
@@ -53,6 +79,11 @@
           </div>
           <p class="hint">Renews Aug 5, 2026 · entitlement recorded on-chain</p>
           <code id="dash-addr"></code>
+        </div>
+
+        <div class="card">
+          <div class="label">MY ACTIVITY</div>
+          <div id="my-activity"></div>
         </div>
 
         <div class="stat-strip">
@@ -81,10 +112,12 @@
   </div>
 
   <footer>
-    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
-    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet
   </footer>
 </main>
+</div>
+
+</div>
 
 <script src="app.js"></script>
 <script>
@@ -111,22 +144,73 @@
 
     var typeLabels = { course: "COURSE", video: "VIDEO", ebook: "EBOOK", link: "EXTERNAL LINK" };
 
+    // Continue card: last opened item, progress from the store.
+    var last = K.lastViewed;
+    if (!last || typeof last.idx !== "number") last = { pid: KDATA.partners[0].id, idx: 0 };
+    var lastPartner = null;
+    KDATA.partners.forEach(function (p) { if (p.id === last.pid) lastPartner = p; });
+    if (!lastPartner) { lastPartner = KDATA.partners[0]; last = { pid: lastPartner.id, idx: 0 }; }
+    var lastItem = (lastPartner.content || [])[last.idx] || lastPartner.content[0];
+    var lastProg = K.getProgress(lastPartner.id, last.idx);
+    var lastPct = itemPct(lastItem, lastProg);
+    var contThumb = document.getElementById("cont-thumb");
+    contThumb.className = "thumb hero " + lastItem.type;
+    contThumb.innerHTML = contentIcon(lastItem.type);
+    document.getElementById("cont-type").textContent = typeLabels[lastItem.type] || "";
+    document.getElementById("cont-title").textContent = lastItem.title;
+    var progText = lastItem.modules
+      ? (lastProg.doneModules || []).length + " of " + lastItem.modules.length + " modules done"
+      : lastPct + "% viewed";
+    document.getElementById("cont-partner").textContent = lastPartner.name + " · " + progText;
+    document.getElementById("cont-fill").style.width = lastPct + "%";
+    document.getElementById("cont-btn").setAttribute("href", "content.html?p=" + lastPartner.id + "&i=" + last.idx);
+    document.getElementById("cont-btn").textContent = lastPct >= 100 ? "Review" : "Resume";
+
+    // Personal activity feed.
+    var actWrap = document.getElementById("my-activity");
+    var act = K.activity;
+    if (!act.length) {
+      actWrap.innerHTML = '<p class="hint">Nothing yet. Open something from your library.</p>';
+    } else {
+      actWrap.innerHTML = act.slice(0, 5).map(function (a) {
+        return '<div class="feed-row"><div class="feed-main">' +
+          '<div class="feed-kind">' + a.kind + '</div>' +
+          '<div class="feed-detail">' + a.detail + '</div>' +
+        '</div><span class="feed-when">' + timeAgo(a.at) + '</span></div>';
+      }).join("");
+    }
+
+    // Library grouped by partner (avatar + name header, then that partner's items)
     var rows = document.getElementById("library-rows");
     KDATA.partners.forEach(function (p) {
-      (p.content || []).forEach(function (item) {
-        var line = document.createElement("div");
-        line.className = "benefit-line content-line";
-        line.innerHTML =
+      var group = document.createElement("div");
+      group.className = "lib-group";
+      var head =
+        '<div class="row tight lib-head">' +
+          '<span class="avatar' + (p.avatarCls ? " " + p.avatarCls : "") + '">' + p.initial + '</span>' +
           '<div>' +
-            '<div class="content-type">' + typeLabels[item.type] + '</div>' +
-            '<div class="content-title">' + item.title + '</div>' +
-            '<div class="content-meta">' + p.name + ' · ' + item.meta + '</div>' +
+            '<div class="content-title">' + p.name + '</div>' +
+            '<div class="content-meta">' + (p.content || []).length + ' items included</div>' +
           '</div>' +
-          '<div class="row tight">' +
-            '<a class="btn ghost sm" href="partner.html?p=' + p.id + '">Open</a>' +
-          '</div>';
-        rows.appendChild(line);
-      });
+        '</div>';
+      var items = (p.content || []).map(function (item, idx) {
+        var action = item.type === "link"
+          ? '<a class="btn ghost sm" href="' + (item.url || "#") + '" target="_blank" rel="noopener" title="Opens the partner link in a new tab (demo target)">Open ↗</a>'
+          : '<a class="btn ghost sm" href="content.html?p=' + p.id + '&i=' + idx + '">Open</a>';
+        return '<div class="benefit-line content-line">' +
+          '<div class="item-lead">' +
+            contentThumb(item.type, 'row', item) +
+            '<div class="lead-text">' +
+              '<div class="content-type">' + typeLabels[item.type] + '</div>' +
+              '<div class="content-title">' + item.title + '</div>' +
+              '<div class="content-meta">' + item.meta + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="row tight">' + action + '</div>' +
+        '</div>';
+      }).join("");
+      group.innerHTML = head + items;
+      rows.appendChild(group);
     });
   })();
 
