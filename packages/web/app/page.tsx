@@ -507,8 +507,8 @@ function HeroSection() {
           transition={{ delay: 0.65, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-8 max-w-xl mx-auto text-center text-[15px] md:text-[16px] leading-relaxed text-[var(--color-content-secondary)]"
         >
-          Komunify helps members unlock premium access, discounts, and exclusive offers across community
-          partners with a single on-chain subscription.
+          One subscription, split on-chain the moment it settles. Soroban routes every payment
+          70/20/10 to the people who earned it, and unlocks perks across partner communities.
         </motion.p>
 
         {/* CTAs */}
@@ -1119,21 +1119,21 @@ function RoadmapSection() {
       marker: 'Q3 2026',
       descriptor: 'LIVE ON TESTNET',
       title: 'The full loop works',
-      body: 'Wallet connect, subscription payment, automatic 70/20/10 split, and a live on-chain dashboard. Deployed and verifiable today.',
+      body: 'Wallet connect, subscription payment, automatic 70/20/10 split, and a live on-chain dashboard. Exit metric: loop proven. Every dashboard number is an on-chain read.',
       nodeOpacity: 'opacity-100',
     },
     {
       marker: 'Q4 2026',
-      descriptor: 'PILOTS',
+      descriptor: 'PILOT ONE, WITH NUMBERS',
       title: 'First partner communities',
-      body: 'Onboarding pilot communities in Bandung, starting with the ones we run ourselves. Real members, real benefits, real payouts.',
+      body: 'October: Dev Web3 Bandung (2.4K members) goes live. Target funnel: 2,400 members, 250 wallets, 100 paid subscriptions. Pass mark: 100 active on-chain subscriptions, then Sawargy, Manexus, and Serenity follow.',
       nodeOpacity: 'opacity-[0.55]',
     },
     {
       marker: '2027',
       descriptor: 'THE RAILS',
       title: 'Every chapter runs on Komunify',
-      body: 'Self-serve partner onboarding, multi-tier subscriptions, configurable splits. Builder collectives get memberships, bounty splits, and reporting out of the box.',
+      body: 'Target: 10 chapters and 1,000 active subscriptions. Self-serve partner onboarding, multi-tier subscriptions, configurable splits, reporting out of the box.',
       nodeOpacity: 'opacity-30',
     },
   ];
@@ -1520,14 +1520,51 @@ function FAQSection() {
 }
 
 function ClosingCTASection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const raw = useMotionValue(0);
+  useEffect(() => {
+    const update = () => {
+      const el = sectionRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const p = (0.95 * vh - rect.top) / (0.6 * vh);
+      raw.set(Math.min(1, Math.max(0, p)));
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [raw]);
+  const fill = useSpring(raw, { stiffness: 80, damping: 26 });
+
   return (
-    <section className="border-t border-[var(--color-border-medium)] bg-[var(--color-bg-elevated)] py-16 md:py-20 px-6 md:px-10">
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden border-t border-[var(--color-border-medium)] bg-[var(--color-bg-elevated)] py-16 md:py-20 px-6 md:px-10"
+    >
+      <motion.div
+        aria-hidden="true"
+        style={{ opacity: fill }}
+        className="pointer-events-none absolute inset-0"
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'radial-gradient(90% 120% at 50% 115%, rgba(250,214,87,0.28), rgba(250,214,87,0.10) 45%, transparent 75%), linear-gradient(180deg, transparent, rgba(250,214,87,0.06))',
+          }}
+        />
+      </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.8, ease: EASE }}
-        className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center gap-9 md:gap-12"
+        className="relative z-[1] max-w-6xl mx-auto flex flex-col md:flex-row md:items-center gap-9 md:gap-12"
       >
         <div className="flex items-center gap-6 md:gap-9 min-w-0">
           <img src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/logo-mark.png`} alt="Komunify" className="w-16 h-16 object-contain shrink-0" />

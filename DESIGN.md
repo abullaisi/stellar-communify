@@ -206,6 +206,7 @@ Documented for the vote. `split` is the live default. Each renders as a `data-th
 
 - **Body (sans):** `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif`. Set globally on `body`.
 - **Mono (blockchain data only):** `ui-monospace, SFMono-Regular, Menlo, monospace`. Reserved exclusively for on-chain data: tx hashes, wallet addresses, contract IDs, raw asset codes. Never for labels, captions, markers, or buttons.
+- **Prototype type scale (recording legibility, 2026-07-15, per Imam):** every prototype font size steps up one proper increment, roughly 110% (10 to 11, 11 to 12, 12 to 13, 13 to 14, 14 to 15, 16 to 18, 20 to 22, 22 to 24, 26 to 29, 30 to 33, 40 to 44). Upsize per token; a blanket `zoom` or `transform: scale` on the page is prohibited.
 - **Display (serif):** `ui-serif, Georgia, Cambria, "Times New Roman", Times, serif`, weight 500 (medium), tight tracking (-0.02em). All headlines and card titles on the landing, pitch deck, and prototype. Heavy sans headlines (700/800) are retired for display text; bold sans stays reserved for the logo wordmark and small inline emphasis. Codified 2026-07-15 from the landing implementation, per Imam.
 
 ### Monospace is blockchain data, not decoration (rule updated 2026-07-15)
