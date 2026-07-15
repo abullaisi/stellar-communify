@@ -212,6 +212,8 @@ var NAV_ICONS = {
   "traction.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>'
 };
 var ICON_MENU = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+var ICON_CHEVRON_LEFT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+var ICON_CHEVRON_RIGHT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>';
 function contentThumb(type, size) {
   var cls = 'thumb ' + type + (size ? ' ' + size : '');
   return '<div class="' + cls + '">' + contentIcon(type) + '</div>';
@@ -238,6 +240,29 @@ function timeAgo(ts) {
 (function () {
   document.documentElement.setAttribute("data-theme", localStorage.getItem("k_theme") || "dark");
 })();
+
+// Restore the desktop sidebar state immediately when this shared script is parsed.
+(function () {
+  if (localStorage.getItem("komunify-sidebar-collapsed") === "1") {
+    document.body.classList.add("sidebar-collapsed");
+  }
+})();
+
+function updateSidebarToggles(collapsed) {
+  document.querySelectorAll(".sidebar-toggle").forEach(function (btn) {
+    btn.innerHTML = collapsed ? ICON_CHEVRON_RIGHT : ICON_CHEVRON_LEFT;
+    btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    btn.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+    btn.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+  });
+}
+
+function setSidebarCollapsed(v) {
+  var collapsed = !!v;
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  localStorage.setItem("komunify-sidebar-collapsed", collapsed ? "1" : "0");
+  updateSidebarToggles(collapsed);
+}
 
 // Demo-state seeding via URL (?demo=fresh|wallet|sub): shareable states + headless captures.
 (function () {
@@ -407,4 +432,40 @@ document.addEventListener("DOMContentLoaded", function () {
         p.name + '</a>';
     }).join("");
   }
+
+  // Desktop sidebar: wrap bare nav text so the SVG/avatar rail stays visible
+  // when collapsed, then inject the persistent collapse control.
+  document.querySelectorAll(".sidenav").forEach(function (sidebar) {
+    sidebar.querySelectorAll(".nav-item").forEach(function (a) {
+      var textNodes = Array.prototype.filter.call(a.childNodes, function (node) {
+        return node.nodeType === 3 && node.textContent.trim();
+      });
+      if (textNodes.length && !a.querySelector(".nav-item-label")) {
+        var label = document.createElement("span");
+        label.className = "nav-item-label";
+        label.textContent = textNodes.map(function (node) { return node.textContent.trim(); }).join(" ");
+        a.insertBefore(label, textNodes[0]);
+        textNodes.forEach(function (node) { a.removeChild(node); });
+        a.setAttribute("aria-label", label.textContent);
+        a.title = label.textContent;
+      }
+    });
+
+    if (!sidebar.querySelector(".sidebar-toggle")) {
+      var logo = sidebar.querySelector(":scope > .logo");
+      var head = document.createElement("div");
+      head.className = "sidenav-head";
+      sidebar.insertBefore(head, logo || sidebar.firstChild);
+      if (logo) head.appendChild(logo);
+
+      var sidebarToggle = document.createElement("button");
+      sidebarToggle.type = "button";
+      sidebarToggle.className = "ghost sidebar-toggle";
+      head.appendChild(sidebarToggle);
+      sidebarToggle.addEventListener("click", function () {
+        setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+      });
+    }
+    updateSidebarToggles(document.body.classList.contains("sidebar-collapsed"));
+  });
 });

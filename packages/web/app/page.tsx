@@ -1004,51 +1004,11 @@ const PERKS = [
 ];
 
 function PartnersSection() {
-  const communitiesGridRef = useRef<HTMLDivElement>(null);
-  const communitiesRaw = useMotionValue(0);
-  useEffect(() => {
-    const update = () => {
-      const el = communitiesGridRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const p = (0.85 * vh - rect.top) / (0.55 * vh);
-      communitiesRaw.set(Math.min(1, Math.max(0, p)));
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [communitiesRaw]);
-  const communitiesFill = useSpring(communitiesRaw, { stiffness: 90, damping: 30, restDelta: 0.001 });
 
-  const perksGridRef = useRef<HTMLDivElement>(null);
-  const perksRaw = useMotionValue(0);
-  useEffect(() => {
-    const update = () => {
-      const el = perksGridRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const p = (0.85 * vh - rect.top) / (0.55 * vh);
-      perksRaw.set(Math.min(1, Math.max(0, p)));
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [perksRaw]);
-  const perksFill = useSpring(perksRaw, { stiffness: 90, damping: 30, restDelta: 0.001 });
 
   return (
     <section id="communities" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
-      <SectionFlourish lines="lower" />
+      <SectionFlourish lines="both" />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10">
         <motion.div
@@ -1072,13 +1032,7 @@ function PartnersSection() {
 
         <p className="mt-14 md:mt-16 text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-secondary)]">Our communities</p>
 
-        <div ref={communitiesGridRef} className="relative mt-5 pt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <div aria-hidden="true" className="hidden md:block absolute top-0 inset-x-0 h-px bg-[var(--color-border-medium)]" />
-          <motion.div
-            aria-hidden="true"
-            style={{ scaleX: communitiesFill }}
-            className="hidden md:block absolute top-0 inset-x-0 h-px origin-left bg-gradient-to-r from-[var(--color-content-accent)] to-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)]"
-          />
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {PARTNER_COMMUNITIES.map((community, index) => (
             <motion.article
               key={community.name}
@@ -1109,13 +1063,7 @@ function PartnersSection() {
 
         <p className="mt-14 text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-secondary)]">What you unlock</p>
 
-        <div ref={perksGridRef} className="relative mt-5 pt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <div aria-hidden="true" className="hidden md:block absolute top-0 inset-x-0 h-px bg-[var(--color-border-medium)]" />
-          <motion.div
-            aria-hidden="true"
-            style={{ scaleX: perksFill }}
-            className="hidden md:block absolute top-0 inset-x-0 h-px origin-left bg-gradient-to-r from-[var(--color-content-accent)] to-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)]"
-          />
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {PERKS.map((perk, index) => {
             const Icon = perk.icon;
 
@@ -1254,26 +1202,6 @@ function RoadmapSection() {
 }
 
 function TeamSection() {
-  const teamGridRef = useRef<HTMLDivElement>(null);
-  const teamRaw = useMotionValue(0);
-  useEffect(() => {
-    const update = () => {
-      const el = teamGridRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const p = (0.85 * vh - rect.top) / (0.55 * vh);
-      teamRaw.set(Math.min(1, Math.max(0, p)));
-    };
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [teamRaw]);
-  const teamFill = useSpring(teamRaw, { stiffness: 90, damping: 30, restDelta: 0.001 });
 
   const members = [
     {
@@ -1324,7 +1252,7 @@ function TeamSection() {
 
   return (
     <section id="team" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
-      <SectionFlourish lines="upper" />
+      <SectionFlourish lines="both" />
 
       <div className="relative max-w-7xl mx-auto px-6 md:px-10">
         <motion.div
@@ -1352,13 +1280,7 @@ function TeamSection() {
         </motion.div>
 
         <div className="relative z-10 mt-12 md:mt-14">
-          <div ref={teamGridRef} className="relative pt-8 grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-8">
-            <div aria-hidden="true" className="hidden md:block absolute top-0 inset-x-0 h-px bg-[var(--color-border-medium)]" />
-            <motion.div
-              aria-hidden="true"
-              style={{ scaleX: teamFill }}
-              className="hidden md:block absolute top-0 inset-x-0 h-px origin-left bg-gradient-to-r from-[var(--color-content-accent)] to-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)]"
-            />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-8">
             {members.map((member, index) => (
               <motion.div
                 key={member.name}
