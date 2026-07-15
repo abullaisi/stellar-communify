@@ -176,6 +176,7 @@
     payBtn.addEventListener("click", function () {
       payBtn.disabled = true;
       K.subscribe(showPending, function (hash) {
+        K.logActivity("Subscribed", "Community Bundle · " + fmtXlm(KDATA.priceXlm));
         showSuccess(hash, true);
       });
     });

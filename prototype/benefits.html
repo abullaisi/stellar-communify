@@ -15,18 +15,26 @@
   </style>
 </head>
 <body>
-<main class="shell">
-  <div class="topbar">
-    <a class="logo" href="index.html">Komunify</a>
-    <nav class="topbar-nav">
-      <a href="index.html">Connect</a>
-      <a href="subscribe.html">Subscribe</a>
-      <a href="benefits.html" class="active">Benefits</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="traction.html">Traction</a>
-      <code id="topbar-wallet" class="hidden"></code>
-    </nav>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item" href="dashboard.html">Dashboard</a>
+    <a class="nav-item active" href="benefits.html">Benefits</a>
+    <a class="nav-item" href="traction.html">Traction</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype · testnet</span>
   </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
 
   <!-- guard: shown when there is no active subscription -->
   <div class="card center hidden" id="guard">
@@ -80,10 +88,12 @@
   </div>
 
   <footer>
-    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
-    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet
   </footer>
 </main>
+</div>
+
+</div>
 
 <script src="app.js"></script>
 <script>
@@ -110,7 +120,10 @@
       var card = document.createElement("div");
       card.className = "card";
       var benefits = p.benefits.map(function (b) {
-        return '<div class="benefit-line"><span>' + b + '</span><span class="pill ok">INCLUDED</span></div>';
+        return '<div class="benefit-line"><div>' +
+          '<div class="content-title">' + b.t + '</div>' +
+          '<div class="content-meta">' + b.d + '</div>' +
+        '</div><span class="pill ok">INCLUDED</span></div>';
       }).join("");
       card.innerHTML =
         '<div class="row">' +
@@ -127,21 +140,45 @@
       partnerGrid.appendChild(card);
     });
 
-    // Listing rows: item, kind and partner, crossed-out price next to member price.
+    // Listing rows: member price + a working buy flow (owned state persists).
     var rows = document.getElementById("listing-rows");
-    KDATA.listings.forEach(function (l) {
-      var row = document.createElement("div");
-      row.className = "benefit-line";
-      row.innerHTML =
-        '<div>' +
-          '<div class="listing-name">' + l.name + '</div>' +
-          '<div class="listing-sub">' + l.kind + ' · ' + l.partner + '</div>' +
-        '</div>' +
-        '<div class="row tight">' +
-          '<span class="price-was">' + fmtXlm(l.priceXlm) + '</span>' +
-          '<span class="price-now">' + fmtXlm(l.memberPriceXlm) + '</span>' +
-        '</div>';
-      rows.appendChild(row);
+    function renderListings() {
+      rows.innerHTML = "";
+      var owned = K.owned;
+      KDATA.listings.forEach(function (l, i) {
+        var row = document.createElement("div");
+        row.className = "benefit-line";
+        var right;
+        if (owned.indexOf(i) !== -1) {
+          right = '<span class="pill ok">OWNED</span>';
+        } else {
+          right =
+            '<span class="price-was">' + fmtXlm(l.priceXlm) + '</span>' +
+            '<span class="price-now">' + fmtXlm(l.memberPriceXlm) + '</span>' +
+            '<button class="ghost sm" data-buy="' + i + '">Buy</button>';
+        }
+        row.innerHTML =
+          '<div>' +
+            '<div class="listing-name">' + l.name + '</div>' +
+            '<div class="listing-sub">' + l.kind + ' · ' + l.partner + '</div>' +
+          '</div>' +
+          '<div class="row tight">' + right + '</div>';
+        rows.appendChild(row);
+      });
+    }
+    renderListings();
+
+    rows.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-buy]");
+      if (!btn) return;
+      var i = parseInt(btn.getAttribute("data-buy"), 10);
+      btn.disabled = true;
+      btn.textContent = "Confirming…";
+      window.setTimeout(function () {
+        K.addOwned(i);
+        K.logActivity("Purchased", KDATA.listings[i].name + " · " + fmtXlm(KDATA.listings[i].memberPriceXlm));
+        renderListings();
+      }, 1200);
     });
   })();
 

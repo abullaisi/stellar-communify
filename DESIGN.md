@@ -2,7 +2,7 @@
 
 > **Sync Rule:** This file exists in two locations and must stay identical.
 > - **Repo:** `/Users/imam/Documents/stellar-hackathon/DESIGN.md` (lives next to the code)
-> - **CTX project:** `products/communify/DESIGN.md` (lives in PM context)
+> - **CTX project:** `products/komunify/DESIGN.md` (lives in PM context)
 >
 > When editing, update BOTH files. If they diverge, the repo copy is canonical.
 
@@ -20,10 +20,10 @@ Token structure and component taxonomy are adapted from the **AGENTIC DESIGN SYS
 
 Before implementing **any** UI element (input, button, card, pill, form, stat, badge, modal, etc.), check the system in this order:
 
-1. **CSS custom properties + named classes in `packages/web/app/globals.css`.** If a token or class matches, use it.
+1. **CSS custom properties + named classes in `src/App.css`.** If a token or class matches, use it.
 2. **Section 4 of this file.** If a component spec exists, follow it exactly.
 3. **`/docs.html` live specimen.** The visual reference, including the three `data-theme` candidate palette preview blocks.
-4. **`grep` across the `packages/web/` tree.** If an inline pattern is reused in 2+ places, flag it for promotion to `globals.css`.
+4. **`grep` across the `src/` tree.** If an inline pattern is reused in 2+ places, flag it for promotion to `App.css`.
 
 ### When a match is found: STOP and ask
 
@@ -33,17 +33,17 @@ Do NOT silently pull in an external kit (Tailwind template, Shadcn, a random dAp
 
 ### When no match exists: propose as new
 
-> "No existing match. I'll add this as a new [X]. It should go in: [globals.css named class / component-local style]."
+> "No existing match. I'll add this as a new [X]. It should go in: [App.css named class / component-local style]."
 
 After implementing:
 - Add a live demo to `/docs.html`
 - Add a spec entry to Section 4 of this file
-- If reusable, promote it to a named class in `packages/web/app/globals.css`
+- If reusable, promote it to a named class in `src/App.css`
 
 ### When modifying an existing component: flag propagation scope
 
-- **Named class in `globals.css`:** change once, every usage in the App Router tree (and future screens) updates.
-- **Component-local pattern:** `grep` the `packages/web/` tree for the pattern, show the list, ask "Apply to all N instances?" Better: promote to a named class first.
+- **Named class in `App.css`:** change once, every usage in `App.jsx` (and future screens) updates.
+- **Component-local pattern:** `grep` the `src/` tree for the pattern, show the list, ask "Apply to all N instances?" Better: promote to a named class first.
 
 ### After implementing: propose hierarchy propagation
 
@@ -67,7 +67,7 @@ Which larger sections contain these molecules? Any layout side effects?
 
 **Ask explicitly, offer choices. Do NOT propagate silently.** The team decides scope.
 
-**If propagating:** update tokens in `globals.css` + Section 2-3 of this file, then atoms in `globals.css`, then molecule usage in the App Router tree, then verify against `/docs.html`.
+**If propagating:** update tokens in `App.css` + Section 2-3 of this file, then atoms in `App.css`, then molecule usage in JSX, then verify against `/docs.html`.
 
 ### AI-readiness adoption status (the 10 Laws, audited 2026-07-05)
 
@@ -107,17 +107,14 @@ The app is a single centered 520px column (`.shell`) of stacked cards. Density i
 - Dark by default, `color-scheme: dark` set at `:root`
 - One accent color; everything else is neutral or status feedback
 - Mono uppercase micro-labels over clean sans body (Agentic DS signature; serif headings NOT adopted in v0, reconsider if STEMPEL wins the vote)
-- Single-column card stack, no sidebar (hackathon MVP scope). **Deviation (2026-07-12):** a slim
-  sticky app bar (`.app-bar` in globals.css) was added on the app pages (dashboard / explore /
-  community, not the `/` landing) — brand left, single wallet control right (`WalletControl`,
-  replacing the old ConnectWalletButton + SessionBadge pair that printed the address twice). Full
-  width, solid `--color-bg-primary`, one-token border. Still no sidebar; the `.shell` column is
-  unchanged below it.
+- Single-column card stack, no nav, no sidebar (hackathon MVP scope)
 - Restrained motion: hover brightness only today, see Section 5
 
 ---
 
 ## 2. Color Palette & Roles
+
+> **Light mode documented (2026-07-14):** `:root[data-theme="light"]` in `styles.css` overrides the semantic tokens for the light theme. Light values are now recorded alongside dark values in the tables below. See "The accent split" for the two-token accent rule: text deepens in light mode, fills stay vivid in both themes.
 
 ### Token architecture (three-tier plan, per the Design Systems Manual)
 
@@ -132,37 +129,49 @@ Naming follows the Design Systems Manual (agenticui.net) tier formats. Reference
 Non-color categories already follow `{category}-{scale}`: `--space-1..7`, `--radius-sm/md/lg/full`. Typography is class-based in v0; tokenize when primitives land. Later export target: DTCG `.tokens.json` with `$value`, `$type`, mandatory `$description` per token (post-hackathon).
 
 
-All tokens live in `:root` in `packages/web/app/globals.css`. The semantic names below are the canonical token names (Agentic DS naming). The "globals.css var" column maps to the shorter legacy names currently in the file; when touching the token block, migrate legacy names toward the semantic names rather than adding new short names.
+All tokens live in `:root` in `src/App.css`. The semantic names below are the canonical token names (Agentic DS naming). The "App.css var" column maps to the shorter legacy names currently in the file; when touching the token block, migrate legacy names toward the semantic names rather than adding new short names.
 
 ### Backgrounds
 
-| Token | Value | globals.css var | Role |
-|-------|-------|-------------|------|
-| `--color-bg-primary` | `#0b0b0a` | same | Page background (`body`) |
-| `--color-bg-elevated` | `#131311` | same | Card surfaces (`.card`) |
-| `--color-bg-input` | `#0d0d0b` | same (promoted 2026-07-05) | Input fields and code chips. Promote to a named var when next touched. |
-| `--color-bg-accent-tint` | `rgba(250,214,87,0.12)` | same (added 2026-07-05) | Accent-tinted fills (planned unlocked badge, accent pill variant) |
-| `--color-bg-success-tint` | `rgba(62,207,142,0.14)` | same (promoted 2026-07-05) | Success pill background |
-| `--color-bg-warning-tint` | `rgba(255,138,92,0.14)` | same (promoted 2026-07-05) | Warning pill background |
+| Token | Dark value | Light value | App.css var | Role |
+|-------|------------|-------------|-------------|------|
+| `--color-bg-primary` | `#0b0b0a` | `#faf6ef` | same | Page background (`body`) |
+| `--color-bg-elevated` | `#131311` | `#ffffff` | same | Card surfaces (`.card`) |
+| `--color-bg-input` | `#0d0d0b` | `#f2ecdf` | same (promoted 2026-07-05) | Input fields and code chips. Promote to a named var when next touched. |
+| `--color-bg-accent` | `#fad657` | `#fad657` | same | Accent fills: primary button background, progress bar fill, status dots. Same value in both themes, see "The accent split" below. |
+| `--color-bg-accent-tint` | `rgba(250,214,87,0.12)` | `rgba(214,168,20,0.16)` | same (added 2026-07-05) | Accent-tinted fills (planned unlocked badge, accent pill variant) |
+| `--color-bg-success-tint` | `rgba(62,207,142,0.14)` | `rgba(29,138,92,0.12)` | same (promoted 2026-07-05) | Success pill background |
+| `--color-bg-warning-tint` | `rgba(255,138,92,0.14)` | `rgba(200,95,46,0.12)` | same (promoted 2026-07-05) | Warning pill background |
 
 ### Content
 
-| Token | Value | globals.css var | Role |
-|-------|-------|-------------|------|
-| `--color-content-primary` | `#ecd9c1` | same | Body text, headings, ghost button labels |
-| `--color-content-secondary` | `#928e85` | same | Labels, hints, tagline, footer, form label text |
-| `--color-content-accent` | `#fad657` | same | Primary button fill, logo first letter, focus border |
-| `--color-content-on-accent` | `#201607` | same | Text on accent surfaces (primary button label) |
-| `--color-content-success` | `#3ecf8e` | same | Success text, success pill label |
-| `--color-content-warning` | `#ff8a5c` | same | Warning text, warning pill label |
-| `--color-content-danger` | `#ff6b6b` | same | Error text (`.error`) |
+| Token | Dark value | Light value | App.css var | Role |
+|-------|------------|-------------|-------------|------|
+| `--color-content-primary` | `#ecd9c1` | `#241f15` | same | Body text, headings, ghost button labels |
+| `--color-content-secondary` | `#928e85` | `#6e675a` | same | Labels, hints, tagline, footer, form label text |
+| `--color-content-accent` | `#fad657` | `#8f6b00` | same | Logo first letter, focus border, accent text and icons. Not fills, see "The accent split" below. |
+| `--color-content-on-accent` | `#201607` | `#201607` | same | Text on accent surfaces (primary button label) |
+| `--color-content-success` | `#3ecf8e` | `#1d8a5c` | same | Success text, success pill label |
+| `--color-content-warning` | `#ff8a5c` | `#b35325` | same | Warning text, warning pill label |
+| `--color-content-danger` | `#ff6b6b` | `#c23434` | same | Error text (`.error`) |
 
 ### Border
 
-| Token | Value | globals.css var | Role |
-|-------|-------|-------------|------|
-| `--color-border-medium` | `#262521` | same | Card borders, input borders, ghost button borders, code chip borders |
-| `--color-border-accent` | `#fad657` | same (promoted 2026-07-05) | Focus state border |
+| Token | Dark value | Light value | App.css var | Role |
+|-------|------------|-------------|-------------|------|
+| `--color-border-medium` | `#262521` | `#e4dcc9` | same | Card borders, input borders, ghost button borders, code chip borders |
+| `--color-border-accent` | `#fad657` | `#b08d3e` | same (promoted 2026-07-05) | Focus state border |
+| `--color-border-hover` | `#3a362c` | `#cfc5ac` | same | Hover border state |
+
+### Board motifs
+
+| Token | Dark value | Light value | App.css var | Role |
+|-------|------------|-------------|-------------|------|
+| `--glow-split` | `rgba(250,214,87,0.35)` | `rgba(214,168,20,0.25)` | same | The split-flow glow effect, exclusively. Never for buttons or decoration (see Section 1). |
+
+### The accent split
+
+Komunify uses two accent tokens with different jobs: `--color-content-accent` is for text and icons (the logo's first letter, focus borders, accent labels), and `--color-bg-accent` is for fills (primary button backgrounds, progress bar fills, status dots). The text token deepens to `#8f6b00` in light mode so it stays readable against the light cream background, while the fill token stays the vivid `#fad657` yellow in both themes since a solid fill does not need the same contrast adjustment as text. Never swap them: a fill built from the text-accent token reads washed out in light mode, and text built from the fill-accent token fails contrast in light mode.
 
 ### Palette status (updated 2026-07-05)
 
@@ -201,7 +210,7 @@ Documented for the vote. `split` is the live default. Each renders as a `data-th
 
 Micro-labels (`.label`) are 12px UPPERCASE with 0.06em tracking in `--color-content-secondary`, set in the mono stack. This mono-label-over-sans-body pairing is the Komunify type signature, inherited from the Agentic DS (which pairs mono UPPERCASE labels with a clean sans body; its serif headings are NOT adopted in v0, revisit only if STEMPEL wins).
 
-> **Drift resolved (2026-07-05):** `.label` in `packages/web/app/globals.css` now carries the mono stack. Do not add new labels in sans.
+> **Drift resolved (2026-07-05):** `.label` in `src/App.css` now carries the mono stack. Do not add new labels in sans.
 
 ### Hierarchy
 
@@ -250,7 +259,7 @@ Four steps, no additions without a token-level discussion. The scale reads: chip
 
 ## 4. Component Stylings
 
-### 4.1 Existing atoms and classes (live in `packages/web/app/globals.css`, used across the `packages/web/app/` Next.js App Router tree)
+### 4.1 Existing atoms and classes (live in `src/App.css`, used in `src/App.jsx`)
 
 **`.shell`** (layout root)
 ```
@@ -305,7 +314,7 @@ All 13px. `.hint`: `--color-content-secondary`, margin 8px 0 12px. `.error`: `--
 
 ### 4.2 Planned components (from Faris PRD, mapped to Agentic DS taxonomy)
 
-Statuses: **live** (in globals.css / the App Router tree today), **planned** (build per this table, propose per Section 0), **n/a** (Agentic category explicitly out of MVP scope).
+Statuses: **live** (in App.css/App.jsx today), **planned** (build per this table, propose per Section 0), **n/a** (Agentic category explicitly out of MVP scope).
 
 | Component | Agentic taxonomy | Status | One-line spec |
 |-----------|------------------|--------|---------------|
@@ -327,7 +336,7 @@ Statuses: **live** (in globals.css / the App Router tree today), **planned** (bu
 | Pagination | PAGINATION | n/a | Out of MVP scope |
 | File upload | FILE UPLOAD | n/a | Out of MVP scope |
 
-Every planned component, once built: demo in `/docs.html`, spec promoted from this table into a full 4.1-style entry, class in `globals.css` if reused.
+Every planned component, once built: demo in `/docs.html`, spec promoted from this table into a full 4.1-style entry, class in `App.css` if reused.
 
 ---
 

@@ -14,18 +14,26 @@
   </style>
 </head>
 <body>
-<main class="shell">
-  <div class="topbar">
-    <a class="logo" href="index.html">Komunify</a>
-    <nav class="topbar-nav">
-      <a href="index.html">Connect</a>
-      <a href="subscribe.html">Subscribe</a>
-      <a href="benefits.html">Benefits</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="traction.html" class="active">Traction</a>
-      <code id="topbar-wallet" class="hidden"></code>
-    </nav>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item" href="dashboard.html">Dashboard</a>
+    <a class="nav-item" href="benefits.html">Benefits</a>
+    <a class="nav-item active" href="traction.html">Traction</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype · testnet</span>
   </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
 
   <div class="card">
     <div class="num-label"><span class="num">05</span> TRACTION</div>
@@ -64,10 +72,12 @@
   <a class="btn ghost" href="benefits.html">Back to benefits</a>
 
   <footer>
-    <span class="label">Prototype</span> · Komunify on Stellar testnet ·
-    <a href="#" id="reset-proto">Reset demo</a>
+    <span class="label">Prototype</span> · Komunify on Stellar testnet
   </footer>
 </main>
+</div>
+
+</div>
 
 <script src="app.js"></script>
 <script>
@@ -109,9 +119,12 @@
         '<div class="feed-row">' +
           '<div class="feed-main">' +
             '<div class="feed-kind">' + a.kind + '</div>' +
-            '<div class="feed-detail">' + a.detail + '</div>' +
+            '<div class="feed-detail">' + a.detail + (a.addr ? ' · <code>' + a.addr + '</code>' : '') + '</div>' +
           '</div>' +
-          '<span class="feed-when">' + a.when + '</span>' +
+          '<div class="feed-right">' +
+            (a.reward ? '<div class="feed-reward">' + a.reward + '</div>' : '') +
+            '<span class="feed-when">' + a.when + '</span>' +
+          '</div>' +
         '</div>'
       );
     }).join("");

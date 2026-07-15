@@ -9,3 +9,9 @@ export default async function CommunityPage({ params }: { params: Promise<{ addr
     </main>
   );
 }
+
+export function generateStaticParams() {
+  return [{ address: 'demo' }];
+}
+
+export const dynamicParams = false;
