@@ -883,6 +883,9 @@ function Footer() {
           <a href="/dashboard" className="hover:text-[var(--color-content-accent)] transition-colors">
             App
           </a>
+          <a href="https://t.me/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
+            Telegram
+          </a>
         </div>
       </div>
     </footer>
