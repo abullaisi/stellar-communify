@@ -1,13 +1,12 @@
 'use client';
 
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useReducedMotion, type MotionValue } from 'framer-motion';
+import { animate, motion, AnimatePresence, useInView, useMotionValue, useTransform, useSpring, useReducedMotion, type MotionValue } from 'framer-motion';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Play, Wallet, Coins, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Play, Wallet, Coins, ShieldCheck, ChevronDown, Crown, BadgePercent, BookOpen, Layers } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ApiClient } from '@/services/api/client';
 import { useWallet } from '@/providers/wallet-provider';
-import { ScrollProgress } from '@/components/ui/scroll-progress';
 
 function truncateAddress(address: string) {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
@@ -29,63 +28,65 @@ function Header() {
   const { isConnected, address, connecting, error, connect, disconnect } = useWallet();
 
   return (
-    <header className="relative z-20 max-w-7xl mx-auto flex items-center justify-between px-6 md:px-10 pt-7">
-      <div className="flex items-center gap-3">
-        <div className="text-[var(--color-content-accent)]">
-          <Logo />
+    <header className="relative z-20 max-w-7xl mx-auto px-6 md:px-10 pt-6">
+      <div className="flex items-center justify-between nav-shell backdrop-blur-md px-5 md:px-6 py-3">
+        <div className="flex items-center gap-3">
+          <div className="text-[var(--color-content-accent)]">
+            <Logo />
+          </div>
+          <span className="font-serif text-lg tracking-[0.15em] text-[var(--color-content-primary)]">KOMUNIFY</span>
         </div>
-        <span className="font-serif text-lg tracking-[0.15em] text-[var(--color-content-primary)]">KOMUNIFY</span>
-      </div>
 
-      <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)]">
-        <a href="#how" className="hover:text-[var(--color-content-accent)] transition-colors">
-          Packages
-        </a>
-        <a href="#communities" className="hover:text-[var(--color-content-accent)] transition-colors">
-          Communities
-        </a>
-        <a
-          href="https://github.com/yoms07/stellar-hackathon"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-[var(--color-content-accent)] transition-colors"
-        >
-          Github
-        </a>
-      </nav>
-
-      <div className="hidden md:flex items-center gap-3">
-        <a
-          href="https://www.freighter.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[13px] tracking-wide text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
-        >
-          Get wallet
-        </a>
-
-        {isConnected && address ? (
-          <button
-            type="button"
-            onClick={disconnect}
-            title="Disconnect"
-            className="inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors"
+        <nav className="hidden md:flex items-center gap-10 text-[13px] tracking-wide text-[var(--color-content-secondary)]">
+          <a href="#how" className="hover:text-[var(--color-content-accent)] transition-colors">
+            Packages
+          </a>
+          <a href="#communities" className="hover:text-[var(--color-content-accent)] transition-colors">
+            Communities
+          </a>
+          <a
+            href="https://github.com/yoms07/stellar-hackathon"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[var(--color-content-accent)] transition-colors"
           >
-            {truncateAddress(address)}
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]"></span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={connect}
-            disabled={connecting}
-            title={error ?? undefined}
-            className="inline-flex items-center gap-2 border border-solid border-[var(--color-content-accent)]/40 bg-transparent text-[var(--color-content-accent)] text-[13px] px-4 py-2 rounded-full hover:bg-[var(--color-content-accent)]/10 transition-colors disabled:opacity-60"
+            Github
+          </a>
+        </nav>
+
+        <div className="hidden md:flex items-center gap-3">
+          <a
+            href="https://www.freighter.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[13px] tracking-wide text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
           >
-            {connecting ? 'Connecting…' : error ? 'Retry connect' : 'Connect'}
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
-          </button>
-        )}
+            Get wallet
+          </a>
+
+          {isConnected && address ? (
+            <button
+              type="button"
+              onClick={disconnect}
+              title="Disconnect"
+              className="inline-flex items-center gap-2 border border-solid border-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)] bg-transparent text-[var(--color-content-accent)] text-[13px] font-mono px-4 py-2 rounded-full hover:bg-[color-mix(in_srgb,var(--color-content-accent)_10%,transparent)] transition-colors"
+            >
+              {truncateAddress(address)}
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]"></span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={connect}
+              disabled={connecting}
+              title={error ?? undefined}
+              className="inline-flex items-center gap-2 border border-solid border-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)] bg-transparent text-[var(--color-content-accent)] text-[13px] px-4 py-2 rounded-full hover:bg-[color-mix(in_srgb,var(--color-content-accent)_10%,transparent)] transition-colors disabled:opacity-60"
+            >
+              {connecting ? 'Connecting…' : error ? 'Retry connect' : 'Connect'}
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse"></span>
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -138,6 +139,48 @@ interface LiveStatsFixture {
   totalRevenue: number;
 }
 
+function CountUp({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-20%' });
+  const [formattedValue, setFormattedValue] = useState((0).toFixed(decimals));
+  const latestValue = useRef(value);
+  const latestDecimals = useRef(decimals);
+  const hasCompleted = useRef(false);
+
+  latestValue.current = value;
+  latestDecimals.current = decimals;
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      hasCompleted.current = true;
+      setFormattedValue(latestValue.current.toFixed(latestDecimals.current));
+      return;
+    }
+
+    if (!isInView) return;
+
+    const controls = animate(0, latestValue.current, {
+      duration: 1.4,
+      ease: [0.19, 1, 0.22, 1],
+      onUpdate: (current) => setFormattedValue(current.toFixed(latestDecimals.current)),
+      onComplete: () => {
+        hasCompleted.current = true;
+        setFormattedValue(latestValue.current.toFixed(latestDecimals.current));
+      },
+    });
+
+    return () => controls.stop();
+  }, [isInView]);
+
+  useEffect(() => {
+    if (hasCompleted.current) {
+      setFormattedValue(value.toFixed(decimals));
+    }
+  }, [decimals, value]);
+
+  return <span ref={ref}>{formattedValue}</span>;
+}
+
 // Live stats from API
 function LiveStats() {
   const { data: stats, isLoading } = useQuery({
@@ -168,19 +211,19 @@ function LiveStats() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.95, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
-      className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto text-center border-t border-[var(--color-content-primary)]/10 pt-8"
+      className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto text-center pt-8"
     >
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : creators}+</p>
-        <p className="text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PARTNERS</p>
+        <p className="font-serif text-5xl md:text-6xl text-[var(--color-bg-primary)]">{isLoading ? '-' : <CountUp value={creators} />}+</p>
+        <p className="text-[13px] font-semibold tracking-widest text-[color-mix(in_srgb,var(--color-bg-primary)_85%,transparent)] mt-1.5">PARTNERS</p>
       </div>
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">{isLoading ? '-' : subscriptions}+</p>
-        <p className="text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">MEMBERS</p>
+        <p className="font-serif text-5xl md:text-6xl text-[var(--color-bg-primary)]">{isLoading ? '-' : <CountUp value={subscriptions} />}+</p>
+        <p className="text-[13px] font-semibold tracking-widest text-[color-mix(in_srgb,var(--color-bg-primary)_85%,transparent)] mt-1.5">MEMBERS</p>
       </div>
       <div>
-        <p className="font-serif text-2xl text-[var(--color-content-accent)]">${isLoading ? '-' : (revenue / 1000).toFixed(1)}k+</p>
-        <p className="text-[11px] tracking-widest text-[var(--color-content-primary)]/45 mt-1">PROCESSED ON-CHAIN</p>
+        <p className="font-serif text-5xl md:text-6xl text-[var(--color-bg-primary)]">${isLoading ? '-' : <CountUp value={revenue / 1000} decimals={1} />}k+</p>
+        <p className="text-[13px] font-semibold tracking-widest text-[color-mix(in_srgb,var(--color-bg-primary)_85%,transparent)] mt-1.5">PROCESSED ON-CHAIN</p>
       </div>
     </motion.div>
   );
@@ -300,40 +343,93 @@ function OrbitalEmblem({ uid, faint = false }: { uid: string; faint?: boolean })
         <circle cx="130" cy="130" r="27" fill={`url(#medal-${uid})`} stroke="#ffffff" strokeOpacity="0.28" strokeWidth="1" />
         {/* Inset top highlight */}
         <path d="M 108,120 A 27 27 0 0 1 152,120" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1.5" strokeLinecap="round" />
-        {/* Komunify mark */}
-        <g stroke="#4a3413" strokeWidth="2" fill="none">
-          <circle cx="124" cy="130" r="8" />
-          <circle cx="136" cy="130" r="8" />
-        </g>
-        <circle cx="130" cy="130" r="2.6" fill="#4a3413" />
+        {/* Stellar symbol (black), official mark from the brand asset in public/ */}
+        <image
+          href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/stellar-symbol.png`}
+          x="115"
+          y="117.3"
+          width="30"
+          height="25.4"
+        />
       </g>
     </svg>
   );
 }
 
-// Hero section
-function HeroSection() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const glow = document.querySelector<HTMLElement>('.glow-heading');
-      if (glow) {
-        glow.style.transform = `translate(-50%, ${window.scrollY * 0.15}px)`;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+function SectionFlourish({ lines = 'both' }: { lines?: 'both' | 'upper' | 'lower' }) {
+  const reduce = useReducedMotion();
 
   return (
-    <section ref={scrollRef} className="relative min-h-screen overflow-hidden">
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+      <svg className="w-full h-full" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+        {(lines === 'both' || lines === 'upper') && (
+          <>
+            <path
+              d="M -40 260 C 420 140, 760 420, 1480 300"
+              fill="none"
+              stroke="rgba(250,214,87,0.14)"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+            />
+            {!reduce && (
+              <motion.path
+                d="M -40 260 C 420 140, 760 420, 1480 300"
+                fill="none"
+                stroke="rgba(250,214,87,0.55)"
+                strokeWidth={1.2}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                pathLength={1470}
+                strokeDasharray="70 1400"
+                animate={{ strokeDashoffset: [0, -1470] }}
+                transition={{ repeat: Infinity, ease: 'linear', duration: 9 }}
+              />
+            )}
+          </>
+        )}
+
+        {(lines === 'both' || lines === 'lower') && (
+          <>
+            <path
+              d="M -40 640 C 520 760, 900 520, 1480 660"
+              fill="none"
+              stroke="rgba(250,214,87,0.14)"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+            />
+            {!reduce && (
+              <motion.path
+                d="M -40 640 C 520 760, 900 520, 1480 660"
+                fill="none"
+                stroke="rgba(250,214,87,0.55)"
+                strokeWidth={1.2}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                pathLength={1470}
+                strokeDasharray="70 1400"
+                animate={{ strokeDashoffset: [0, -1470] }}
+                transition={{ repeat: Infinity, ease: 'linear', duration: 13, delay: 2 }}
+              />
+            )}
+          </>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+// Hero section
+function HeroSection() {
+  return (
+    <section className="relative overflow-hidden">
+      <Header />
+
       {/* Ambient glow */}
-      <div className="glow-heading fixed top-[-10%] left-1/2 -translate-x-1/2 w-[70rem] h-[70rem] rounded-full pointer-events-none z-0 blur-[30px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.28),transparent_70%)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_100%_at_50%_110%,rgba(250,214,87,0.30),rgba(250,214,87,0.12)_45%,rgba(250,214,87,0)_80%),linear-gradient(180deg,rgba(250,214,87,0.03),rgba(250,214,87,0.06)_60%,rgba(250,214,87,0.10)_100%)]" />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 bottom-[-22rem] -translate-x-1/2 w-[70rem] h-[70rem] rounded-full z-0 blur-[30px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.20),transparent_70%)]" />
 
       {/* Signature orbital emblem, floats top-left, gently bobbing */}
-      <ParallaxLayer depth={30} className="hidden md:block absolute top-8 -left-10 lg:left-2 w-56 h-56 lg:w-72 lg:h-72 pointer-events-none">
+      <ParallaxLayer depth={30} className="hidden md:block absolute top-32 -left-10 lg:left-2 w-56 h-56 lg:w-72 lg:h-72 pointer-events-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
           animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
@@ -350,24 +446,6 @@ function HeroSection() {
         </motion.div>
       </ParallaxLayer>
 
-      {/* Quiet echo, balances the composition bottom-right, same visual DNA */}
-      <ParallaxLayer depth={50} className="hidden lg:block absolute bottom-2 right-[3%] w-40 h-40 opacity-45 pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, duration: 1.1, ease: [0.19, 1, 0.22, 1] }}
-          className="w-full h-full"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 11, ease: 'easeInOut', repeat: Infinity }}
-            className="w-full h-full"
-          >
-            <OrbitalEmblem uid="echo" faint />
-          </motion.div>
-        </motion.div>
-      </ParallaxLayer>
-
       {/* Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 pt-14 md:pt-16 pb-24">
         {/* Badge */}
@@ -377,14 +455,14 @@ function HeroSection() {
           transition={{ delay: 0.05, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="flex justify-center"
         >
-          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[12px] tracking-wide text-[var(--color-content-accent)]">
+          <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)] animate-pulse" />
-            Revenue verified on-chain • Instant payouts
+            Verified on-chain • Instant payouts
           </div>
         </motion.div>
 
         {/* Heading */}
-        <h1 className="mt-8 text-center font-serif font-medium tracking-tight leading-[1.02] text-[11vw] md:text-[5.2rem] lg:text-[5.8rem] text-[var(--color-content-primary)]">
+        <h1 className="mt-8 text-center font-serif font-medium tracking-tight leading-[1.02] text-[9vw] md:text-[4rem] lg:text-[4.5rem] text-[var(--color-content-primary)]">
           <span className="block overflow-hidden">
             <KineticWord delay={0.15}>One</KineticWord>
             <span className="ml-3">
@@ -429,18 +507,19 @@ function HeroSection() {
           className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link href="/dashboard">
-            <button className="bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
+            <button className="group inline-flex items-center gap-3 bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide pl-7 pr-2.5 py-2.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
               Get early access
+              <span className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
+                →
+              </span>
             </button>
           </Link>
           <Link href="/start">
             <motion.button
               type="button"
-              whileHover={{ gap: '12px' }}
-              className="group inline-flex items-center gap-2 border border-solid border-[var(--color-content-primary)]/25 bg-transparent text-[var(--color-content-primary)] text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[var(--color-content-accent)]/60 hover:text-[var(--color-content-accent)] transition-colors"
+              className="inline-flex items-center border border-solid border-[color-mix(in_srgb,var(--color-content-primary)_25%,transparent)] bg-transparent text-[var(--color-content-primary)] text-[14px] tracking-wide px-7 py-3.5 rounded-full hover:border-[color-mix(in_srgb,var(--color-content-accent)_60%,transparent)] hover:text-[var(--color-content-accent)] transition-colors"
             >
               Become a partner
-              <motion.span className="translate-x-0 group-hover:translate-x-1 transition-transform">→</motion.span>
             </motion.button>
           </Link>
         </motion.div>
@@ -453,8 +532,8 @@ function HeroSection() {
           transition={{ delay: 0.8, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           className="mt-16 md:mt-20 relative max-w-4xl mx-auto scroll-mt-24"
         >
-          <ParallaxLayer depth={12} className="p-[1.5px] rounded-[26px] bg-gradient-to-br from-[rgba(250,214,87,0.5)] to-[rgba(250,214,87,0.05)] via-[rgba(250,214,87,0.35)]">
-            <div className="relative rounded-[24px] overflow-hidden bg-[#111110] aspect-video">
+          <ParallaxLayer depth={12} className="p-[1.5px] rounded-[5.5px] bg-gradient-to-br from-[rgba(250,214,87,0.5)] to-[rgba(250,214,87,0.05)] via-[rgba(250,214,87,0.35)]">
+            <div className="relative rounded-[4px] overflow-hidden bg-[#111110] aspect-video">
               {/* Backdrop texture */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(250,214,87,0.12),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(250,214,87,0.08),transparent_50%)]" />
               <div
@@ -469,10 +548,10 @@ function HeroSection() {
               <div className="scanline absolute left-0 right-0 h-1/3 bg-gradient-to-b from-transparent via-[rgba(250,214,87,0.16)] to-transparent animate-[scan_5s_linear_infinite]" />
 
               {/* Corner tags */}
-              <div className="absolute top-4 right-4 text-[10px] tracking-widest text-[var(--color-content-accent)]/80 border border-[var(--color-content-accent)]/30 rounded px-2 py-1 bg-black/30">
+              <div className="absolute top-4 right-4 text-[10px] tracking-widest text-[color-mix(in_srgb,var(--color-content-accent)_80%,transparent)] border border-[color-mix(in_srgb,var(--color-content-accent)_30%,transparent)] rounded px-2 py-1 bg-black/30">
                 LIVE DEMO
               </div>
-              <div className="absolute top-4 left-4 text-[10px] tracking-widest text-[var(--color-content-primary)]/50 border border-[var(--color-content-primary)]/15 rounded px-2 py-1 bg-black/30">
+              <div className="absolute top-4 left-4 text-[10px] tracking-widest text-[color-mix(in_srgb,var(--color-content-primary)_50%,transparent)] border border-[color-mix(in_srgb,var(--color-content-primary)_15%,transparent)] rounded px-2 py-1 bg-black/30">
                 HOW IT WORKS
               </div>
 
@@ -486,9 +565,9 @@ function HeroSection() {
                   <motion.span
                     animate={{ scale: [1, 1.85], opacity: [0.55, 0] }}
                     transition={{ duration: 2.6, repeat: Infinity }}
-                    className="absolute inset-0 rounded-full border border-[var(--color-content-accent)]/50"
+                    className="absolute inset-0 rounded-full border border-[color-mix(in_srgb,var(--color-content-accent)_50%,transparent)]"
                   />
-                  <span className="absolute inset-0 rounded-full border border-[var(--color-content-accent)]/30" />
+                  <span className="absolute inset-0 rounded-full border border-[color-mix(in_srgb,var(--color-content-accent)_30%,transparent)]" />
                   <span className="relative w-full h-full rounded-full bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] flex items-center justify-center group-hover:scale-105 transition-transform shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
                     <Play size={22} className="text-[var(--color-content-on-accent)] fill-current" />
                   </span>
@@ -497,11 +576,11 @@ function HeroSection() {
 
               {/* Bottom bar */}
               <div className="absolute bottom-0 left-0 right-0 px-5 py-4 flex items-center gap-4">
-                <span className="text-[11px] text-[var(--color-content-primary)]/60">00:00 / 02:14</span>
-                <div className="flex-1 h-[2px] bg-[var(--color-content-primary)]/15 rounded-full overflow-hidden">
+                <span className="text-[11px] text-[color-mix(in_srgb,var(--color-content-primary)_60%,transparent)]">00:00 / 02:14</span>
+                <div className="flex-1 h-[2px] bg-[color-mix(in_srgb,var(--color-content-primary)_15%,transparent)] rounded-full overflow-hidden">
                   <div className="h-full w-[8%] bg-[var(--color-content-accent)]" />
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" className="text-[var(--color-content-primary)]/60 fill-current">
+                <svg width="16" height="16" viewBox="0 0 24 24" className="text-[color-mix(in_srgb,var(--color-content-primary)_60%,transparent)] fill-current">
                   <path d="M14 3.23v2.06c3.39.49 6 3.39 6 6.71s-2.61 6.22-6 6.71v2.06c4.49-.55 8-4.44 8-8.77s-3.51-8.22-8-8.77zM16.5 12c0-1.77-1-3.29-2.5-4.03v8.06c1.5-.74 2.5-2.26 2.5-4.03zM3 9v6h4l5 5V4L7 9H3z" />
                 </svg>
               </div>
@@ -560,8 +639,8 @@ function StepCard({
   const iconScale = useTransform(active, [0, 1], [1, 1.08]);
   const iconColor = useTransform(active, [0, 1], ['#fad657', '#201607']); // accent → on-accent
   const numOpacity = useTransform(active, [0, 1], [0.5, 1]);
-  const borderColor = useTransform(active, [0, 1], ['#262521', 'rgba(250,214,87,0.4)']);
-  const ghostY = useTransform(progress, [start, end], [18, -18]);
+  // Drift stays within the card: top-3 (12px) anchor minus 12px max lift = flush, never clipped.
+  const ghostY = useTransform(progress, [start, end], [12, -12]);
 
   return (
     <motion.div
@@ -571,17 +650,19 @@ function StepCard({
       transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
       className="relative"
     >
-      {/* Double-bezel: outer machined shell */}
-      <div className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(250,214,87,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(250,214,87,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]">
-        {/* Inner core, border color tracks scroll activation */}
-        <motion.div
-          style={{ borderColor }}
-          className="relative rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden"
-        >
+      {/* Border color tracks scroll activation */}
+      <motion.div
+        className="group relative card-standard px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden"
+      >
+          <motion.div
+            aria-hidden="true"
+            className="card-selected-overlay"
+            style={{ opacity: active }}
+          />
           {/* Ghost step number, drifts as the section scrolls */}
           <motion.span
             style={{ y: ghostY }}
-            className="pointer-events-none absolute -top-4 right-3 font-serif text-[5.5rem] leading-none text-[var(--color-content-accent)]/[0.06] select-none"
+            className="pointer-events-none absolute top-3 right-4 font-serif text-[5.5rem] leading-none text-[var(--color-content-primary)] select-none"
           >
             {index + 1}
           </motion.span>
@@ -590,7 +671,7 @@ function StepCard({
             {/* Icon tile, fills solid accent as the step activates */}
             <motion.span
               style={{ scale: iconScale }}
-              className="relative shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-[var(--radius-md)] bg-[var(--color-bg-accent-tint)] ring-1 ring-[var(--color-content-accent)]/15 overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105"
+              className="relative shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-[var(--radius-md)] bg-[var(--color-bg-accent-tint)] ring-1 ring-[color-mix(in_srgb,var(--color-content-accent)_15%,transparent)] overflow-hidden transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-105"
             >
               <motion.span
                 style={{ opacity: active }}
@@ -618,8 +699,7 @@ function StepCard({
               </p>
             </div>
           </div>
-        </motion.div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -654,8 +734,6 @@ function HowItWorks() {
   return (
     <section id="how" className="relative overflow-hidden py-28 md:py-40 scroll-mt-8">
       {/* Ambient side glow */}
-      <div className="pointer-events-none absolute top-1/3 -left-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.10),transparent_70%)]" />
-
       <div className="relative max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-14 lg:gap-20">
         {/* Left, sticky editorial heading */}
         <div className="lg:sticky lg:top-24 self-start">
@@ -665,7 +743,7 @@ function HowItWorks() {
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.7, ease: EASE }}
           >
-            <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+            <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
               How it works
             </div>
@@ -702,7 +780,7 @@ function HowItWorks() {
           <div className="pointer-events-none absolute left-[2.85rem] top-6 bottom-6 w-px bg-[var(--color-border-medium)] hidden md:block" />
           <motion.div
             style={{ scaleY: fill, transformOrigin: 'top' }}
-            className="pointer-events-none absolute left-[2.85rem] top-6 bottom-6 w-px bg-gradient-to-b from-[var(--color-content-accent)] to-[var(--color-content-accent)]/40 hidden md:block"
+            className="pointer-events-none absolute left-[2.85rem] top-6 bottom-6 w-px bg-gradient-to-b from-[var(--color-content-accent)] to-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)] hidden md:block"
           />
           <div className="flex flex-col gap-6">
             {STEPS.map((step, i) => (
@@ -722,11 +800,38 @@ function HowItWorks() {
 }
 
 function SplitLedgerSection() {
+  const subscriptionCardRef = useRef<HTMLDivElement>(null);
   const payouts = [
     { name: 'Project owner', percentage: '70%', amount: '$7.00' },
     { name: 'Community manager', percentage: '20%', amount: '$2.00' },
     { name: 'Komunify platform', percentage: '10%', amount: '$1.00' },
   ];
+
+  const handleSubscriptionCardPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+
+    e.currentTarget.style.setProperty('--tilt-x', `${-py * 12}deg`);
+    e.currentTarget.style.setProperty('--tilt-y', `${px * 12}deg`);
+    e.currentTarget.style.setProperty('--holo-x', `${(px + 0.5) * 100}%`);
+    e.currentTarget.style.setProperty('--holo-y', `${(py + 0.5) * 100}%`);
+    e.currentTarget.style.setProperty('--shadow-x', `${-px * 10}px`);
+    e.currentTarget.style.setProperty('--shadow-y', `${py * -10 + 2}px`);
+    e.currentTarget.style.setProperty('--holo-o', '1');
+  };
+
+  const handleSubscriptionCardPointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    e.currentTarget.style.setProperty('--tilt-x', '0deg');
+    e.currentTarget.style.setProperty('--tilt-y', '0deg');
+    e.currentTarget.style.setProperty('--shadow-x', '0px');
+    e.currentTarget.style.setProperty('--shadow-y', '2px');
+    e.currentTarget.style.setProperty('--holo-o', '0');
+  };
 
   return (
     <section id="split" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
@@ -738,9 +843,9 @@ function SplitLedgerSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="max-w-3xl mx-auto text-center"
+          className="relative z-10 max-w-3xl mx-auto text-center"
         >
-          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+          <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
             Automatic split
           </div>
@@ -763,21 +868,44 @@ function SplitLedgerSection() {
           transition={{ delay: 0.12, duration: 0.8, ease: EASE }}
           className="relative mt-14 md:mt-16 grid grid-cols-1 lg:grid-cols-[1fr_7rem_1fr] gap-8 lg:gap-0 items-stretch"
         >
-          <div className="relative z-10 p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.07] ring-1 ring-[rgba(250,214,87,0.3)] shadow-[0_0_24px_rgba(250,214,87,0.35)]">
-            <div className="h-full min-h-72 rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border border-[var(--color-content-accent)]/25 px-7 py-8 md:px-9 md:py-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] flex flex-col justify-between">
-              <div>
-                <p className="text-[11px] tracking-[0.22em] text-[var(--color-content-accent)]">
-                  YOUR SUBSCRIPTION
-                </p>
-                <p className="mt-7 font-serif text-[3.2rem] md:text-[4rem] leading-none tracking-tight text-[var(--color-content-primary)]">
-                  $10 <span className="text-[var(--color-content-accent)]">USDC</span>
-                </p>
-                <p className="mt-3 text-[14px] text-[var(--color-content-secondary)]">per month</p>
-              </div>
-              <span className="mt-10 self-start inline-flex rounded-full border border-[var(--color-content-accent)]/20 bg-[var(--color-bg-accent-tint)] px-3 py-1.5 font-mono text-[11px] tracking-wide text-[var(--color-content-accent)]/80">
-                29d91130…f96a78
-              </span>
+          <div
+            ref={subscriptionCardRef}
+            onPointerMove={handleSubscriptionCardPointerMove}
+            onPointerLeave={handleSubscriptionCardPointerLeave}
+            className="group relative z-10 h-full min-h-72 card-standard px-7 py-8 md:px-9 md:py-10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] flex flex-col justify-between overflow-clip"
+            style={{
+              transform: 'perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))',
+              transformStyle: 'preserve-3d',
+              willChange: 'transform',
+              transition: 'transform 0.15s ease-out, box-shadow 0.15s ease-out',
+              boxShadow: 'var(--shadow-x, 0px) var(--shadow-y, 2px) 12px 0 rgba(0,0,0,0.35)',
+            }}
+          >
+            <div>
+              <p className="text-[11px] tracking-[0.22em] text-[var(--color-content-accent)]">
+                YOUR SUBSCRIPTION
+              </p>
+              <p className="mt-7 font-serif text-[3.2rem] md:text-[4rem] leading-none tracking-tight text-[var(--color-content-primary)]">
+                $10 <span className="text-[var(--color-content-accent)]">USDC</span>
+              </p>
+              <p className="mt-3 text-[14px] text-[var(--color-content-secondary)]">per month</p>
             </div>
+            <span className="mt-10 self-start inline-flex rounded-full border border-[color-mix(in_srgb,var(--color-content-accent)_20%,transparent)] bg-[var(--color-bg-accent-tint)] px-3 py-1.5 font-mono text-[11px] tracking-wide text-[color-mix(in_srgb,var(--color-content-accent)_80%,transparent)]">
+              29d91130…f96a78
+            </span>
+            <div aria-hidden className="card-selected-overlay -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-[inherit]"
+              style={{
+                zIndex: 4,
+                mixBlendMode: 'overlay',
+                opacity: 'var(--holo-o, 0)',
+                transition: 'opacity 0.3s',
+                background:
+                  'radial-gradient(circle at var(--holo-x, 50%) var(--holo-y, 50%), rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.3) 10%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0.15) 30%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 60%, transparent 80%)',
+              }}
+            />
           </div>
 
           <div className="hidden lg:block relative">
@@ -813,6 +941,9 @@ function SplitLedgerSection() {
                 />
               ))}
               <circle cx={2} cy={150} r={3} fill="#fad657" />
+              <circle cx={98} cy={50} r={3} fill="#fad657" />
+              <circle cx={98} cy={150} r={3} fill="#fad657" />
+              <circle cx={98} cy={250} r={3} fill="#fad657" />
             </svg>
           </div>
 
@@ -824,15 +955,13 @@ function SplitLedgerSection() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ delay: 0.18 + index * 0.08, duration: 0.7, ease: EASE }}
-                className="relative p-1 rounded-[1.4rem] bg-[var(--color-content-accent)]/[0.035] ring-1 ring-[rgba(250,214,87,0.1)]"
+                className="relative card-standard px-5 py-5 flex items-center justify-between gap-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]"
               >
-                <div className="rounded-[calc(1.4rem-0.25rem)] bg-[var(--color-bg-elevated)] border border-[var(--color-border-medium)] px-5 py-5 flex items-center justify-between gap-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]">
-                  <div>
-                    <p className="font-serif text-[1.05rem] text-[var(--color-content-primary)]">{payout.name}</p>
-                    <p className="mt-1 text-[13px] text-[var(--color-content-secondary)]">{payout.amount}</p>
-                  </div>
-                  <p className="font-serif text-[2rem] leading-none text-[var(--color-content-accent)]">{payout.percentage}</p>
+                <div>
+                  <p className="font-serif text-[1.05rem] text-[var(--color-content-primary)]">{payout.name}</p>
+                  <p className="mt-1 text-[13px] text-[var(--color-content-secondary)]">{payout.amount}</p>
                 </div>
+                <p className="font-serif text-[2rem] leading-none text-[var(--color-content-accent)]">{payout.percentage}</p>
               </motion.div>
             ))}
           </div>
@@ -846,26 +975,61 @@ const PARTNER_COMMUNITIES = [
   {
     initial: 'D',
     name: 'Dev Web3 Bandung',
+    logo: '/communities/dev-web3-bandung.png',
     description: 'Builder workshops, Soroban study group, and bootcamp recordings.',
-    members: '+2.4K members',
+    badge: '+2.4K members',
   },
   {
     initial: 'S',
-    name: 'Stellar ID Collective',
-    description: 'Office hours, ecosystem playbook, and early job-board access.',
-    members: '+1.8K members',
+    name: 'Sawargy',
+    logo: '/communities/sawargy.png',
+    description: 'Design and freelance collective: client playbooks, portfolio reviews, and working sessions.',
+    badge: 'Pilot partner',
   },
   {
-    initial: 'C',
-    name: 'Circolo Creative Lab',
-    description: 'Co-working passes, creative ops classes, and event vouchers.',
-    members: '+3.1K members',
+    initial: 'S',
+    name: 'Serenity',
+    logo: '/communities/serenity.webp',
+    description: 'Community benefits and member events, onboarding with the first Bandung pilots.',
+    badge: 'Pilot partner',
+  },
+  {
+    initial: 'M',
+    name: 'Manexus',
+    logo: '/communities/manexus.png',
+    description: 'Builder community joining the pilot cohort with member resources and events.',
+    badge: 'Pilot partner',
+  },
+];
+
+const PERKS = [
+  {
+    icon: Crown,
+    title: 'Premium access',
+    body: 'Members-only channels, office hours, and early event access across every partner.',
+  },
+  {
+    icon: BadgePercent,
+    title: 'Member discounts',
+    body: 'Subscriber pricing on partner products, services, and tokenized listings.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Learning resources',
+    body: 'Premium educational content: bootcamp recordings, playbooks, and courses.',
+  },
+  {
+    icon: Layers,
+    title: 'Digital assets',
+    body: 'Voucher-like tokenized items and digital resources, verifiable on-chain.',
   },
 ];
 
 function PartnersSection() {
   return (
     <section id="communities" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
+      <SectionFlourish lines="lower" />
+
       <div className="relative max-w-7xl mx-auto px-6 md:px-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -874,19 +1038,21 @@ function PartnersSection() {
           transition={{ duration: 0.7, ease: EASE }}
           className="text-center"
         >
-          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+          <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
-            Partner communities
+            Communities + perks
           </div>
           <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.4rem] md:text-[3.2rem] text-[var(--color-content-primary)]">
             Real communities,{' '}
             <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
-              day one.
+              real perks.
             </span>
           </h2>
         </motion.div>
 
-        <div className="mt-14 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <p className="mt-14 md:mt-16 text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-secondary)]">Our communities</p>
+
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {PARTNER_COMMUNITIES.map((community, index) => (
             <motion.article
               key={community.name}
@@ -894,11 +1060,15 @@ function PartnersSection() {
               whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
-              className="group p-1.5 rounded-[2rem] bg-[var(--color-content-accent)]/[0.04] ring-1 ring-[rgba(250,214,87,0.1)] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] hover:ring-[rgba(250,214,87,0.3)] hover:bg-[var(--color-content-accent)]/[0.07]"
+              className="group card-standard card-hoverable h-full px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] flex flex-col"
             >
-              <div className="h-full min-h-80 rounded-[calc(2rem-0.375rem)] bg-[var(--color-bg-elevated)] border border-[var(--color-border-medium)] px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] flex flex-col">
-                <div className="w-14 h-14 shrink-0 rounded-full bg-[var(--color-bg-accent-tint)] ring-1 ring-[var(--color-content-accent)]/25 flex items-center justify-center font-serif text-[1.35rem] text-[var(--color-content-accent)]">
-                  {community.initial}
+              <div className="relative z-[1] flex flex-1 flex-col">
+                <div className="w-14 h-14 shrink-0 rounded-full overflow-hidden ring-1 ring-[color-mix(in_srgb,var(--color-content-accent)_25%,transparent)]">
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}${community.logo}`}
+                    alt={community.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <h3 className="mt-6 font-serif text-[1.35rem] leading-tight text-[var(--color-content-primary)]">
                   {community.name}
@@ -906,20 +1076,300 @@ function PartnersSection() {
                 <p className="mt-3 text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
                   {community.description}
                 </p>
-                <span className="mt-5 self-start inline-flex rounded-full border border-[var(--color-content-accent)]/20 bg-[var(--color-bg-accent-tint)] px-3 py-1.5 text-[11px] tracking-wide text-[var(--color-content-accent)]">
-                  {community.members}
-                </span>
-                <div className="mt-auto pt-7 border-t border-[var(--color-border-medium)]">
-                  <Link
-                    href="/dashboard"
-                    className="text-[13px] text-[var(--color-content-secondary)] group-hover:text-[var(--color-content-accent)] transition-colors"
-                  >
-                    Explore benefits →
-                  </Link>
-                </div>
               </div>
             </motion.article>
           ))}
+        </div>
+
+        <p className="mt-14 text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-secondary)]">What you unlock</p>
+
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {PERKS.map((perk, index) => {
+            const Icon = perk.icon;
+
+            return (
+              <motion.article
+                key={perk.title}
+                initial={{ opacity: 0, y: 32, filter: 'blur(6px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
+                className="group card-standard card-hoverable h-full px-6 py-6 md:px-7 md:py-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)]"
+              >
+                <div className="relative z-[1]">
+                  <div className="w-11 h-11 rounded-[var(--radius-md)] bg-[var(--color-bg-accent-tint)] ring-1 ring-[color-mix(in_srgb,var(--color-content-accent)_15%,transparent)] flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-[var(--color-content-accent)]" />
+                  </div>
+                  <h3 className="mt-6 font-serif text-[1.1rem] leading-tight text-[var(--color-content-primary)]">
+                    {perk.title}
+                  </h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-content-secondary)]">{perk.body}</p>
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RoadmapSection() {
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const raw = useMotionValue(0);
+  useEffect(() => {
+    const update = () => {
+      const el = timelineRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const p = (0.85 * vh - rect.top) / (0.55 * vh);
+      raw.set(Math.min(1, Math.max(0, p)));
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [raw]);
+  const fill = useSpring(raw, { stiffness: 90, damping: 30, restDelta: 0.001 });
+
+  const phases = [
+    {
+      marker: 'Q3 2026',
+      descriptor: 'LIVE ON TESTNET',
+      title: 'The full loop works',
+      body: 'Wallet connect, subscription payment, automatic 70/20/10 split, and a live on-chain dashboard. Deployed and verifiable today.',
+      nodeOpacity: 'opacity-100',
+    },
+    {
+      marker: 'Q4 2026',
+      descriptor: 'PILOTS',
+      title: 'First partner communities',
+      body: 'Onboarding pilot communities in Bandung, starting with the ones we run ourselves. Real members, real benefits, real payouts.',
+      nodeOpacity: 'opacity-[0.55]',
+    },
+    {
+      marker: '2027',
+      descriptor: 'THE RAILS',
+      title: 'Every chapter runs on Komunify',
+      body: 'Self-serve partner onboarding, multi-tier subscriptions, configurable splits. Builder collectives get memberships, bounty splits, and reporting out of the box.',
+      nodeOpacity: 'opacity-30',
+    },
+  ];
+
+  return (
+    <section id="roadmap" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: EASE }}
+        >
+          <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
+            WHERE THIS GOES
+          </div>
+          <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.4rem] md:text-[3.2rem] text-[var(--color-content-primary)]">
+            Testnet today,{' '}
+            <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
+              rails tomorrow.
+            </span>
+          </h2>
+        </motion.div>
+
+        <div ref={timelineRef} className="relative mt-12 md:mt-14 grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+          <div aria-hidden="true" className="hidden md:block absolute top-0 inset-x-0 h-px bg-[var(--color-border-medium)]" />
+          <motion.div
+            aria-hidden="true"
+            style={{ scaleX: fill }}
+            className="hidden md:block absolute top-0 inset-x-0 h-px origin-left bg-gradient-to-r from-[var(--color-content-accent)] to-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)]"
+          />
+          {phases.map((phase, index) => (
+            <motion.article
+              key={phase.marker}
+              initial={{ opacity: 0, y: 32, filter: 'blur(6px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
+              className="relative border-t border-[var(--color-border-medium)] pt-6 md:border-t-0"
+            >
+              <span
+                aria-hidden="true"
+                className={`absolute -top-[5px] left-0 w-[9px] h-[9px] rounded-full bg-[var(--color-content-accent)] ${phase.nodeOpacity}`}
+              />
+              <p className="text-[26px] md:text-[30px] font-semibold tracking-[0.01em] text-[var(--color-content-accent)] leading-none">
+                {phase.marker}
+              </p>
+              <p className="mt-2.5 text-[11px] tracking-[2px] uppercase text-[var(--color-content-secondary)]">
+                {phase.descriptor}
+              </p>
+              <h3 className="mt-3 font-serif text-[1.35rem] font-semibold leading-tight text-[var(--color-content-primary)]">
+                {phase.title}
+              </h3>
+              <p className="mt-3 max-w-[44ch] text-[13px] leading-relaxed text-[var(--color-content-secondary)]">
+                {phase.body}
+              </p>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TeamSection() {
+  const members = [
+    {
+      initial: 'I',
+      name: 'Imam Abullaisi',
+      role: 'Product + Design',
+      community: 'Sawargy',
+      photo: 'https://github.com/abullaisi.png',
+      linkedin: 'https://www.linkedin.com/in/abullaisi/',
+      x: 'https://x.com/abullaisi',
+      niche: 'Freelance & design community',
+      memberCount: '950+ members',
+    },
+    {
+      initial: 'J',
+      name: 'Jason Stanley',
+      role: 'Engineering',
+      community: 'Dev Web3 Bandung',
+      photo: null,
+      linkedin: 'https://www.linkedin.com/in/jason-stanley-yoman/',
+      x: 'https://x.com/jason_yomann',
+      niche: 'Web3 builders & hackathons',
+      memberCount: null,
+    },
+    {
+      initial: 'F',
+      name: 'Faris Abdurrahman',
+      role: 'Product Manager',
+      community: 'Manexus',
+      photo: null,
+      linkedin: 'https://www.linkedin.com/in/faris-abdurrahman/',
+      x: null,
+      niche: 'Web3 + AI community hub',
+      memberCount: null,
+    },
+    {
+      initial: 'N',
+      name: 'Qatrun Nada',
+      role: 'Business + Partnerships',
+      community: 'Serenity',
+      photo: null,
+      linkedin: 'https://www.linkedin.com/in/nadadv/',
+      x: null,
+      niche: null,
+      memberCount: null,
+    },
+  ];
+
+  return (
+    <section id="team" className="relative py-24 md:py-36 scroll-mt-24 overflow-hidden">
+      <SectionFlourish lines="upper" />
+
+      <div className="relative max-w-7xl mx-auto px-6 md:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="relative z-10 md:flex md:items-end md:justify-between"
+        >
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
+              THE TEAM
+            </div>
+            <h2 className="mt-7 font-serif font-medium tracking-tight leading-[1.05] text-[2.4rem] md:text-[3.2rem] text-[var(--color-content-primary)]">
+              Four builders,{' '}
+              <span className="bg-gradient-to-r from-[#fef0bf] via-[#fad657] to-[#b08d3e] bg-clip-text text-transparent">
+                four communities.
+              </span>
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-[var(--color-content-secondary)]">
+              We each run a community. We're building the tool we need.
+            </p>
+          </div>
+        </motion.div>
+
+        <div className="relative z-10 mt-12 md:mt-14">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-8">
+            {members.map((member, index) => (
+              <motion.div
+                key={member.name}
+                initial={{ opacity: 0, y: 32, filter: 'blur(6px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ delay: index * 0.08, duration: 0.8, ease: EASE }}
+              >
+                <div className="relative aspect-[4/5] w-full rounded-[4px] overflow-hidden border border-[var(--color-border-medium)]">
+                  <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] flex items-center justify-center text-5xl font-extrabold text-[var(--color-content-accent)]">
+                    {member.initial}
+                  </div>
+                  {member.photo && (
+                    <img
+                      src={member.photo.startsWith('http') ? member.photo : `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}${member.photo}`}
+                      alt={member.name}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  )}
+                </div>
+                <div className="mt-4 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[15px] font-semibold text-[var(--color-content-primary)]">
+                      {member.name}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {member.linkedin ? (
+                        <a
+                          href={member.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${member.name} on LinkedIn`}
+                          className="w-8 h-8 border border-[var(--color-border-medium)] rounded-lg flex items-center justify-center text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
+                        >
+                          <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]" fill="currentColor" aria-hidden="true">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zM7.119 20.452H3.555V9h3.564v11.452z" />
+                          </svg>
+                        </a>
+                      ) : null}
+                      {member.x ? (
+                        <a
+                          href={member.x}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${member.name} on X`}
+                          className="w-8 h-8 border border-[var(--color-border-medium)] rounded-lg flex items-center justify-center text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
+                        >
+                          <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]" fill="currentColor" aria-hidden="true">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                          </svg>
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                  <p className="text-[12px] text-[var(--color-content-secondary)]">{member.role}</p>
+                  <p className="text-[11px] tracking-[2px] text-[var(--color-content-accent)]">
+                    {`RUNS ${member.community.toUpperCase()}`}
+                  </p>
+                  {member.niche ? (
+                    <p className="text-[12px] text-[var(--color-content-secondary)]">{member.niche}</p>
+                  ) : null}
+                  {member.memberCount ? (
+                    <p className="text-[12px] text-[var(--color-content-secondary)]">{member.memberCount}</p>
+                  ) : null}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -969,57 +1419,53 @@ function FAQItem({
       transition={{ delay: index * 0.06, duration: 0.8, ease: EASE }}
       className="group"
     >
-      {/* Double-bezel: outer machined shell */}
       <div
-        className={`p-1.5 rounded-[1.75rem] ring-1 transition-colors duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
+        className={`relative rounded-[4px] transition-colors duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.04),0_10px_28px_rgba(0,0,0,0.30)] overflow-hidden ${
           isOpen
-            ? 'bg-[var(--color-content-accent)]/[0.07] ring-[rgba(250,214,87,0.3)]'
-            : 'bg-[var(--color-content-accent)]/[0.03] ring-[rgba(250,214,87,0.1)] hover:ring-[rgba(250,214,87,0.2)]'
+            ? 'card-selected'
+            : 'card-standard card-hoverable'
         }`}
       >
-        {/* Inner core */}
-        <div className="relative rounded-[calc(1.75rem-0.375rem)] bg-[var(--color-bg-elevated)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.04)] overflow-hidden">
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={isOpen}
-            className="w-full flex items-center justify-between gap-6 px-6 py-5 md:px-7 md:py-6 text-left bg-transparent border-none rounded-none"
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          className="relative z-[1] w-full flex items-center justify-between gap-6 px-6 py-5 md:px-7 md:py-6 text-left bg-transparent border-none rounded-none"
+        >
+          <span className="font-serif text-[1.05rem] md:text-[1.2rem] leading-snug text-[var(--color-content-primary)]">
+            {item.question}
+          </span>
+          <span
+            className={`relative shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full ring-1 transition-colors duration-500 ${
+              isOpen
+                ? 'bg-[var(--color-content-accent)] ring-[color-mix(in_srgb,var(--color-content-accent)_40%,transparent)]'
+                : 'bg-[var(--color-bg-accent-tint)] ring-[color-mix(in_srgb,var(--color-content-accent)_15%,transparent)]'
+            }`}
           >
-            <span className="font-serif text-[1.05rem] md:text-[1.2rem] leading-snug text-[var(--color-content-primary)]">
-              {item.question}
-            </span>
-            <span
-              className={`relative shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full ring-1 transition-colors duration-500 ${
-                isOpen
-                  ? 'bg-[var(--color-content-accent)] ring-[var(--color-content-accent)]/40'
-                  : 'bg-[var(--color-bg-accent-tint)] ring-[var(--color-content-accent)]/15'
-              }`}
+            <motion.span
+              animate={{ rotate: isOpen ? 180 : 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              className={isOpen ? 'text-[var(--color-content-on-accent)]' : 'text-[var(--color-content-accent)]'}
             >
-              <motion.span
-                animate={{ rotate: isOpen ? 180 : 0 }}
-                transition={{ duration: 0.4, ease: EASE }}
-                className={isOpen ? 'text-[var(--color-content-on-accent)]' : 'text-[var(--color-content-accent)]'}
-              >
-                <ChevronDown size={16} strokeWidth={1.5} />
-              </motion.span>
-            </span>
-          </button>
-          <AnimatePresence initial={false}>
-            {isOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.4, ease: EASE }}
-                className="overflow-hidden"
-              >
-                <p className="px-6 md:px-7 pb-6 max-w-2xl text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
-                  {item.answer}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              <ChevronDown size={16} strokeWidth={1.5} />
+            </motion.span>
+          </span>
+        </button>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              className="relative z-[1] overflow-hidden"
+            >
+              <p className="px-6 md:px-7 pb-6 max-w-2xl text-[14px] leading-relaxed text-[var(--color-content-secondary)]">
+                {item.answer}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
@@ -1030,8 +1476,26 @@ function FAQSection() {
 
   return (
     <section id="faq" className="relative py-24 md:py-40 scroll-mt-24 overflow-hidden">
+      {/* Quiet echo, balances the composition bottom-right, same visual DNA */}
+      <ParallaxLayer depth={50} className="hidden lg:block absolute bottom-4 right-[3%] w-64 h-64 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, duration: 1.1, ease: [0.19, 1, 0.22, 1] }}
+          className="w-full h-full"
+        >
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 11, ease: 'easeInOut', repeat: Infinity }}
+            className="w-full h-full"
+          >
+            <OrbitalEmblem uid="echo" />
+          </motion.div>
+        </motion.div>
+      </ParallaxLayer>
+
       {/* Ambient side glow, mirrors the How-it-works section's atmosphere */}
-      <div className="pointer-events-none absolute top-1/4 -right-40 w-[40rem] h-[40rem] rounded-full blur-[120px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.08),transparent_70%)]" />
+      <div className="pointer-events-none absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2 w-[110rem] h-[110rem] rounded-full blur-[60px] bg-[radial-gradient(closest-side,rgba(250,214,87,0.15),transparent_70%)]" />
 
       <div className="relative max-w-3xl mx-auto px-6 md:px-10">
         <motion.div
@@ -1041,7 +1505,7 @@ function FAQSection() {
           transition={{ duration: 0.7, ease: EASE }}
           className="text-center"
         >
-          <div className="inline-flex items-center gap-2 border border-[var(--color-content-accent)]/35 rounded-full pl-3 pr-4 py-1.5 bg-[var(--color-content-accent)]/[0.06] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
+          <div className="inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-1.5 bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] text-[11px] tracking-[0.2em] uppercase text-[var(--color-content-accent)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-content-accent)]" />
             FAQ
           </div>
@@ -1088,8 +1552,11 @@ function ClosingCTASection() {
         </div>
 
         <Link href="/dashboard" className="md:ml-auto shrink-0 self-start md:self-auto">
-          <button className="bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide px-7 py-3.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
+          <button className="group inline-flex items-center gap-3 bg-gradient-to-br from-[#fce27e] via-[#fad657] to-[#c9a83f] text-[var(--color-content-on-accent)] font-semibold text-[14px] tracking-wide pl-7 pr-2.5 py-2.5 rounded-full transition-all hover:shadow-[0_10px_40px_-6px_rgba(250,214,87,0.75)] hover:translate-y-[-1px] shadow-[0_8px_30px_-8px_rgba(250,214,87,0.55)]">
             Get early access
+            <span className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px]">
+              →
+            </span>
           </button>
         </Link>
       </motion.div>
@@ -1101,29 +1568,60 @@ function ClosingCTASection() {
 function Footer() {
   return (
     <footer className="border-t border-[var(--color-border-medium)] py-12 px-6 sm:px-12 bg-[var(--color-bg-elevated)]">
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="text-[var(--color-content-secondary)] text-sm text-center sm:text-left">
-          © 2026 Komunify. Built on{' '}
-          <a href="https://stellar.org" target="_blank" rel="noopener noreferrer" className="text-[var(--color-content-accent)] hover:underline">
-            Stellar
+      <div className="max-w-6xl mx-auto flex flex-col items-center gap-6">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="text-[var(--color-content-secondary)] text-sm text-center sm:text-left">
+            © 2026 Komunify. Built on{' '}
+            <a href="https://stellar.org" target="_blank" rel="noopener noreferrer" className="text-[var(--color-content-accent)] hover:underline">
+              Stellar
+            </a>
+          </div>
+          <div className="flex gap-6 text-sm text-[var(--color-content-secondary)]">
+            <a href="https://github.com/yoms07/stellar-hackathon" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
+              GitHub
+            </a>
+            <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
+              Documentation
+            </a>
+            <a href="/dashboard" className="hover:text-[var(--color-content-accent)] transition-colors">
+              App
+            </a>
+          </div>
+          <div className="flex items-center gap-2">
+          <a
+            href="https://x.com/komunifyapp"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Komunify on X"
+            className="w-8 h-8 border border-[var(--color-border-medium)] rounded-lg flex items-center justify-center text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]" fill="currentColor" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
           </a>
-        </div>
-        <div className="flex gap-6 text-sm text-[var(--color-content-secondary)]">
-          <a href="https://github.com/yoms07/stellar-hackathon" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
-            GitHub
+          <a
+            href="https://instagram.com/komunify.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Komunify on Instagram"
+            className="w-8 h-8 border border-[var(--color-border-medium)] rounded-lg flex items-center justify-center text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]" fill="currentColor" aria-hidden="true">
+              <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm10.5 1.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+            </svg>
           </a>
-          <a href="#" className="hover:text-[var(--color-content-accent)] transition-colors">
-            Documentation
+          <a
+            href="https://t.me/komunify"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Komunify on Telegram"
+            className="w-8 h-8 border border-[var(--color-border-medium)] rounded-lg flex items-center justify-center text-[var(--color-content-secondary)] hover:text-[var(--color-content-accent)] transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px]" fill="currentColor" aria-hidden="true">
+              <path d="M21.944 2.506a1.5 1.5 0 0 0-1.533-.13L2.9 10.254a1.5 1.5 0 0 0 .122 2.786l4.535 1.518 1.774 5.408a1.5 1.5 0 0 0 2.607.47l2.574-3.078 4.476 3.268a1.5 1.5 0 0 0 2.36-.92l1.137-15.78a1.5 1.5 0 0 0-.541-1.42zM9.051 13.217l8.683-6.018-6.939 7.383-.682 2.932-1.062-4.297zm10.331 5.121-5.128-3.745-2.08 2.488.334-1.435 7.82-8.32-.946 11.012z" />
+            </svg>
           </a>
-          <a href="/dashboard" className="hover:text-[var(--color-content-accent)] transition-colors">
-            App
-          </a>
-          <a href="https://t.me/komunify" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
-            Telegram
-          </a>
-          <a href="https://www.instagram.com/komunify.app/" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-content-accent)] transition-colors">
-            Instagram
-          </a>
+          </div>
         </div>
       </div>
     </footer>
@@ -1134,15 +1632,15 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
-      <Header />
       <HeroSection />
       <HowItWorks />
       <SplitLedgerSection />
       <PartnersSection />
+      <RoadmapSection />
+      <TeamSection />
       <FAQSection />
       <ClosingCTASection />
       <Footer />
-      <ScrollProgress />
     </div>
   );
 }

@@ -96,11 +96,12 @@ If the team explicitly says "copy the modal from Stellar Wallets Kit" or "use pa
 >
 > Asset locations: repo `brand/komunify-split-v4-board.png` (served copy at `packages/dapp/public/brand/`), local mirror `~/Documents/komunify-docs/brand/`, source canvas `prj_ns715xkhbjdb11sgxy4nfs5qg589zb6z` ([media URL](https://media.flora.ai/node-inputs/2026/7/5/anonymous/99306dfc-c2a2-4710-a9a7-8d2d0f46d1b8.png)).
 > **The entire theme layer stays isolated in CSS custom properties.** Any future re-theme remains a variable swap in `:root`, not a refactor. Do not hardcode any hex value in a component; raw colors outside the token block are theme debt.
-> Board-derived motifs sanctioned for use: (1) numbered section labels with a gold number and mono uppercase text ("01 LOGO" pattern), (2) the two-tone headline (line one cream, line two gold, per "One payment. / Every community."), (3) the gold flow-glow (`rgba(250,214,87,0.35)`) reserved EXCLUSIVELY for the split-flow visual, never for buttons or decoration.
+> **Tailwind v3 alpha trap (found 2026-07-15, three bugs in one day):** never write a slash-opacity modifier on an arbitrary `var()` color (`border-[var(--x)]/35`, `ring-[var(--x)]/25`, `text-[var(--x)]/[0.06]`). Tailwind v3 cannot compile it and silently falls back to defaults: gray-200 borders, blue-500 rings, inherited text color. Write `border-[color-mix(in_srgb,var(--x)_35%,transparent)]` instead. This applies until the app moves to Tailwind v4.
+> Board-derived motifs sanctioned for use: (1) numbered section labels with a gold number and uppercase sans text ("01 LOGO" pattern; sans per the 2026-07-15 mono rule), (2) the two-tone headline (line one cream, line two gold, per "One payment. / Every community."), (3) the gold flow-glow (`rgba(250,214,87,0.35)`) reserved EXCLUSIVELY for the split-flow visual, never for buttons or decoration, (4) the hero medallion core glyph is the official Stellar symbol in black (`packages/web/public/stellar-symbol.png`, sourced from Wikimedia Commons `File:Stellar_Symbol.png`, adopted 2026-07-15); it replaces the earlier double-circle mark everywhere on the landing. Do not redraw the double circle; reference the asset with the `NEXT_PUBLIC_BASE_PATH` prefix, (5) section eyebrows are borderless pills (updated 2026-07-15, per Imam): accent-tint background at 6 percent, gold dot, UPPERCASE gold text at 11px with 0.2em tracking, rounded-full, and NO border ring. Copy stays short: 2 to 4 words per phrase, cut filler words before adding width (the hero badge is the reference for maximum length). The earlier gold 35 percent border is retired on every eyebrow, (6) primary gold CTAs are pill buttons with a trailing circular icon chip: label plus a `w-8 h-8 rounded-full bg-black/10` arrow chip that nudges on hover ("Start now" is the reference; adopted for all solid-gold CTAs 2026-07-15). Secondary and outline buttons carry no icon at all: label only (tightened 2026-07-15, per Imam; the earlier inline-arrow allowance is retired).
 
 Komunify handles other people's subscription money. The register is dark, calm, financial trust. A warm true-black canvas (board-sampled, deliberately not blue-tinted), elevated card surfaces one step lighter, quiet borders, and exactly one accent (bright yellow-gold `#fad657`) doing all the work: the primary action, the logo mark's first letter, the input focus ring. Success, warning, and danger colors appear only as status feedback, never as decoration.
 
-The app is a single centered 520px column (`.shell`) of stacked cards. Density is moderate: 20px card padding, 16px gaps, generous line-height. Hierarchy comes from type weight and the mono UPPERCASE label signature, not from extra colors or heavy shadows. Numbers (balances, amounts) always render tabular so digits align.
+The app is a single centered 520px column (`.shell`) of stacked cards. Density is moderate: 20px card padding, 16px gaps, generous line-height. Hierarchy comes from type weight and the UPPERCASE label signature, not from extra colors or heavy shadows. Numbers (balances, amounts) always render tabular so digits align.
 
 **Key characteristics:**
 
@@ -204,13 +205,16 @@ Documented for the vote. `split` is the live default. Each renders as a `data-th
 ### Font stacks
 
 - **Body (sans):** `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif`. Set globally on `body`.
-- **Mono (labels + code):** `ui-monospace, SFMono-Regular, Menlo, monospace`.
+- **Mono (blockchain data only):** `ui-monospace, SFMono-Regular, Menlo, monospace`. Reserved exclusively for on-chain data: tx hashes, wallet addresses, contract IDs, raw asset codes. Never for labels, captions, markers, or buttons.
 
-### The mono-uppercase-label signature
+### Monospace is blockchain data, not decoration (rule updated 2026-07-15)
 
-Micro-labels (`.label`) are 12px UPPERCASE with 0.06em tracking in `--color-content-secondary`, set in the mono stack. This mono-label-over-sans-body pairing is the Komunify type signature, inherited from the Agentic DS (which pairs mono UPPERCASE labels with a clean sans body; its serif headings are NOT adopted in v0, revisit only if STEMPEL wins).
+Monospace renders ONLY on-chain data: tx hashes, wallet addresses, contract IDs, raw asset codes, and similar identifiers. Everything else (micro-labels, section markers, time markers, captions, badges, buttons) is set in the sans stack.
 
-> **Drift resolved (2026-07-05):** `.label` in `src/App.css` now carries the mono stack. Do not add new labels in sans.
+Micro-labels (`.label`) are 12px UPPERCASE with 0.06em tracking in `--color-content-secondary`, set in the sans stack. The uppercase-label-over-sans-body pairing remains the Komunify type signature; the mono treatment is retired from it.
+
+> **Supersedes (2026-07-15, per Imam):** the 2026-07-05 "mono-uppercase-label signature" and its drift note ("do not add new labels in sans"). The reverse now holds: do not set new labels in mono. Mono on anything that is not on-chain data is drift; convert to sans on sight. Numbers (balances, amounts) still render tabular (`font-variant-numeric: tabular-nums`); tabular figures are independent of the mono stack.
+> **Propagation pending:** `.label` in the `packages/dapp` `src/App.css` still carries the mono stack from the 2026-07-05 note. Flipping it restyles Jason's dApp UI; needs team signoff per the Section 0 propagation protocol.
 
 ### Hierarchy
 
@@ -250,10 +254,23 @@ Base steps: **4, 8, 12, 16, 20, 32, 48** (px) as `--space-1` through `--space-7`
 |-------|-------|-------|
 | `--radius-sm` | 6px | code chips |
 | `--radius-md` | 9px | buttons, inputs |
-| `--radius-lg` | 14px | cards |
+| `--radius-card` | 4px | cards (standard card surface, adopted 2026-07-15; replaces `--radius-lg` for cards) |
+| `--radius-lg` | 14px | legacy large-surface step (no card uses it since 2026-07-15) |
 | `--radius-full` | 999px | pills |
 
-Four steps, no additions without a token-level discussion. The scale reads: chip < control < surface < pill.
+Five steps after the 2026-07-15 card standard (card < chip < control < large < pill); additions still require a token-level discussion.
+
+### Standard card surface (rule added 2026-07-15, per Imam)
+
+Every card renders the Closing-CTA-derived treatment: `--color-bg-elevated` background, 4px corners (`--radius-card`), and a vertical-fade border instead of a plain outline: 1px transparent border, elevated layer clipped to padding-box, and a border-box gradient `linear-gradient(180deg, var(--color-border-medium), color-mix(in srgb, var(--color-border-medium) 35%, transparent))` so the top edge reads full strength and the bottom fades (updated 2026-07-15, per Imam: the flat 1px border read as plain; the fade matches the footer treatment). Implemented as `.card-standard` in `packages/web/app/globals.css`. No gold-tinted bezel wrappers, no decorative outer rings, no accent-tint card backgrounds. Hover, selected, and scroll-active feedback all use the one gold gradient treatment below; never a flat gold border.
+
+> Retires the double-bezel pattern (outer `p-1.5` accent-tint wrapper around an inner rounded core) previously used on the landing's step, split, partner, and FAQ cards. Scroll- or state-driven border color animation stays, applied directly to the card border. Media frames (hero demo shot) keep their gradient hairline but square to the 4px standard.
+
+**Selected card state (added 2026-07-15, per Imam; precedent: Imam's EveryX variant-c selected cards).** A selected or active card layers gold onto the standard surface using the dual-background technique: `border: 1px solid transparent`, then one background layer clipped to padding-box and one to border-box.
+- Border gradient (border-box): `linear-gradient(135deg, rgba(250,214,87,0.55), rgba(250,214,87,0.12) 50%, rgba(250,214,87,0.45))`
+- Surface wash (padding-box, over `--color-bg-elevated`): `linear-gradient(180deg, rgba(250,214,87,0.10), rgba(250,214,87,0.03))`
+- Radius stays 4px. Implemented as `.card-selected` in `packages/web/app/globals.css`, with `.card-hoverable` providing the same treatment as a `::after` overlay that crossfades in on hover (gradients cannot tween; opacity can). Current consumers: FAQ open item (class toggle), step cards (opacity crossfade driven by scroll activation), partner cards (hover crossfade). Use these classes for any future selected/active/hover card state; do not invent per-section variants.
+> **Propagation pending:** the dApp `src/App.css` still styles `.card` with `--radius-lg` (14px). Flipping the dApp restyles Jason's app; needs team signoff per the Section 0 protocol.
 
 ---
 

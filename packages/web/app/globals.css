@@ -198,6 +198,64 @@ header {
   margin: 0 0 10px;
 }
 
+.card-selected {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(250,214,87,0.10), rgba(250,214,87,0.03)) padding-box,
+    linear-gradient(var(--color-bg-elevated), var(--color-bg-elevated)) padding-box,
+    linear-gradient(135deg, rgba(250,214,87,0.55), rgba(250,214,87,0.12) 50%, rgba(250,214,87,0.45)) border-box;
+}
+
+.card-selected-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(250,214,87,0.10), rgba(250,214,87,0.03)) padding-box,
+    linear-gradient(var(--color-bg-elevated), var(--color-bg-elevated)) padding-box,
+    linear-gradient(135deg, rgba(250,214,87,0.55), rgba(250,214,87,0.12) 50%, rgba(250,214,87,0.45)) border-box;
+}
+
+.card-standard {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background:
+    linear-gradient(var(--color-bg-elevated), var(--color-bg-elevated)) padding-box,
+    linear-gradient(180deg, var(--color-border-medium), color-mix(in srgb, var(--color-border-medium) 35%, transparent)) border-box;
+}
+
+.nav-shell {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--color-bg-elevated) 90%, transparent), color-mix(in srgb, var(--color-bg-elevated) 90%, transparent)) padding-box,
+    linear-gradient(180deg, var(--color-border-medium), color-mix(in srgb, var(--color-border-medium) 35%, transparent)) border-box;
+}
+
+.card-hoverable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 4px;
+  pointer-events: none;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(180deg, rgba(250,214,87,0.10), rgba(250,214,87,0.03)) padding-box,
+    linear-gradient(var(--color-bg-elevated), var(--color-bg-elevated)) padding-box,
+    linear-gradient(135deg, rgba(250,214,87,0.55), rgba(250,214,87,0.12) 50%, rgba(250,214,87,0.45)) border-box;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.card-hoverable:hover::after {
+  opacity: 1;
+}
+
 /* Horizontal layout */
 .row {
   display: flex;

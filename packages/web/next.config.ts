@@ -46,6 +46,12 @@ if (process.env.STATIC_EXPORT) {
   nextConfig.images = { unoptimized: true };
   if (process.env.BASE_PATH) {
     nextConfig.basePath = process.env.BASE_PATH;
+    // Keep client-side asset paths (e.g. logo src) in sync with basePath
+    // so builds can't silently ship root-relative URLs under a sub-path.
+    nextConfig.env = {
+      ...nextConfig.env,
+      NEXT_PUBLIC_BASE_PATH: process.env.BASE_PATH,
+    };
   }
 }
 
