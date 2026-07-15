@@ -814,6 +814,16 @@ button:active:not(:disabled), .btn:active { transform: scale(0.98); }
   button, .btn { transition: none; }
 }
 
-/* Brand logo mark (proper logo image next to the wordmark) */
-.logo { display: inline-flex; align-items: center; gap: 8px; }
-.logo-mark { height: 22px; width: auto; display: block; }
+/* Brand logo lockup (DESIGN.md): mark image + uppercase tracked wordmark, one row.
+   The gold K lives in the mark, never in the text. */
+a.logo, .topbar .logo, .sidenav .logo, .mobile-topbar .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.logo::first-letter { color: inherit; }
+.logo-mark { height: 26px; width: auto; display: block; }
