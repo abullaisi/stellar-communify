@@ -1589,7 +1589,7 @@ function Footer() {
           </div>
           <div className="flex items-center gap-2">
           <a
-            href="https://x.com/komunify.app"
+            href="https://x.com/komunifyapp"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Komunify on X"
@@ -1611,7 +1611,7 @@ function Footer() {
             </svg>
           </a>
           <a
-            href="https://t.me/komunify.app"
+            href="https://t.me/komunify"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Komunify on Telegram"
