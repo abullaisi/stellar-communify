@@ -382,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
     mtop.className = "mobile-topbar";
     mtop.innerHTML =
       '<button class="hamburger ghost" aria-label="Open menu" aria-expanded="false">' + ICON_MENU + '</button>' +
-      '<a class="logo" href="index.html">Komunify</a>';
+      '<a class="logo" href="index.html"><img src="logo-mark.png" alt="" class="logo-mark">Komunify</a>';
     appMain.insertBefore(mtop, appMain.firstChild);
 
     var hb = mtop.querySelector(".hamburger");
