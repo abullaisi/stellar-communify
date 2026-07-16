@@ -143,6 +143,28 @@ body {
   justify-content: flex-end;
 }
 
+/* Desktop uses sidebar-only chrome (prototype design): the top app bar is a
+   mobile-only fallback where there is no sidebar to hold wallet controls. */
+@media (min-width: 901px) {
+  .app-bar {
+    display: none;
+  }
+}
+
+/* Disconnect: a quiet link that warms to danger on hover. */
+.disconnect-link {
+  color: var(--color-content-secondary);
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+.disconnect-link:hover {
+  color: var(--color-content-danger);
+}
+.disconnect-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Header */
 header {
   text-align: center;

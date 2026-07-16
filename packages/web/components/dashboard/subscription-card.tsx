@@ -28,6 +28,8 @@ export function SubscriptionCard() {
   const [error, setError] = useState<string | null>(null);
 
   const faucetReady = !faucetAt.data || faucetAt.data === 0n || faucetAt.data * 1000n <= BigInt(Date.now());
+  const insufficientBalance =
+    balance.data !== undefined && config.data !== undefined && balance.data < config.data.price;
 
   async function handleFaucet() {
     setError(null);
@@ -97,7 +99,8 @@ export function SubscriptionCard() {
         <Button
           type="button"
           onClick={handleSubscribe}
-          disabled={subscribe.isPending || !!status.data?.isActive}
+          disabled={subscribe.isPending || !!status.data?.isActive || insufficientBalance}
+          style={insufficientBalance ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
         >
           {subscribe.isPending ? (
             'Subscribing…'
@@ -112,6 +115,9 @@ export function SubscriptionCard() {
           )}
         </Button>
       </div>
+      {insufficientBalance && !status.data?.isActive ? (
+        <p className="hint">Get test USDC first, the faucet is free.</p>
+      ) : null}
       {error ? <p className="error">{error}</p> : null}
 
       <div className="tx">

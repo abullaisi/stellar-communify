@@ -4,7 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { useWallet } from '@/providers/wallet-provider';
+import { useMe, useSignOut } from '@/services/auth';
+
 const SIDEBAR_STORAGE_KEY = 'komunify-app-sidebar';
+
+function truncateAddress(address: string) {
+  return `${address.slice(0, 4)}…${address.slice(-4)}`;
+}
 
 const navItems = [
   {
@@ -44,6 +51,15 @@ const navItems = [
 export function AppSidenav() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { isConnected, address, connecting, connect, disconnect } = useWallet();
+  const me = useMe();
+  const signOut = useSignOut();
+  const isAuthed = !!me.data;
+
+  async function handleSignOut() {
+    await signOut.mutateAsync();
+    disconnect();
+  }
 
   useEffect(() => {
     const storedValue = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
@@ -151,6 +167,32 @@ export function AppSidenav() {
           );
         })}
       </nav>
+
+      <div className={`mt-auto flex flex-col items-start gap-2 text-[13px] text-[var(--color-content-secondary)] ${collapsed ? 'hidden' : 'flex'}`}>
+        {isConnected && address ? (
+          <>
+            <code
+              title={address}
+              className={isAuthed ? 'inline-flex items-center gap-1 text-[var(--color-content-success)]' : undefined}
+            >
+              {truncateAddress(address)}
+            </code>
+            <button
+              type="button"
+              onClick={isAuthed ? handleSignOut : disconnect}
+              disabled={isAuthed ? signOut.isPending : false}
+              className="disconnect-link bg-transparent p-0"
+            >
+              {isAuthed ? 'Sign out' : 'Disconnect'}
+            </button>
+          </>
+        ) : (
+          <button type="button" onClick={connect} disabled={connecting} className="disconnect-link bg-transparent p-0">
+            {connecting ? 'Connecting…' : 'Connect'}
+          </button>
+        )}
+        <span className="text-[11px] font-medium uppercase tracking-[0.06em]">TESTNET</span>
+      </div>
     </aside>
   );
 }
