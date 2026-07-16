@@ -10,16 +10,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:brightness-110 after:content-["→"] after:ml-1 after:inline-flex after:h-[26px] after:w-[26px] after:shrink-0 after:items-center after:justify-center after:rounded-full after:bg-black/10 after:text-[14px] after:leading-none after:transition-transform after:duration-150 hover:after:translate-x-0.5',
+          'bg-[var(--color-bg-accent)] text-[var(--color-content-on-accent)] rounded-[var(--radius-md)] text-[15px] font-bold transition-[filter,transform] duration-150 hover:brightness-110 active:scale-[0.98] after:content-["→"] after:ml-1 after:inline-flex after:h-[26px] after:w-[26px] after:shrink-0 after:items-center after:justify-center after:rounded-full after:bg-black/10 after:text-[14px] after:leading-none after:transition-transform after:duration-150 hover:after:translate-x-0.5',
         destructive: 'bg-destructive text-destructive-foreground hover:brightness-110',
         outline:
-          'border border-border bg-transparent text-foreground font-medium hover:bg-accent',
+          'border border-[var(--color-border-medium)] bg-transparent text-[var(--color-content-primary)] rounded-[var(--radius-md)] font-medium hover:bg-accent',
         secondary: 'bg-secondary text-secondary-foreground hover:brightness-110',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-9 px-4 py-2',
+        default: 'h-auto px-[18px] py-[10px]',
         sm: 'h-8 rounded-md px-3 text-xs',
         lg: 'h-10 rounded-md px-8',
         icon: 'h-9 w-9',

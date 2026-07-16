@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
 import { useWallet } from '@/providers/wallet-provider';
 import { useCommunities } from '@/services/community';
 
@@ -52,7 +51,6 @@ export function FunnelConnect() {
             real funds move.
           </p>
           <Button type="button" onClick={connect} disabled={connecting}>
-            <Icon name="wallet" size={15} />
             {connecting ? 'Connecting…' : 'Connect Wallet'}
           </Button>
         </section>
