@@ -83,12 +83,14 @@ const KDATA = {
       members: "Pilot partner",
       benefits: [
         { t: "Member discount on Manexus tooling", d: "15% off partner software and services for active subscribers" },
-        { t: "Digital asset drops", d: "Early access to new templates and creative assets" }
+        { t: "Digital asset drops", d: "Early access to new templates and creative assets" },
+        { t: "Learning resources: Web3 education", d: "Web3 Unlocked ebook with practical blockchain and dApp lessons" }
       ],
       content: [
         { type: "video", title: "Manexus Product Walkthrough", meta: "18m · members only" },
         { type: "ebook", title: "Manexus Toolkit Guide", meta: "16 pages · PDF" },
-        { type: "link", title: "Partner Discount Portal", meta: "Redeem your member pricing", url: "https://cal.com" }
+        { type: "link", title: "Partner Discount Portal", meta: "Redeem your member pricing", url: "https://cal.com" },
+        { type: "ebook", title: "Web3 Unlocked (Ebook)", meta: "Produk Web3, Infrastruktur Blockchain, dan Pengembangan dApps · Bahasa Indonesia", href: "ebook.html" }
       ]
     }
   ],
@@ -187,8 +189,78 @@ const K = {
     list.unshift({ kind: kind, detail: detail, at: Date.now() });
     localStorage.setItem("k_act", JSON.stringify(list.slice(0, 8)));
   },
+  // Partner-governed package proposals. Seed once, then persist every vote/change.
+  get daoProposals() {
+    var raw = localStorage.getItem("k_dao_proposals");
+    if (raw === null) {
+      var seeded = [
+        {
+          id: "dao-web3-package",
+          name: "Web3 Package",
+          partner: KDATA.partners[0].name,
+          poolType: "Web3",
+          price: "8 XLM",
+          split: [65, 25, 10],
+          votesApprove: 2,
+          votesReject: 0,
+          status: "pending",
+          votedApprove: false,
+          votedReject: false
+        },
+        {
+          id: "dao-freebies-package",
+          name: "Freebies Package",
+          partner: KDATA.partners[2].name,
+          poolType: "Freebies",
+          price: "Free",
+          split: [70, 20, 10],
+          votesApprove: 1,
+          votesReject: 0,
+          status: "pending",
+          votedApprove: false,
+          votedReject: false
+        }
+      ];
+      localStorage.setItem("k_dao_proposals", JSON.stringify(seeded));
+      return seeded;
+    }
+    try {
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) { return []; }
+  },
+  setDaoProposals(list) {
+    localStorage.setItem("k_dao_proposals", JSON.stringify(Array.isArray(list) ? list : []));
+  },
+  addDaoProposal(proposal) {
+    var list = K.daoProposals;
+    list.push(proposal);
+    K.setDaoProposals(list);
+  },
+  voteDaoProposal(id, decision) {
+    var list = K.daoProposals;
+    var updated = null;
+    list.forEach(function (proposal) {
+      if (proposal.id !== id) return;
+      updated = proposal;
+      if (proposal.status !== "pending" || proposal.votedApprove || proposal.votedReject) return;
+      if (decision === "approve") {
+        proposal.votesApprove += 1;
+        proposal.votedApprove = true;
+      } else if (decision === "reject") {
+        proposal.votesReject += 1;
+        proposal.votedReject = true;
+      } else {
+        return;
+      }
+      if (proposal.votesApprove >= 3) proposal.status = "approved";
+      else if (proposal.votesReject >= 2) proposal.status = "rejected";
+    });
+    K.setDaoProposals(list);
+    return updated;
+  },
   reset() {
-    ["k_wallet", "k_sub", "k_last", "k_progress", "k_owned", "k_act"].forEach(function (k) {
+    ["k_wallet", "k_sub", "k_last", "k_progress", "k_owned", "k_act", "k_dao_proposals"].forEach(function (k) {
       localStorage.removeItem(k);
     });
   }
@@ -209,7 +281,8 @@ function contentIcon(type) { return CONTENT_ICONS[type] || CONTENT_ICONS.link; }
 var NAV_ICONS = {
   "dashboard.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>',
   "benefits.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>',
-  "traction.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>'
+  "traction.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
+  "dao.html": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'
 };
 var ICON_MENU = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
 var ICON_CHEVRON_LEFT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>';
@@ -269,7 +342,7 @@ function setSidebarCollapsed(v) {
   var demo = new URLSearchParams(location.search).get("demo");
   if (!demo) return;
   if (demo === "fresh") {
-    ["k_wallet", "k_sub", "k_last", "k_progress", "k_owned", "k_act"].forEach(function (k) {
+    ["k_wallet", "k_sub", "k_last", "k_progress", "k_owned", "k_act", "k_dao_proposals"].forEach(function (k) {
       localStorage.removeItem(k);
     });
   }

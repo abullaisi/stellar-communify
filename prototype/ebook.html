@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · Web3 Unlocked</title>
+  <link rel="icon" type="image/png" href="logo-mark.png">
+  <link rel="stylesheet" href="styles.css?v=4">
+  <style>
+    .ebook-reader-grid {
+      display: grid;
+      grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+      gap: 0;
+      align-items: stretch;
+      border: 1px solid transparent;
+      background:
+        linear-gradient(var(--color-bg-elevated), var(--color-bg-elevated)) padding-box,
+        linear-gradient(180deg, var(--color-border-medium), color-mix(in srgb, var(--color-border-medium) 35%, transparent)) border-box;
+      border-radius: var(--radius-card, 4px);
+      overflow: hidden;
+      margin-top: var(--space-3);
+    }
+
+    .reader-rail {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      max-height: 100vh;
+      overflow-y: auto;
+      padding: var(--space-5);
+      border-right: 1px solid var(--color-border-medium);
+    }
+
+
+
+    .reader-rail-heading { margin: 0 0 var(--space-2); }
+    .reader-nav { display: flex; flex-direction: column; gap: 2px; }
+    .reader-nav-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-2);
+      padding: 9px var(--space-3);
+      border: 0;
+      border-radius: var(--radius-card);
+      color: var(--color-content-secondary);
+      font-size: 13px;
+      line-height: 1.35;
+      text-decoration: none;
+      transition: color 180ms ease-out, background-color 180ms ease-out, opacity 180ms ease-out;
+    }
+    .reader-nav-item:hover { color: var(--color-content-primary); }
+    .reader-nav-item[aria-current="page"] {
+      color: var(--color-content-accent);
+      background: rgba(250, 214, 87, 0.06);
+    }
+    .reader-nav-item.is-locked { opacity: 0.56; }
+    .reader-nav-item.is-locked[aria-current="page"] { opacity: 0.78; }
+    .nav-lock {
+      display: none;
+      width: 12px;
+      height: 12px;
+      flex: 0 0 12px;
+      margin-top: 2px;
+    }
+    .reader-nav-item.is-locked .nav-lock { display: block; }
+
+    .reader-main { min-width: 0; padding: clamp(24px, 4vw, 40px); }
+    .reader-column { width: 100%; max-width: 72ch; }
+    .reader-position { margin-bottom: var(--space-4); }
+    .reader-mobile-nav { display: none; }
+    .reader-section[hidden] { display: none; }
+    .reader-section.is-entering { animation: readerSectionIn 300ms ease-out both; }
+    @keyframes readerSectionIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .reader-chapter-header { text-align: left; margin: 0 0 var(--space-7); }
+    .reader-chapter-header h2,
+    .reader-lock h2 {
+      margin: var(--space-2) 0 0;
+      color: var(--color-content-primary);
+      font-family: var(--font-display);
+      font-size: 34px;
+      font-weight: 500;
+      line-height: 1.16;
+      letter-spacing: -0.025em;
+      text-wrap: balance;
+    }
+
+    .reader-prose {
+      color: var(--color-content-primary);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+    .reader-prose p { margin: 0 0 1.25em; }
+    .reader-prose strong { font-size: inherit; font-weight: 600; }
+    .reader-prose em { color: inherit; }
+    .reader-prose a { color: var(--color-content-accent); text-underline-offset: 3px; }
+    .reader-prose code { font-size: 0.84em; line-height: 1.5; }
+    .reader-prose h3 {
+      margin: 2.5em 0 0.72em;
+      color: var(--color-content-primary);
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.3;
+      letter-spacing: -0.015em;
+      text-wrap: balance;
+    }
+    .reader-prose .reader-front-heading { margin-top: 2.8em; }
+    .reader-subtitle {
+      max-width: 54ch;
+      font-size: 20px;
+      line-height: 1.55;
+    }
+    .reader-byline { color: var(--color-content-secondary); }
+    .reader-prose ul,
+    .reader-prose ol {
+      margin: 0 0 1.5em;
+      padding-left: 1.45em;
+    }
+    .reader-prose li { margin: 0 0 0.65em; padding-left: var(--space-1); }
+    .reader-prose li > ul,
+    .reader-prose li > ol { margin: 0.65em 0 0; }
+    .reader-toc { list-style: none; padding-left: 0 !important; }
+    .reader-toc li { padding-left: 0; margin-bottom: var(--space-2); }
+    .reader-toc a {
+      display: inline-block;
+      color: var(--color-content-primary);
+      text-decoration-color: var(--color-border-medium);
+      transition: color 180ms ease-out, text-decoration-color 180ms ease-out;
+    }
+    .reader-toc a:hover {
+      color: var(--color-content-accent);
+      text-decoration-color: var(--color-content-accent);
+    }
+    .reader-break { height: var(--space-7); }
+
+    .reader-table-wrap {
+      width: 100%;
+      margin: var(--space-6) 0;
+      overflow-x: auto;
+      border-radius: var(--radius-card);
+      outline: none;
+    }
+    .reader-table-wrap:focus-visible { box-shadow: 0 0 0 2px var(--color-border-hover); }
+    .reader-prose table {
+      width: 100%;
+      min-width: 620px;
+      border-collapse: collapse;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .reader-prose th,
+    .reader-prose td {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-border-medium);
+      text-align: left;
+      vertical-align: top;
+    }
+    .reader-prose th {
+      color: var(--color-content-primary);
+      background: var(--color-bg-elevated);
+      font-weight: 600;
+    }
+    .reader-prose td { color: var(--color-content-primary); }
+
+    .reader-pagination {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-top: var(--space-7);
+      padding-top: var(--space-5);
+      border-top: 1px solid var(--color-border-medium);
+    }
+    .reader-pagination .btn.ghost:last-child { margin-left: auto; }
+    .reader-pagination .btn.ghost:hover { color: var(--color-content-accent); }
+    .reader-lock { max-width: 58ch; }
+
+    @media (max-width: 900px) {
+      .ebook-reader-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+      .reader-rail { display: none; }
+      .reader-mobile-nav {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        margin-bottom: var(--space-5);
+      }
+      .reader-mobile-nav select {
+        width: 100%;
+        background: var(--color-bg-input);
+        color: var(--color-content-primary);
+        border: 1px solid var(--color-border-medium);
+        border-radius: var(--radius-md);
+        padding: 10px 36px 10px 12px;
+        font: inherit;
+      }
+      .reader-column { max-width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      .reader-chapter-header { margin-bottom: var(--space-6); }
+      .reader-chapter-header h2,
+      .reader-lock h2 { font-size: 29px; }
+      .reader-prose { font-size: 16px; }
+      .reader-prose h3 { font-size: 21px; }
+      .reader-pagination { flex-direction: column; }
+      .reader-pagination .btn.ghost,
+      .reader-pagination .btn.ghost:last-child { width: 100%; margin-left: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reader-section.is-entering { animation: none; }
+      .reader-nav-item,
+      .reader-toc a { transition: none; }
+    }
+      .reader-lock.card {
+      background: var(--color-bg-input);
+      border: 1px solid var(--color-border-medium);
+      box-shadow: none;
+    }
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html"><img src="logo-mark.png" alt="" class="logo-mark">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item" href="dashboard.html">Dashboard</a>
+    <a class="nav-item" href="benefits.html">Benefits</a>
+    <a class="nav-item" href="traction.html">Traction</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+  </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
+
+  <div class="stack hidden" id="detail">
+    <div class="card">
+      <div class="row">
+        <div class="row tight">
+          <span class="avatar"><img src="communities/manexus.png" alt="Manexus" loading="lazy"></span>
+          <h2>Manexus</h2>
+        </div>
+        <span class="badge unlocked" id="ebook-access-badge">UNLOCKED</span>
+      </div>
+      <p class="hint" id="ebook-access-hint">Included with your Community Bundle.</p>
+    </div>
+
+    <div class="card">
+      <div class="label">MANEXUS · LEARNING RESOURCE</div>
+      <h2>Web3 Unlocked: Panduan Tech Professionals Memahami Blockchain &amp; dApps</h2>
+      <p class="hint">Faris Abdurrahman · Edisi 1.1 · Juli 2026</p>
+    </div>
+
+    <div class="ebook-reader-grid" id="ebook-reader">
+      <aside class="reader-rail" aria-label="Book contents">
+        <div class="content-type reader-rail-heading">Contents</div>
+        <nav class="reader-nav" aria-label="Chapters">
+          <a class="reader-nav-item" href="#depan" data-reader-target="depan"><span>Opening pages</span></a><a class="reader-nav-item" href="#pendahuluan" data-reader-target="pendahuluan"><span>Pendahuluan: Mengapa Web3?</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-1" data-reader-target="bab-1"><span>Bab 1: Fondasi Blockchain (1.1–1.8)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-2" data-reader-target="bab-2"><span>Bab 2: Pengembangan Smart Contract (2.1–2.6)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-3" data-reader-target="bab-3"><span>Bab 3: Arsitektur &amp; Ekosistem Blockchain (3.1–3.9)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-4" data-reader-target="bab-4"><span>Bab 4: Tools Pengembangan (4.1–4.6)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-5" data-reader-target="bab-5"><span>Bab 5: Membangun Smart Contract Sederhana (5.1–5.7)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-6" data-reader-target="bab-6"><span>Bab 6: Testing, Debugging &amp; Keamanan (6.1–6.6)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-7" data-reader-target="bab-7"><span>Bab 7: Arsitektur Produk dApp (7.1–7.7)</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#bab-8" data-reader-target="bab-8"><span>Bab 8: Dari Builder ke Builder: Hackathon, Karir &amp; Go-to-Market</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#penutup" data-reader-target="penutup"><span>Penutup: Langkah Selanjutnya</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a><a class="reader-nav-item" href="#tentang-penulis" data-reader-target="tentang-penulis"><span>Tentang Penulis</span><svg class="nav-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></a>
+        </nav>
+      </aside>
+
+      <div class="reader-main">
+        <label class="reader-mobile-nav" for="reader-section-select">
+          <span class="content-type">Choose a section</span>
+          <select id="reader-section-select"><option value="depan">Opening pages</option><option value="pendahuluan">Pendahuluan: Mengapa Web3?</option><option value="bab-1">Bab 1: Fondasi Blockchain (1.1–1.8)</option><option value="bab-2">Bab 2: Pengembangan Smart Contract (2.1–2.6)</option><option value="bab-3">Bab 3: Arsitektur &amp; Ekosistem Blockchain (3.1–3.9)</option><option value="bab-4">Bab 4: Tools Pengembangan (4.1–4.6)</option><option value="bab-5">Bab 5: Membangun Smart Contract Sederhana (5.1–5.7)</option><option value="bab-6">Bab 6: Testing, Debugging &amp; Keamanan (6.1–6.6)</option><option value="bab-7">Bab 7: Arsitektur Produk dApp (7.1–7.7)</option><option value="bab-8">Bab 8: Dari Builder ke Builder: Hackathon, Karir &amp; Go-to-Market</option><option value="penutup">Penutup: Langkah Selanjutnya</option><option value="tentang-penulis">Tentang Penulis</option></select>
+        </label>
+        <div class="content-type reader-position" id="reader-position" aria-live="polite">Front matter</div>
+        <div class="reader-column">
+          <section class="reader-section" id="depan" aria-labelledby="depan-title">
+  <div class="reader-book-content">
+    <header class="reader-chapter-header">
+      <div class="content-type">Front matter</div>
+      <h2 id="depan-title">Opening pages</h2>
+    </header>
+    <div class="reader-prose">
+<p class="reader-subtitle"><strong>Memahami Produk Web3, Infrastruktur Blockchain, dan Proses Pengembangan Decentralized Application Menggunakan Smart Contract</strong></p>
+
+<p class="reader-byline"><em>Faris Abdurrahman · 2026 · Edisi 1.1 (Enhanced)</em></p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3 class="reader-front-heading">COPYRIGHT</h3>
+
+<p>Hak Cipta © 2026 oleh Faris Abdurrahman. Seluruh hak cipta dilindungi undang-undang. Dilarang memperbanyak, menyebarluaskan, atau memperjualbelikan sebagian atau seluruh isi buku ini dalam bentuk apa pun tanpa izin tertulis dari penulis, kecuali untuk kutipan singkat dalam artikel atau resensi.</p>
+
+<p>Edisi 1.1 · Juli 2026</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3 class="reader-front-heading">KATA PENGANTAR</h3>
+
+<p>Assalamu'alaikum warahmatullahi wabarakatuh.</p>
+
+<p>Tiga tahun lalu, saya berdiri di titik yang sama dengan kamu yang sedang membaca kata pengantar ini, bingung dengan hiruk-pikuk Web3. Istilah-istilah seperti "gas fee", "smart contract", "DeFi", dan "non-custodial wallet" terdengar seperti bahasa alien.</p>
+
+<p>Setiap kali saya buka Twitter atau Telegram, rasanya semua orang sudah paham kecuali saya. Saya ingat betapa frustasinya mencoba memahami konsep-konsep ini dari artikel-artikel yang terlalu teknis di satu sisi, atau terlalu hype dan tidak substansial di sisi lain. Butuh waktu, trial and error, dan banyak diskusi dengan teman-teman di komunitas untuk akhirnya "dapet", momen ketika semua puzzle mulai tersambung.</p>
+
+<p>Ebook ini adalah upaya saya untuk memendekkan perjalanan itu buat kamu. Saya tidak akan membuat janji muluk bahwa setelah membaca buku ini kamu akan jadi blockchain developer dalam 7 hari. Saya akan ajak kamu ngobrol, bukan sekadar menyajikan fakta. Karena perjalanan dari Web2 ke Web3 bukan cuma soal belajar teknologi baru. Ini soal mengubah cara kita berpikir tentang data, kepemilikan, kepercayaan, dan nilai.</p>
+
+<p>Satu permintaan saya: jangan hanya membaca. Praktikkan. Buka Remix, tulis kode, deploy ke testnet, dan rasakan sendiri bagaimana rasanya mengirim transaksi pertama kamu ke blockchain. Teori hanya akan mengantarmu sejauh pintu gerbang. Praktik yang akan membawamu masuk. Once you get in, you'll never turn back. :)</p>
+
+<p>Wassalamu'alaikum warahmatullahi wabarakatuh.</p>
+
+<p>Bandung, Juli 2026 Faris Abdurrahman</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3 class="reader-front-heading">DAFTAR ISI</h3>
+
+<ul class="reader-toc">
+<li><a href="#pendahuluan" data-reader-target="pendahuluan">Pendahuluan: Mengapa Web3?</a></li>
+<li><a href="#bab-1" data-reader-target="bab-1">Bab 1: Fondasi Blockchain (1.1–1.8)</a></li>
+<li><a href="#bab-2" data-reader-target="bab-2">Bab 2: Pengembangan Smart Contract (2.1–2.6)</a></li>
+<li><a href="#bab-3" data-reader-target="bab-3">Bab 3: Arsitektur &amp; Ekosistem Blockchain (3.1–3.9)</a></li>
+<li><a href="#bab-4" data-reader-target="bab-4">Bab 4: Tools Pengembangan (4.1–4.6)</a></li>
+<li><a href="#bab-5" data-reader-target="bab-5">Bab 5: Membangun Smart Contract Sederhana (5.1–5.7)</a></li>
+<li><a href="#bab-6" data-reader-target="bab-6">Bab 6: Testing, Debugging &amp; Keamanan (6.1–6.6)</a></li>
+<li><a href="#bab-7" data-reader-target="bab-7">Bab 7: Arsitektur Produk dApp (7.1–7.7)</a></li>
+<li><a href="#bab-8" data-reader-target="bab-8">Bab 8: Dari Builder ke Builder: Hackathon, Karir &amp; Go-to-Market</a></li>
+<li><a href="#penutup" data-reader-target="penutup">Penutup: Langkah Selanjutnya</a></li>
+<li><a href="#tentang-penulis" data-reader-target="tentang-penulis">Tentang Penulis</a></li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="pendahuluan">Next chapter</button></nav>
+</section><section class="reader-section" id="pendahuluan" aria-labelledby="pendahuluan-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>PENDAHULUAN: MENGAPA WEB3?</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="pendahuluan-title">PENDAHULUAN: MENGAPA WEB3?</h2>
+    </header>
+    <div class="reader-prose">
+<p>Kita mulai dengan satu pertanyaan sederhana: kenapa kita perlu pindah dari Web2 ke Web3?</p>
+
+<p>Jawabannya bukan karena "blockchain itu keren" atau "NFT bisa bikin kaya dalam semalam." Kalau itu motivasinya, buku ini mungkin bukan untuk kamu. Setidaknya, belum.</p>
+
+<p>Web2, yang kita nikmati selama dua dekade terakhir, adalah era yang luar biasa. Berkat Web2, kita bisa video call dengan keluarga yang jauh, belanja tanpa keluar rumah, belajar dari universitas top dunia secara gratis, dan membangun bisnis dengan modal minim. Google, Facebook, Amazon, Gojek, Tokopedia, Shopee, platform-platform ini telah mengubah cara kita hidup, bekerja, dan berinteraksi.</p>
+
+<p>Tapi ada harga yang tidak terlihat dari kemudahan ini. Coba pikirkan: berapa banyak data pribadi yang sudah kamu serahkan ke platform-platform itu? Setiap klik, setiap pencarian, setiap transaksi, semuanya tercatat di server mereka. Dan semua data itu bukan milikmu. Kamu hanya meminjamkannya. Kapan saja platform itu bisa berganti kebijakan, menaikkan biaya, atau bahkan menghapus akunmu tanpa pemberitahuan yang memadai.</p>
+
+<p>Pernah dengar cerita tentang pedagang online yang tiba-tiba akunnya di-suspend tanpa alasan jelas, dan bisnis yang sudah dibangun bertahun-tahun lenyap dalam semalam? Atau YouTuber yang channel-nya di-demonetize karena perubahan algoritma? Atau pengguna yang data pribadinya bocor karena server perusahaan diretas? Inilah masalah fundamental Web2: sentralisasi kekuasaan dan data.</p>
+
+<p>Di Web2, platform adalah penjaga gerbang. Mereka menentukan siapa yang boleh masuk, berapa biayanya, dan aturan apa yang berlaku. Pengguna tidak punya suara. Bahkan kreator konten yang menghasilkan jutaan views pun tetap tunduk pada keputusan sepihak perusahaan.</p>
+
+<p>Web3 lahir dari kesadaran bahwa internet bisa dikelola secara berbeda. Web3 bukan sekadar teknologi baru. Web3 adalah pergeseran filosofis. Di Web3:</p>
+
+<ul>
+<li><strong>Kamu memiliki data dan aset digitalmu sendiri.</strong> Bukan platform.
+</li>
+<li><strong>Transaksi terjadi tanpa perantara.</strong> Kamu dan lawan transaksimu terhubung langsung melalui smart contract.
+</li>
+<li><strong>Aturan main transparan dan tidak bisa diubah seenaknya.</strong> Kode smart contract bisa diperiksa siapa pun.
+</li>
+<li><strong>Kamu bisa membawa identitas dan reputasimu ke mana pun.</strong> Tidak terikat pada satu platform.
+</li>
+</ul>
+
+<p>Tentu, Web3 belum sempurna. UX masih ribet. Biaya transaksi masih mahal di jaringan tertentu. Scams masih marak. Tapi arah perjalanan sudah jelas: dari internet yang dimiliki segelintir korporasi, menuju internet yang dimiliki penggunanya.</p>
+
+<p>Ebook ini adalah panduan perjalananmu. Saya akan mengajakmu memahami blockchain dari nol, bukan dari sudut pandang teoritis yang kering, tapi dari perspektif praktis seorang builder yang pernah ada di posisimu. Kita akan mulai dari pertanyaan paling dasar: apa sebenarnya blockchain itu?</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>Web2 → Web3: Peta Jalan untuk Tech Professional</h3>
+
+<p>Sebelum kita menyelam, ini dia peta konsep yang akan mempermudah perjalananmu. Setiap istilah Web3 punya padanan di Web2. Kalau kamu paham yang kiri, kamu tinggal belajar pergeserannya ke kanan:</p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Konsep Web2</th><th scope="col">Padanan Web3</th><th scope="col">Analogi Singkat</th></tr></thead>
+<tbody>
+<tr><td>Database (PostgreSQL, MySQL)</td><td>Blockchain (Ethereum, Solana)</td><td>Dari database yang bisa di-rollback, ke buku besar yang tidak bisa dihapus</td></tr>
+<tr><td>API Server / REST</td><td>RPC + Smart Contract</td><td>Dari panggil API endpoint, ke panggil fungsi di kode publik</td></tr>
+<tr><td>API Documentation (Swagger)</td><td>ABI (Application Binary Interface)</td><td>Dua-duanya说明书 cara interaksi, tapi ABI adalah JSON spec yang strict</td></tr>
+<tr><td>OAuth / Email + Password</td><td>Wallet Signature / SIWE</td><td>Dari "login pake Google," ke "login pake bukti kriptografis"</td></tr>
+<tr><td>Payment Gateway (Stripe, Midtrans)</td><td>Smart Contract + Token</td><td>Dari perantara pembayaran, ke kode yang mengeksekusi transfer otomatis</td></tr>
+<tr><td>Cloud Storage (S3, GCS)</td><td>IPFS / Arweave</td><td>Dari "file di server AWS," ke "file di jaringan P2P yang di-cache"</td></tr>
+<tr><td>Load Balancer</td><td>Node Distribution / RPC Routing</td><td>Dari "distribusi traffic ke server," ke "distribusi transaksi ke ribuan node"</td></tr>
+<tr><td>Session / JWT</td><td>Message Signing</td><td>Dari token login yang expire, ke signature kriptografis yang selalu bisa diverifikasi</td></tr>
+<tr><td>Webhook</td><td>Blockchain Event / Log</td><td>Dari "server A ngasih tau server B," ke "smart contract emit event, siapapun bisa dengar"</td></tr>
+<tr><td>Elasticsearch / Algolia</td><td>Subgraph / The Graph</td><td>Dari "search index di server," ke "query graph terdesentralisasi"</td></tr>
+<tr><td>Admin Dashboard</td><td>Multi-sig + Governance</td><td>Dari "admin bisa apa aja," ke "setiap aksi butuh persetujuan N-dari-M orang"</td></tr>
+<tr><td>Rate Limiter</td><td>Gas Fee</td><td>Dari "batasi request per detik," ke "makin rame jaringan, makin mahal per transaksi"</td></tr>
+<tr><td>CAPTCHA</td><td>Proof of Work / Proof of Stake</td><td>Dua-duanya "bukti kamu bukan robot," tapi versi PoW/PoS jadi fondasi keamanan jaringan</td></tr>
+<tr><td>Customer Support</td><td>DAO / Community Forum</td><td>Dari "tiket ke helpdesk," ke "tanya komunitas atau vote proposal"</td></tr>
+<tr><td>Unit Test + CI/CD</td><td>Foundry Test + Audit + Upgrade Pattern</td><td>Testing tetap ada, tapi eksekusinya lebih ketat karena kode yang sudah deploy tidak bisa diubah</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Simpan tabel ini sebagai referensi cepat. Setiap kali kamu nemu istilah Web3 yang asing, tanya: <em>"Ini padanan Web2-nya apa? Terus bedanya apa?"</em></p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="depan">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-1">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-1" aria-labelledby="bab-1-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 1: FONDASI BLOCKCHAIN</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-1-title">BAB 1: FONDASI BLOCKCHAIN</h2>
+    </header>
+    <div class="reader-prose">
+<h3>1.1 Apa Itu Blockchain?</h3>
+
+<p>Kalau kamu buka Wikipedia, blockchain akan dijelaskan sebagai "sebuah buku besar terdistribusi yang mencatat transaksi secara permanen dan transparan." Definisi itu akurat, tapi mungkin tidak membantumu membayangkan seperti apa rasanya menggunakan blockchain. Mari kita coba pendekatan lain.</p>
+
+<p><strong>Bayangkan sebuah buku catatan transaksi.</strong> Di Web2, buku catatan ini disimpan di server perusahaan. Admin perusahaan bisa mengedit, menghapus, atau memanipulasi isinya kapan saja. Kamu sebagai pengguna hanya bisa melihat apa yang mereka izinkan untuk kamu lihat.</p>
+
+<p>Sekarang bayangkan buku catatan yang sama disalin ke ribuan komputer di seluruh dunia. Setiap kali ada transaksi baru, semua komputer itu harus setuju bahwa transaksi itu valid sebelum dicatat. Dan begitu tercatat, tidak ada satu komputer pun yang bisa mengubah atau menghapusnya sendirian, karena ribuan komputer lain punya salinan yang sama dan akan menolak perubahan sepihak.</p>
+
+<p>Itulah blockchain dalam bentuk paling sederhana.</p>
+
+<p><strong>Karakteristik utama blockchain:</strong></p>
+
+<ol>
+<li><strong>Terdistribusi</strong>: Tidak ada server pusat. Data disimpan dan dikelola oleh ribuan node (komputer) di seluruh dunia. Ini yang membuat blockchain tidak bisa "dimatikan" oleh siapa pun, termasuk pemerintah atau korporasi.
+</li>
+<li><strong>Transparan</strong>: Semua transaksi bisa diverifikasi oleh siapa pun. Kamu bisa lihat saldo alamat tertentu, riwayat transaksinya, bahkan kode smart contract yang menggerakkan aplikasi di atasnya.
+</li>
+<li><strong>Immutable (tidak bisa diubah)</strong>: Setelah data masuk ke blockchain, mengubahnya secara retroaktif hampir mustahil. Ini memberikan jaminan integritas data yang tidak dimiliki sistem Web2.
+</li>
+<li><strong>Trustless</strong>: Kata favorit di komunitas Web3. Artinya: kamu tidak perlu percaya pada siapa pun untuk bertransaksi. Kamu tidak perlu percaya bahwa penjual akan mengirim barang setelah dibayar, karena smart contract bisa mengatur escrow otomatis. Kamu tidak perlu percaya bahwa bank akan mentransfer uang dengan benar, karena kode yang mengatur transaksi bisa kamu periksa sendiri.
+</li>
+</ol>
+
+<p>Bandingkan dengan Web2. Ketika kamu transfer uang lewat mobile banking, kamu PERCAYA bahwa bank akan memprosesnya dengan benar. Ketika kamu upload foto ke Instagram, kamu PERCAYA mereka tidak akan menyalahgunakan fotomu. Kepercayaan ini seringkali tidak bermasalah, sampai suatu hari ia bermasalah. Blockchain menghilangkan kebutuhan akan kepercayaan pada pihak ketiga. Trust digantikan oleh verifikasi kriptografis.</p>
+
+<p><strong>Web2 → Web3:</strong> Kalau di Web2 data kamu tinggal di database server perusahaan (dan mereka bisa ngapain aja), di Web3 data kamu tinggal di blockchain publik. Bukan milik siapapun, tapi bisa diverifikasi siapapun. Ibaratnya: Web2 itu buku catatan pribadi yang dijaga satpam. Web3 itu buku catatan publik yang difotokopi ke ribuan orang.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.2 Smart Contract: EVM vs SVM</h3>
+
+<p>Kalau blockchain adalah "buku besar," smart contract adalah "program" yang berjalan di atas buku besar itu. Smart contract adalah kode yang otomatis mengeksekusi ketika kondisi tertentu terpenuhi. "Jika A terjadi, maka lakukan B." Tidak perlu perantara. Tidak perlu hakim. Kodenya sendiri yang menegakkan aturan.</p>
+
+<p><strong>Dua ekosistem smart contract utama yang perlu kamu kenali:</strong></p>
+
+<ul>
+<li><strong>EVM (Ethereum Virtual Machine)</strong>: Ini adalah ekosistem terbesar dan paling mature. Bayangkan EVM sebagai sistem operasi, seperti Android, yang bisa dijalankan di berbagai perangkat (dalam hal ini, berbagai blockchain). Karena EVM kompatibel, smart contract yang ditulis untuk Ethereum bisa berjalan di Polygon, Arbitrum, Base, BNB Chain, dan puluhan chain lainnya. Bahasa utama: Solidity, Vyper.
+</li>
+<li><strong>SVM (Solana Virtual Machine)</strong>: Solana mengambil pendekatan berbeda. Mereka membangun dari awal dengan fokus pada kecepatan dan biaya rendah. Solana bisa memproses ribuan transaksi per detik dengan biaya di bawah satu sen. Tapi konsekuensinya: bahasanya lebih sulit (Rust) dan ekosistemnya lebih muda. Bahasa utama: Rust, C.
+</li>
+</ul>
+
+<p>Selain EVM dan SVM, ada juga ekosistem Move (Aptos, Sui) yang menggunakan bahasa Move, dirancang khusus untuk keamanan aset digital.</p>
+
+<p><strong>Analogi untuk developer Web2:</strong> EVM itu seperti React: ekosistem besar, banyak dokumentasi, banyak yang pakai. SVM itu seperti Svelte: lebih modern, lebih cepat, tapi komunitasnya masih lebih kecil. Move itu seperti Elm: aman, elegan, tapi kurva belajarnya curam.</p>
+
+<p><strong>Web2 → Web3:</strong> Di Web2, "backend" berarti kode yang jalan di server (Node.js, Go, Python). Di Web3, "smart contract" adalah backend yang jalan di blockchain. Bedanya: kalau backend Web2 bisa kamu update kapan saja tanpa orang tahu, smart contract setelah deploy umumnya permanen. Kalau ada bug, kamu tidak bisa hotfix: kamu butuh pola upgrade khusus atau deploy ulang ke alamat baru.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.3 Bahasa Pemrograman Blockchain</h3>
+
+<ul>
+<li><strong>Solidity</strong>: Ini adalah bahasa yang paling banyak dipelajari oleh pemula Web3. Sintaksnya mirip JavaScript, jadi terasa akrab bagi developer Web2. Digunakan di semua chain EVM. Untuk seorang pemula yang baru mulai, saya selalu merekomendasikan Solidity sebagai bahasa pertama.
+</li>
+<li><strong>Rust</strong>: Bahasa utama untuk Solana. Rust dikenal dengan memory safety dan performa tingginya. Tapi kurva belajarnya terkenal curam. Bayangkan belajar C++, tapi dengan aturan kepemilikan memori yang lebih ketat. Cocok untuk developer yang sudah berpengalaman dan punya waktu untuk belajar.
+</li>
+<li><strong>Move</strong>: Bahasa yang relatif baru. Dikembangkan oleh tim Diem (dulu Libra) di Facebook. Fokus utamanya adalah keamanan aset dan fleksibilitas transaksi. Digunakan di Aptos dan Sui.
+</li>
+</ul>
+
+<p>Pilihan bahasa tergantung chain mana yang ingin kamu bangun. Tapi saran saya: mulai dengan Solidity. Komunitas terbesar, sumber belajar terbanyak, dan peluang kerja paling luas.</p>
+
+<p><strong>Web2 → Web3:</strong> Kalau kamu dari JavaScript, Solidity akan terasa familiar: mirip JS tapi dengan konsep baru seperti <code>msg.sender</code>, <code>require()</code>, dan <code>payable</code>. Kalau kamu dari Go / Java / C++, Rust di Solana mungkin lebih natural. Ini bukan soal bahasa mana yang "lebih baik," tapi soal ekosistem mana yang paling cocok dengan latar belakangmu.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.4 Wallet, Kunci, dan Self-Custody</h3>
+
+<p>Ini mungkin konsep paling penting, dan paling membingungkan, bagi pendatang baru.</p>
+
+<p>Di Web2, "akun" kamu adalah kombinasi email dan password. Kalau lupa password, kamu klik "Lupa Password" dan reset. Kalau akunmu diretas, kamu bisa hubungi customer service.</p>
+
+<p>Di Web3, tidak ada "Lupa Password." Tidak ada customer service. Kamu adalah banknya dirimu sendiri.</p>
+
+<p>Di Web3, "akun" kamu adalah sepasang kunci kriptografis:</p>
+
+<ul>
+<li><strong>Public Key</strong>: Ibarat nomor rekening. Bisa dibagikan ke siapa pun agar mereka bisa mengirim aset ke kamu. Public key ini yang di-hash menjadi "alamat wallet" (contoh: <code>0x1a2B...3c4D</code>). Semakin berkembang, wallet address ini menjadi identitas seseorang di ranah Web3, menunjukkan sejauh mana pengalamannya dari segi volume transaksi dan aktivitas.
+</li>
+<li><strong>Private Key</strong>: Ibarat PIN ATM sekaligus kunci brankas. Ini RAHASIA MUTLAK. Siapa pun yang punya akses ke private key bisa mengontrol semua aset di alamat itu. Tidak ada yang bisa membantumu jika private key-mu dicuri: termasuk polisi, termasuk bank, termasuk Tuhan (maaf, ini ironi yang sering dipakai komunitas untuk menekankan pentingnya menjaga kunci).
+</li>
+<li><strong>Seed Phrase</strong>: 12 atau 24 kata bahasa Inggris yang merupakan "master key" dari walletmu. Fungsinya seperti backup semua private key dalam satu paket. Kalau HP-mu hilang, kamu bisa restore wallet ke perangkat baru pakai seed phrase ini.
+</li>
+</ul>
+
+<p><strong>Jenis wallet:</strong></p>
+
+<ul>
+<li><strong>Hot Wallet</strong>: Terhubung ke internet (MetaMask, Phantom, Trust Wallet). Praktis untuk transaksi sehari-hari. Tapi lebih rentan terhadap hack karena private key-nya ada di perangkat yang terhubung internet.
+</li>
+<li><strong>Cold Wallet</strong>: Offline (Ledger, Trezor). Private key disimpan di perangkat keras khusus yang tidak terhubung internet. Jauh lebih aman, tapi kurang praktis untuk transaksi cepat.
+</li>
+</ul>
+
+<p><strong>Analogi:</strong> Hot wallet itu dompet harian, cold wallet itu brankas di rumah.</p>
+
+<ul>
+<li><strong>Self-Custody vs Custodial</strong>: Self-custody berarti kamu memegang private key-nya sendiri. Kamu adalah satu-satunya yang bisa mengontrol asetmu. Contoh: MetaMask, Phantom. Keuntungan: kamu fully own asetmu. Kerugian: kalau kamu hilang seed phrase, asetmu hilang selamanya. Custodial berarti pihak ketiga yang memegang private key-nya. Contoh: akun Binance, Rekening P2P. Kamu "meminjam" akses ke asetmu melalui username dan password. Lebih mudah recovery. Tapi ingat: "not your keys, not your coins."
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> Di Web2, "lupa password" berarti klik reset dan dapat email. Di Web3, "lupa seed phrase" berarti kamu kehilangan akses ke asetmu SELAMANYA. Tidak ada tombol reset. Tidak ada customer support yang bisa membantu. Inilah mengapa cold wallet dan backup seed phrase yang aman itu krusial.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.5 Anatomi Blockchain</h3>
+
+<p>Ada beberapa istilah teknis yang akan sering kamu temui. Mari kita pahami satu per satu dengan analogi.</p>
+
+<ul>
+<li><strong>Node</strong>: Komputer yang menjalankan perangkat lunak blockchain. Setiap node punya salinan lengkap seluruh blockchain. Jika ribuan node setuju bahwa suatu transaksi valid, transaksi itu diterima. Semakin banyak node, semakin terdesentralisasi jaringan.
+</li>
+</ul>
+
+<p><strong>Analogi:</strong> Node itu seperti "saksi" dalam sebuah kontrak. Semakin banyak saksi yang setuju bahwa kontrak itu sah, semakin kuat keabsahannya.</p>
+
+<ul>
+<li><strong>Block</strong>: Kumpulan transaksi yang dikelompokkan menjadi satu paket. Setiap block terhubung ke block sebelumnya, membentuk "rantai" (chain). Dari sinilah nama blockchain berasal.
+</li>
+<li><strong>Hash</strong>: Sidik jari digital. Setiap block punya hash unik yang dihasilkan dari data di dalam block itu plus hash block sebelumnya. Kalau data di block diubah sedikit saja, hash-nya berubah total, dan semua block setelahnya jadi tidak valid. Inilah yang membuat blockchain "immutable": mengubah satu block berarti harus mengubah semua block setelahnya, yang butuh kekuatan komputasi luar biasa besar.
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> Hash itu seperti checksum file di Web2: kamu pakai MD5/SHA1 untuk verifikasi integritas download. Bedanya di blockchain, hash ini jadi rantai yang saling mengunci. Setiap block "mengunci" block sebelumnya. Ubah satu, semua patah.</p>
+
+<ul>
+<li><strong>Nonce</strong>: Angka yang digunakan dalam proses konsensus (penambangan atau validasi). Di Bitcoin, miner harus mencari nonce yang membuat hash block memiliki sejumlah nol di depannya. Ini yang membuat "proof of work" terasa seperti teka-teki.
+</li>
+<li><strong>TPS (Transactions Per Second)</strong>: Ukuran kecepatan blockchain. Bandingkan:
+<ul>
+<li>Bitcoin: ~7 TPS
+</li>
+<li>Ethereum: ~15–30 TPS
+</li>
+<li>Solana: ~4.000 TPS
+</li>
+<li>Visa: ~24.000 TPS
+</li>
+</ul>
+</li>
+</ul>
+
+<p>Angka-angka ini menjelaskan kenapa skalabilitas menjadi isu besar di Web3, dan kenapa solusi Layer 2 (yang akan kita bahas di Bab 3) sangat penting.</p>
+
+<p><strong>Web2 → Web3:</strong> Di Web2, server bisa handle ribuan request per detik dengan cara scale horizontally (tambah server). Di Web3, setiap node harus memproses setiap transaksi: jadi blockchain secara inheren lebih lambat. Ini trade-off yang disengaja: keamanan &amp; desentralisasi vs kecepatan.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.6 Jaringan: Mainnet, Testnet, Devnet</h3>
+
+<ul>
+<li><strong>Mainnet</strong>: Jaringan produksi. Uang sungguhan. Asli. Gas fee dibayar dengan token asli (ETH, SOL, MATIC). Setiap transaksi adalah transaksi nyata yang tidak bisa dibatalkan.
+</li>
+<li><strong>Testnet</strong>: Jaringan untuk pengujian. Token gratis dari faucet. Gas fee dibayar dengan test token yang tidak punya nilai. Ini adalah taman bermainmu untuk belajar tanpa risiko kehilangan uang.
+</li>
+<li><strong>Devnet</strong>: Jaringan development yang sering berubah-ubah. Digunakan oleh tim pengembang inti untuk menguji fitur baru sebelum dirilis ke testnet.
+</li>
+</ul>
+
+<p>Setiap jaringan punya <strong>Chain ID</strong>, nomor unik yang memastikan transaksi kamu tidak terkirim ke jaringan yang salah. Kalau kamu kirim transaksi Ethereum mainnet (chain ID 1) ke alamat yang sama di jaringan Sepolia testnet (chain ID 11155111), transaksi itu akan ditolak, dilindungi oleh chain ID.</p>
+
+<p><strong>Web2 → Web3:</strong> Ini seperti lingkungan di Web2: production (mainnet) = server live dengan data asli, staging (testnet) = lingkungan uji dengan data dummy, development (devnet) = lingkungan developer yang sering berubah. Tapi bedanya: di Web2 kamu bisa punya banyak staging environment dan gampang bikin yang baru. Di Web3, testnet itu publik dan dipakai banyak orang: kamu tidak punya kendali atas infrastrukturnya.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.7 Gas Fee dan RPC</h3>
+
+<p><strong>Gas Fee</strong> adalah biaya yang kamu bayar agar transaksimu diproses oleh jaringan. Ini seperti biaya administrasi, tapi di blockchain, biaya ini dibayarkan ke validator (bukan bank). Gas fee dihitung dari dua komponen:</p>
+
+<ol>
+<li><strong>Gas Used</strong>: Seberapa kompleks transaksimu. Transfer ETH sederhana butuh ~21.000 gas. Interaksi dengan smart contract bisa ratusan ribu gas.
+</li>
+<li><strong>Gas Price</strong>: Berapa kamu bersedia bayar per unit gas. Diukur dalam <strong>Gwei</strong> (1 ETH = 1.000.000.000 Gwei). Saat jaringan sibuk, gas price naik karena orang saling "menawar" agar transaksi mereka diproses lebih cepat.
+</li>
+</ol>
+
+<p><strong>Momen "oh, jadi begitu":</strong> Dulu kirim transaksi Ethereum pas booming NFT 2021. Bayar gas fee $80 untuk transaksi sederhana. Saya kaget, "masa transfer data aja bayar $80?" Itulah pertama kali saya benar-benar paham kenapa orang antusias dengan Solana dan L2.</p>
+
+<p><strong>RPC (Remote Procedure Call)</strong>: Ini adalah pintu antara aplikasi dApp dan blockchain. Di Web2, aplikasi kamu panggil API backend yang terhubung ke database. Di Web3, aplikasi kamu panggil RPC yang terhubung ke blockchain node. Kamu bisa menjalankan node sendiri untuk punya RPC pribadi, tapi itu berat dan mahal. Alternatifnya: pakai <strong>RPC provider</strong> seperti Alchemy, Infura, QuickNode, atau Ankr. Mereka menjalankan node untukmu dan menyediakan akses API.</p>
+
+<p><strong>Web2 → Web3:</strong> RPC itu seperti API Gateway + Database Driver jadi satu. Kalau di Web2 kamu punya <code>GET /api/users</code> yang balikin JSON dari PostgreSQL, di Web3 kamu punya <code>eth_call</code> ke RPC yang balikin data dari blockchain. Bedanya: setiap RPC call bisa kena rate limit, dan kalau RPC provider-nya down... dApp kamu ikut down. Inilah kenapa produksi pakai multiple RPC providers.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>1.8 Blockchain Explorer</h3>
+
+<p>Blockchain explorer adalah "Google-nya blockchain." Semua data di blockchain bisa dicari dan dilihat di sini.</p>
+
+<p>Coba buka salah satu explorer berikut:</p>
+
+<ul>
+<li><strong>Etherscan</strong>: untuk Ethereum mainnet
+</li>
+<li><strong>Basescan</strong>: untuk Base (L2 Coinbase)
+</li>
+<li><strong>Polygonscan</strong>: untuk Polygon
+</li>
+<li><strong>Solscan</strong>: untuk Solana
+</li>
+</ul>
+
+<p>Di explorer, kamu bisa mencari:</p>
+
+<ul>
+<li><strong>Alamat wallet</strong>: lihat saldo, riwayat transaksi, token yang dimiliki.
+</li>
+<li><strong>TxHash (Transaction Hash)</strong>: lihat status transaksi (pending, confirmed, failed), berapa gas yang dipakai, dan detail lainnya.
+</li>
+<li><strong>Smart Contract</strong>: lihat kode (kalau sudah diverifikasi), baca state variables, lihat event logs.
+</li>
+</ul>
+
+<p>Fungsi explorer ini penting banget untuk debugging. Kalau transaksi kamu gagal, explorer adalah tempat pertama untuk mencari tahu kenapa.</p>
+
+<p><strong>Tip dari pengalaman:</strong> Biasakan cek alamat kontrak di explorer SEBELUM kamu kirim aset ke alamat itu. Banyak scammer membuat token palsu yang mirip dengan token asli. Cek kode kontrak, cek umur akun, cek jumlah holder, jangan asal percaya.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>Ringkasan Bab 1: Web2 vs Web3</h3>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Area</th><th scope="col">Web2</th><th scope="col">Web3</th></tr></thead>
+<tbody>
+<tr><td>Server</td><td>Sentral, dimiliki perusahaan</td><td>Terdistribusi, ribuan node global</td></tr>
+<tr><td>Data</td><td>Bisa diedit/dihapus admin</td><td>Immutable, tidak bisa diubah sepihak</td></tr>
+<tr><td>Akun</td><td>Email + password (bisa di-reset)</td><td>Private key + seed phrase (hilang = lenyap)</td></tr>
+<tr><td>Biaya transaksi</td><td>Admin fee bank / payment gateway : fixed</td><td>Gas fee : variatif tergantung kemacetan jaringan</td></tr>
+<tr><td>Akses data</td><td>API server (terbatas)</td><td>RPC + Blockchain Explorer (publik)</td></tr>
+<tr><td>Autentikasi</td><td>OAuth / SSO</td><td>Wallet Signature (SIWE)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="pendahuluan">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-2">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-2" aria-labelledby="bab-2-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 2: PENGEMBANGAN SMART CONTRACT</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-2-title">BAB 2: PENGEMBANGAN SMART CONTRACT</h2>
+    </header>
+    <div class="reader-prose">
+<h3>2.1 Pengantar Solidity</h3>
+
+<p>Solidity adalah bahasa yang akan kamu temui pertama kali ketika belajar smart contract di ekosistem EVM. Dirancang oleh Gavin Wood (pendiri Ethereum bersama Vitalik Buterin) dan dikembangkan oleh tim Ethereum.</p>
+
+<p>Kalau kamu kenal JavaScript atau C++, Solidity akan terasa familier, setidaknya secara sintaks. Tapi ada beberapa perbedaan fundamental yang harus kamu pahami:</p>
+
+<ol>
+<li><strong>Pertama</strong>, Solidity adalah bahasa kontrak, bukan aplikasi umum. Kamu tidak bisa bikin aplikasi desktop atau mobile dengan Solidity. Solidity hanya berjalan di blockchain dan tugasnya mengelola aset serta aturan transaksi.
+</li>
+<li><strong>Kedua</strong>, setiap operasi membutuhkan biaya. Di bahasa Web2, kamu bisa looping sejuta kali tanpa khawatir. Di Solidity, setiap iterasi loop membakar gas. Semakin kompleks kode kamu, semakin mahal eksekusinya. Ini mendorong developer untuk menulis kode yang efisien: suatu kebiasaan yang sebenarnya baik untuk semua bahasa pemrograman.
+</li>
+<li><strong>Ketiga</strong>, state bersifat permanen. Variabel yang kamu simpan di smart contract akan ada di blockchain selamanya, atau sampai kontraknya di-<code>selfdestruct</code>. Tidak ada "hapus data" di blockchain.
+</li>
+<li><strong>Keempat</strong>, akses publik. Semua data di smart contract bisa dibaca siapa pun. Jangan simpan password, API key, atau informasi rahasia di smart contract. Anggap semua yang kamu tulis di smart contract adalah publik, karena memang publik.
+</li>
+</ol>
+
+<p><strong>Web2 → Web3:</strong> Bayangkan kalau di Web2, setiap kali kamu panggil REST API, kamu bayar $0.001 per request. Itulah gas fee. Sekarang bayangkan kalau backend kamu di-host di server publik di mana semua orang bisa baca source code dan datanya. Itulah smart contract. Gabungkan keduanya, dan kamu paham kenapa ngoding di blockchain terasa seperti "hard mode" Web2.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>2.2 Remix IDE</h3>
+
+<p>Remix (remix.ethereum.org) adalah IDE berbasis web untuk menulis, mengompilasi, dan mendeploy smart contract. Keunggulan utamanya: tidak perlu instalasi apa pun. Buka browser, mulai coding.</p>
+
+<p>Saya ingat pertama kali buka Remix. Ada panel file di kiri, editor di tengah, dan terminal di kanan. Terasa seperti VS Code versi minimalis. Plugin-pluginnya mirip ekstensi VS Code: ada compiler, deployer, debugger, static analyzer.</p>
+
+<p><strong>Kapan pakai Remix?</strong></p>
+
+<ul>
+<li>Pemula: belajar sintaks Solidity tanpa ribet setup environment.
+</li>
+<li>Eksperimen cepat: mau coba fitur Solidity tertentu? Tulis di Remix, compile, deploy ke testnet dalam 5 menit.
+</li>
+<li>Demo dan workshop: karena bisa diakses dari mana saja tanpa instalasi.
+</li>
+</ul>
+
+<p><strong>Kapan TIDAK pakai Remix?</strong></p>
+
+<ul>
+<li>Proyek serius: butuh version control, testing framework, CI/CD.
+</li>
+<li>Proyek tim: Remix tidak punya fitur kolaborasi real-time.
+</li>
+<li>Production deployment: Remix terlalu sederhana untuk mengelola kontrak produksi yang kompleks.
+</li>
+</ul>
+
+<p>Untuk pemula, mulailah dari Remix. Setelah nyaman, migrasi ke Hardhat atau Foundry.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>2.3 ABI, State, Storage, Events</h3>
+
+<p>Empat konsep ini penting dipahami sebelum menulis smart contract pertamamu.</p>
+
+<ul>
+<li><strong>ABI (Application Binary Interface)</strong>: ABI adalah file JSON yang mendeskripsikan fungsi-fungsi dalam smart contract. Fungsinya mirip dengan API documentation atau Swagger di Web2: memberi tahu aplikasi lain (wallet, dApp, block explorer) bagaimana cara berinteraksi dengan kontrakmu. Setiap kali kamu compile smart contract, compiler akan menghasilkan ABI secara otomatis. Kamu tidak perlu menulisnya manual.
+</li>
+<li><strong>State</strong>: State adalah data yang disimpan dalam smart contract: variabel yang nilainya bertahan di antara pemanggilan fungsi. Contoh:
+</li>
+</ul>
+
+<p>uint public counter;  // state variable, nilainya tersimpan permanen</p>
+
+<p>Fungsi yang mengubah state disebut <strong>transaksi</strong> dan membutuhkan gas. Fungsi yang hanya membaca state disebut <strong>"view function"</strong> dan gratis (tidak perlu gas).</p>
+
+<ul>
+<li><strong>Storage</strong>: Storage adalah tempat penyimpanan state. Blockchain menyimpan data dalam slot-slot penyimpanan 32-byte. Operasi baca/tulis ke storage adalah yang PALING MAHAL dalam hal gas. Sebagai developer, kamu harus meminimalkan operasi storage: ini bedanya dengan Web2 di mana operasi database relatif murah.
+</li>
+</ul>
+
+<p><strong>Konsekuensi praktis:</strong> array panjang di storage itu mahal. String panjang itu mahal. Mapping biasanya lebih efisien daripada array.</p>
+
+<ul>
+<li><strong>Events</strong>: Events adalah log yang dikeluarkan smart contract saat sesuatu terjadi. Contoh:
+</li>
+</ul>
+
+<p>event Transfer(address indexed from, address indexed to, uint value);</p>
+
+<p>Aplikasi frontend bisa "mendengarkan" events ini dan bereaksi. Mirip dengan <strong>webhook</strong>: smart contract mengirim sinyal bahwa sesuatu telah terjadi, dan aplikasi merespons. Events lebih murah daripada storage, jadi kalau kamu perlu mencatat sesuatu yang tidak perlu disimpan permanen di state, pakai events.</p>
+
+<p><strong>Web2 → Web3:</strong></p>
+
+<ul>
+<li>ABI = Swagger/OpenAPI spec
+</li>
+<li>State = Database row
+</li>
+<li>Storage = Disk I/O (tapi mahal banget)
+</li>
+<li>Events = Webhook / Pub-sub message
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>2.4 Mengapa Standar Token Itu Penting?</h3>
+
+<p>Bayangkan jika setiap bank punya format nomor rekening yang berbeda. Bank A pakai 10 digit, Bank B pakai 12 digit dengan huruf, Bank C pakai format internasional yang berbeda. Transfer uang antar bank akan menjadi mimpi buruk.</p>
+
+<p>Sama halnya dengan token di blockchain. Tanpa standar, setiap token bisa punya interface yang berbeda. Wallet tidak akan bisa menampilkan saldo secara konsisten. Exchange tidak akan bisa mendeteksi token baru. Marketplace tidak akan bisa menjual aset digital.</p>
+
+<p>Standar token memastikan <strong>interoperabilitas</strong>. Wallet, exchange, marketplace, dan dApp bisa "berbicara" dengan token apa pun selama token itu mengikuti standar yang sama.</p>
+
+<p>Bayangkan ERC-20 sebagai "ISO untuk token fungible" dan ERC-721 sebagai "ISO untuk NFT." Dengan mengikuti standar ini, token kamu langsung kompatibel dengan ribuan produk di ekosistem.</p>
+
+<p><strong>Web2 → Web3:</strong> Standar token itu seperti standar HTTP atau REST. Bayangkan kalau setiap website punya protokol sendiri untuk browsing: chaos. ERC-20, ERC-721, dan ERC-1155 adalah standar yang membuat ekosistem Web3 bisa saling terhubung.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>2.5 Token Utility Design</h3>
+
+<p>Sebelum membuat token, tanya pada dirimu: "Kenapa orang mau memegang token ini?" Bukan sekadar "biar bisa diperjualbelikan." Kalau utility token hanya bergantung pada spekulasi, itu bukan utility, itu gambling.</p>
+
+<p><strong>Token utility yang baik punya fungsi nyata dalam ekosistemnya:</strong></p>
+
+<ul>
+<li><strong>Token Akses</strong>: Token sebagai tiket masuk ke layanan atau platform. Contoh: token untuk mengakses fitur premium, masuk ke komunitas eksklusif, atau berpartisipasi dalam event.
+</li>
+<li><strong>Token Pembayaran</strong>: Token sebagai alat tukar dalam ekosistem. Contoh: token untuk membayar biaya transaksi (seperti ETH untuk gas), membeli barang di marketplace, atau membayar langganan.
+</li>
+<li><strong>Token Governance</strong>: Token sebagai hak suara dalam pengambilan keputusan. Pemegang token bisa vote proposal yang menentukan arah protokol. Semakin banyak token, semakin besar suara. Ini adalah fondasi dari DAO.
+</li>
+<li><strong>Token Reward</strong>: Token sebagai insentif untuk partisipasi. Contoh: dapat token karena menyediakan likuiditas (yield farming), berkontribusi ke protokol, atau menyelesaikan tugas tertentu.
+</li>
+<li><strong>Token Ownership</strong>: Token sebagai representasi kepemilikan aset. NFT untuk seni digital, tokenized property untuk real estate, atau revenue share token untuk bagi hasil.
+</li>
+<li><strong>Token Identity</strong>: Token sebagai verifikasi identitas atau reputasi. Contoh: soulbound token (SBT) untuk sertifikat pendidikan, credential KYC, atau reputation score di DAO.
+</li>
+</ul>
+
+<p><strong>Ketika mendesain token, buatlah dokumen "tokenomics" yang menjawab:</strong></p>
+
+<ol>
+<li>Berapa total pasokan?
+</li>
+<li>Bagaimana distribusinya?
+</li>
+<li>Insentif apa yang mendorong adopsi awal?
+</li>
+<li>Mekanisme apa yang mencegah spekulasi berlebihan?
+</li>
+<li>Bagaimana token menangkap nilai dari ekosistem?
+</li>
+</ol>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>2.6 Standar Token: ERC-20, ERC-721, ERC-1155, SBT</h3>
+
+<ul>
+<li><strong>ERC-20 (Fungible Token)</strong>: Token yang bisa dipertukarkan, setiap unit identik dan tidak unik. Seperti uang: satu USDC-mu sama dengan satu USDC-ku.
+</li>
+</ul>
+
+<p>Fungsi utama ERC-20:</p>
+
+<ul>
+<li><code>balanceOf(address)</code>: lihat saldo
+</li>
+<li><code>transfer(to, amount)</code>: kirim token
+</li>
+<li><code>approve(spender, amount)</code>: izinkan kontrak lain pakai tokenmu
+</li>
+<li><code>transferFrom(from, to, amount)</code>: transfer atas nama (oleh kontrak yang sudah di-approve)
+</li>
+</ul>
+
+<p>Contoh use case: stablecoin (USDC, USDT), governance token (UNI, COMP), reward points, platform token (MATIC, BNB).</p>
+
+<ul>
+<li><strong>ERC-721 (Non-Fungible Token)</strong>: Setiap token UNIK, tidak ada dua NFT yang identik. Masing-masing punya <code>tokenId</code> berbeda yang terikat ke metadata tertentu.
+</li>
+</ul>
+
+<p>Fungsi utama ERC-721:</p>
+
+<ul>
+<li><code>ownerOf(tokenId)</code>: siapa pemilik NFT ini?
+</li>
+<li><code>safeTransferFrom(from, to, tokenId)</code>: transfer dengan safety check
+</li>
+</ul>
+
+<p>Contoh use case: seni digital (Bored Ape, CryptoPunks), koleksi game, sertifikat digital, membership pass, tiket event.</p>
+
+<ul>
+<li><strong>ERC-1155 (Multi-Token Standard)</strong>: Standar hybrid: satu contract bisa mengelola token fungible DAN non-fungible sekaligus. Bayangkan: dalam satu kontrak game, ada koin emas (fungible, bisa punya jumlah berapa pun) DAN pedang legendaris (NFT, hanya satu). Keduanya dikelola oleh satu kontrak ERC-1155. Ini sangat efisien dalam hal biaya deployment dan transaksi.
+</li>
+<li><strong>Soulbound Token (SBT)</strong>: SBT adalah token yang TIDAK BISA DITRANSFER. Begitu diterbitkan ke suatu alamat, token itu melekat di sana selamanya, kecuali dibakar oleh penerbit atau pemilik. Konsep ini terinspirasi dari "soulbound items" di game World of Warcraft: item yang setelah di-equip tidak bisa dipindahtangankan ke pemain lain.
+</li>
+</ul>
+
+<p>Use case SBT:</p>
+
+<ul>
+<li>Sertifikat pendidikan: ijazah yang tidak bisa dipalsukan
+</li>
+<li>KYC verification: bukti verifikasi tanpa exposure data
+</li>
+<li>Reputation score: riwayat partisipasi yang tidak bisa dihapus
+</li>
+<li>Achievement: pencapaian on-chain yang genuine
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>2.7 Istilah Penting Lain di Ekosistem Smart Contract (BARU)</h3>
+
+<p><strong>Multi-sig Wallet</strong>: Wallet yang membutuhkan lebih dari satu tanda tangan untuk mengeksekusi transaksi. Contoh: 2-of-3 multisig: butuh 2 dari 3 orang setuju. Ini standar untuk DAO treasury, project funds, dan admin operations.</p>
+
+<p><strong>Web2 → Web3:</strong> Multi-sig itu seperti "dual authorization" di sistem banking korporat: transfer di atas limit tertentu harus di-approve oleh dua orang. Di Web3, ini dienkripsi di level smart contract, bukan kebijakan internal perusahaan.</p>
+
+<p><strong>EIP (Ethereum Improvement Proposal)</strong>: Dokumen desain untuk fitur baru di ekosistem Ethereum. EIP-20 = standar ERC-20. EIP-1559 = mekanisme burn gas fee. EIP-4337 = account abstraction (wallet bisa punya logic sendiri). Mirip RFC di dunia internet.</p>
+
+<p><strong>Fork (Hard Fork vs Soft Fork)</strong>: Fork adalah perubahan protokol blockchain.</p>
+
+<ul>
+<li><strong>Hard Fork:</strong> perubahan yang tidak kompatibel ke belakang. Node lawas tidak bisa memproses block baru. Contoh: Ethereum → Ethereum Classic.
+</li>
+<li><strong>Soft Fork:</strong> perubahan yang kompatibel ke belakang. Node lawas masih bisa ikut.
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> Fork itu seperti major version upgrade API v1 → v2. Tapi di blockchain, fork bisa bikin blockchain terbelah jadi dua (seperti Ethereum vs Ethereum Classic). Bayangkan kalau AWS S3 tiba-tiba fork, dan data di "S3 Classic" berbeda dengan "S3 New."</p>
+
+<p><strong>Layer 0:</strong> Fondasi di bawah Layer 1. Ini adalah infrastruktur jaringan yang menghubungkan berbagai blockchain. Contoh: Polkadot (Relay Chain), Cosmos (IBC Protocol). Layer 0 memungkinkan blockchain berbeda saling berkomunikasi secara native.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-1">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-3">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-3" aria-labelledby="bab-3-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 3: ARSITEKTUR &amp; EKOSISTEM BLOCKCHAIN</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-3-title">BAB 3: ARSITEKTUR &amp; EKOSISTEM BLOCKCHAIN</h2>
+    </header>
+    <div class="reader-prose">
+<h3>3.1 Layer 1 dan Layer 2</h3>
+
+<p>Salah satu perdebatan paling panas di Web3 adalah soal skalabilitas: bagaimana membuat blockchain yang cepat, murah, DAN aman secara bersamaan: yang disebut <strong>"Blockchain Trilemma."</strong></p>
+
+<p><strong>Layer 1 (L1)</strong> adalah fondasi. Ini adalah blockchain utamanya. Contoh:</p>
+
+<ul>
+<li><strong>Ethereum</strong>: Ekosistem smart contract paling matang. Ribuan dApp, DeFi, NFT semuanya berakar di sini. Kekurangan: mahal dan lambat saat jaringan sibuk.
+</li>
+<li><strong>Solana</strong>: Throughput tinggi (ribuan TPS), biaya rendah. Kekurangan: sering down, ekosistem lebih muda.
+</li>
+<li><strong>Bitcoin</strong>: Paling aman dan terdesentralisasi. Tapi smart contract sangat terbatas. Bitcoin lebih fokus sebagai store of value.
+</li>
+</ul>
+
+<p><strong>Layer 2 (L2)</strong> adalah lapisan yang dibangun DI ATAS L1 untuk mengatasi masalah skalabilitas. L2 memproses transaksi di luar rantai utama, lalu "melaporkan" hasilnya ke L1 secara berkala.</p>
+
+<p>L2 populer di ekosistem Ethereum:</p>
+
+<ul>
+<li><strong>Base</strong>: L2 dari Coinbase. Cepat, murah, dan terintegrasi dengan produk Coinbase.
+</li>
+<li><strong>Arbitrum</strong>: L2 dengan teknologi optimistic rollup. Ekosistem DeFi-nya sangat aktif.
+</li>
+<li><strong>Optimism</strong>: L2 lain dengan EVM equivalence (sama persis dengan Ethereum dari sisi developer).
+</li>
+<li><strong>Polygon</strong>: Sebenarnya hybrid. Ada yang menyebutnya sidechain, ada yang L2. Tapi yang jelas: Polygon membuat Ethereum lebih terjangkau.
+</li>
+</ul>
+
+<p><strong>Analogi:</strong> Saya sering menjelaskan L1 dan L2 dengan analogi tol: L1 adalah jalan tol utama yang kadang macet dan mahal. L2 adalah jalur express di samping tol: lebih cepat, lebih murah, tapi tetap terhubung ke tol utama secara periodik.</p>
+
+<p><strong>Rollup: Optimistic vs ZK (BARU)</strong></p>
+
+<p>Rollup adalah jenis L2 yang memproses transaksi di luar chain, lalu mengirim data transaksi yang sudah diringkas ke L1.</p>
+
+<ul>
+<li><strong>Optimistic Rollup</strong>: Menganggap semua transaksi valid secara default. Ada periode "challenge" (biasanya 7 hari) di mana siapa pun bisa membuktikan bahwa suatu transaksi curang. Contoh: Arbitrum, Optimism.
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> Optimistic rollup itu seperti pull request yang auto-merge: semua orang bisa lihat kodenya, kalau ada yang protes, baru di-rollback.</p>
+
+<ul>
+<li><strong>ZK Rollup (Zero-Knowledge Rollup)</strong>: Menghasilkan bukti kriptografis (ZK-proof) bahwa semua transaksi valid, tanpa perlu periode challenge. Lebih cepat dan lebih aman, tapi secara teknis lebih kompleks. Contoh: zkSync, Scroll, StarkNet.
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> ZK rollup itu seperti kamu kirim file ZIP yang sudah di-checksum: penerima bisa verifikasi bahwa file-nya utuh tanpa perlu extract semua isinya.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.2 Consensus Mechanism</h3>
+
+<p>Consensus mechanism adalah cara node-node di blockchain mencapai kesepakatan tentang mana transaksi yang valid dan bagaimana block baru ditambahkan.</p>
+
+<ul>
+<li><strong>Proof of Work (PoW)</strong>: Digunakan oleh Bitcoin (dan Ethereum sebelum 2022). Para miner bersaing memecahkan teka-teki matematika (hash). Yang pertama menemukan jawaban berhak menambahkan block dan mendapat reward.
+<ul>
+<li>Keunggulan: sangat aman, terbukti 15 tahun tanpa kegagalan.
+</li>
+<li>Kelemahan: boros energi: konsumsi listrik Bitcoin setara negara kecil.
+</li>
+</ul>
+</li>
+<li><strong>Proof of Stake (PoS)</strong>: Digunakan oleh Ethereum (setelah The Merge, 2022), Solana, Polygon, dan hampir semua blockchain modern. Validator "mengunci" (stake) token sebagai jaminan. Semakin banyak token yang di-stake, semakin besar kemungkinan dipilih untuk memvalidasi block. Jika validator curang, token mereka bisa di-"slashing" (diambil sebagian). Ini adalah insentif ekonomi untuk berperilaku jujur.
+<ul>
+<li>Keunggulan: jauh lebih hemat energi. Tidak perlu hardware khusus. Lebih desentralisasi karena barrier to entry lebih rendah.
+</li>
+</ul>
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> PoW itu seperti lomba lari: siapa paling cepat dia yang menang, tapi boros energi. PoS itu seperti jaminan deposito: makin besar deposit kamu, makin besar tanggung jawab dan reward-nya. Kalau curang, deposit hangus.</p>
+
+<p><strong>Validator (BARU)</strong>: Di PoS, validator adalah entitas yang menjalankan node dan "mempertaruhkan" token sebagai jaminan. Validator dipilih secara acak untuk mengusulkan dan memvalidasi block baru. Reward diberikan dalam bentuk token baru + biaya transaksi.</p>
+
+<p><strong>Slashing (BARU)</strong>: Hukuman bagi validator yang melanggar aturan konsensus (misalnya: memvalidasi dua block berbeda di ketinggian yang sama). Sebagian token yang di-stake akan diambil. Ini adalah mekanisme keamanan ekonomi.</p>
+
+<p><strong>Web2 → Web3:</strong> Validator = server backend yang menjalankan aplikasi. Tapi di Web2, kalau server kamu nakal, paling kena banned. Di Web3, kalau validator nakal, token kamu di-slash: rugi uang beneran. Disinsentif ekonomi ini yang membuat keamanan Web3 unik.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.3 Bridge dan Cross-Chain</h3>
+
+<p>Bridge adalah jembatan yang memungkinkan aset berpindah dari satu blockchain ke blockchain lain. Contoh: kirim ETH dari Ethereum mainnet ke Arbitrum.</p>
+
+<p>Bridge bekerja dengan mekanisme <strong>lock-and-mint</strong>: ETH kamu dikunci di smart contract di Ethereum, lalu token representasi (disebut "wrapped" ETH) dicetak di Arbitrum. Ketika kamu ingin kembali ke Ethereum, wrapped ETH dibakar, dan ETH asli di Ethereum dilepaskan.</p>
+
+<p><strong>Masalah besar bridge: keamanan.</strong> Bridge adalah salah satu target terbesar hacker DeFi. Beberapa hack bridge terbesar dalam sejarah:</p>
+
+<ul>
+<li>Ronin Bridge (Axie Infinity): $625 juta hilang (2022)
+</li>
+<li>Wormhole: $325 juta (2022)
+</li>
+<li>Nomad: $190 juta (2022)
+</li>
+</ul>
+
+<p><strong>Kenapa bridge rawan?</strong> Karena mereka mengelola aset dalam jumlah besar, dan kompleksitas teknisnya tinggi. Semakin kompleks suatu sistem, semakin besar permukaan serangannya.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.4 Oracle dan Data Dunia Nyata</h3>
+
+<p>Smart contract di blockchain tidak bisa mengakses data di luar jaringan secara langsung. Tidak bisa fetch harga saham dari internet, tidak bisa cek cuaca, tidak bisa verifikasi pembayaran PayPal. Di sinilah <strong>oracle</strong> berperan.</p>
+
+<p>Oracle adalah jembatan antara blockchain dan dunia nyata: memberikan data off-chain ke smart contract. <strong>Chainlink</strong> adalah oracle terbesar. Jaringan node independen yang mengambil data dari berbagai sumber (exchange API, data feeds) dan mengirimkannya ke smart contract.</p>
+
+<p><strong>Contoh penggunaan oracle:</strong></p>
+
+<ul>
+<li><strong>DeFi</strong>: Harga aset real-time untuk lending, trading, dan derivatif.
+</li>
+<li><strong>Parametric Insurance</strong>: Smart contract otomatis membayar klaim ketika kondisi tertentu terpenuhi (misal: curah hujan di bawah threshold tertentu).
+</li>
+<li><strong>Prediction Market</strong>: Hasil pertandingan olahraga, pemilu, atau event lainnya.
+</li>
+<li><strong>Supply Chain</strong>: Verifikasi pengiriman barang di dunia nyata.
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> Oracle itu seperti API integration di Web2. Aplikasi kamu perlu data dari pihak ketiga: kamu panggil API mereka. Tapi di Web2, kamu percaya API itu benar. Di Web3, smart contract butuh bukti bahwa data itu asli. Oracle solution (seperti Chainlink) menggunakan jaringan node independen untuk memverifikasi data: jadi tidak single point of failure.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.5 Indexer dan Subgraph</h3>
+
+<p>Blockchain itu hebat dalam menyimpan data, tapi buruk dalam mengambil data. Tidak ada query SQL di blockchain. Tidak ada full-text search. Kalau kamu ingin menampilkan "10 transaksi terakhir pengguna A," kamu harus membaca block satu per satu.</p>
+
+<p><strong>Indexer</strong> adalah solusinya. Mereka mengorganisir data blockchain ke dalam database yang bisa di-query dengan cepat dan efisien.</p>
+
+<p><strong>The Graph</strong> adalah protokol indexing terdesentralisasi. Developer membuat "subgraph" yang mendefinisikan data apa yang perlu di-index dan bagaimana cara query-nya. Subgraph mirip dengan definisi API GraphQL, tapi untuk data blockchain.</p>
+
+<p><strong>Web2 → Web3:</strong> Indexer + Subgraph = Elasticsearch / Algolia untuk blockchain. Kalau blockchain adalah database utama yang lambat di-query, subgraph adalah search index yang bikin data bisa dicari dalam milidetik.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.6 Zero-Knowledge Proofs</h3>
+
+<p>ZK Proof adalah salah satu teknologi paling canggih di kriptografi modern. Sederhananya: <strong>ZK Proof memungkinkan seseorang membuktikan bahwa mereka tahu suatu informasi tanpa mengungkapkan informasi itu sendiri.</strong></p>
+
+<p><strong>Contoh klasik:</strong> Kamu ingin membuktikan ke satpam bahwa umurmu di atas 17 tahun, tanpa menunjukkan tanggal lahir. Dengan ZK Proof, kamu bisa menghasilkan "bukti" bahwa umurmu &gt; 17 tanpa mengungkapkan angka pastinya.</p>
+
+<p><strong>Aplikasi ZK di Web3:</strong></p>
+
+<ul>
+<li><strong>Privasi transaksi</strong>: Pembuktian bahwa transaksi valid tanpa mengungkapkan detail transaksi.
+</li>
+<li><strong>Scaling (zk-rollup)</strong>: Ribuan transaksi diproses di L2, lalu satu bukti ZK dikirim ke L1 untuk verifikasi. Lebih cepat dan lebih murah daripada optimistic rollup.
+</li>
+<li><strong>Identity</strong>: Verifikasi KYC atau credential tanpa exposure data sensitif.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.7 Decentralized Storage</h3>
+
+<p>Pertanyaan yang mungkin muncul: "Di mana gambar NFT disimpan?" Jawabannya tidak sesederhana "di blockchain." Menyimpan data besar di blockchain sangat mahal. Satu gambar NFT bisa menghabiskan biaya setara $50–$500 jika disimpan on-chain.</p>
+
+<p><strong>Solusinya:</strong> simpan data besar di penyimpanan terdesentralisasi, simpan hash-nya di blockchain.</p>
+
+<p>Dua pemain utama:</p>
+
+<ul>
+<li><strong>IPFS (InterPlanetary File System)</strong>: Sistem file peer-to-peer di mana file diidentifikasi oleh content hash-nya (CID), bukan lokasi server. Selama ada node yang menyimpan file itu, file itu bisa diakses. Tapi IPFS tidak "permanen": jika tidak ada pinning, file bisa hilang. Layanan pinning: Pinata, Web3.Storage.
+</li>
+<li><strong>Arweave</strong>: Penyimpanan permanen. Bayar sekali, data disimpan selamanya. Biaya lebih mahal di awal, tapi lebih murah dalam jangka panjang untuk data yang benar-benar perlu permanen.
+</li>
+</ul>
+
+<p><strong>Best practice:</strong> Metadata (JSON deskripsi) di IPFS, file besar (gambar, video) di Arweave atau CDN teroptimasi, pointer-nya (CID/hash) simpan di on-chain.</p>
+
+<p><strong>Web2 → Web3:</strong> IPFS = S3 tapi terdesentralisasi. Bedanya: di S3, file diakses lewat URL yang tergantung server (<a href="https://s3.amazonaws.com/bucket/file.jpg" target="_blank" rel="noopener noreferrer">https://s3.amazonaws.com/bucket/file.jpg</a>). Di IPFS, file diakses lewat kontennya (ipfs://QmX...). Kalau server S3 mati, file hilang. Kalau satu node IPFS mati, selama node lain menyimpan file itu, masih bisa diakses.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.8 DAO: Organisasi Tanpa Bos</h3>
+
+<p>DAO (Decentralized Autonomous Organization) adalah organisasi yang dijalankan oleh kode smart contract, bukan oleh manajemen tradisional. Keputusan diambil lewat voting oleh pemegang token.</p>
+
+<p>Bayangkan sebuah perusahaan tanpa CEO, tanpa rapat direksi, tanpa HR. Semua keputusan, dari alokasi dana hingga rekrutmen, diatur oleh aturan smart contract dan voting anggota.</p>
+
+<p><strong>Alat yang sering digunakan:</strong></p>
+
+<ul>
+<li><strong>Snapshot</strong>: Voting off-chain (gratis, tanpa gas). Biasanya untuk proposal awal atau suara "sinyal."
+</li>
+<li><strong>Tally</strong>: Voting on-chain dengan quorum dan execution otomatis.
+</li>
+</ul>
+
+<p>DAO bukan tanpa masalah. Partisipasi voting sering rendah. "Whale" (pemegang token besar) bisa mendominasi. Dan DAO sering lambat dalam mengambil keputusan.</p>
+
+<p><strong>Web2 → Web3:</strong> DAO itu seperti perusahaan yang semua keputusannya diambil lewat vote pemegang saham, tapi tanpa CEO, tanpa board meeting, tanpa hierarki. Aturannya ditulis di kode, bukan di buku pedoman HR. Bayangkan kalau Gojek dijalankan lewat voting driver dan pengguna: itulah DAO.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.9 Ekosistem: DeFi, NFT, RWA</h3>
+
+<p><strong>DeFi (Decentralized Finance)</strong></p>
+
+<p>Ini mungkin sektor Web3 yang paling matang. DeFi adalah sistem keuangan tanpa bank, tanpa broker, semuanya berjalan lewat smart contract.</p>
+
+<p><strong>Komponen utama DeFi:</strong></p>
+
+<ul>
+<li><strong>DEX (Decentralized Exchange)</strong>: Uniswap, Raydium, Jupiter. Tukar token tanpa perlu mendaftar. Cukup connect wallet dan swap.
+</li>
+<li><strong>Lending Protocol</strong>: Aave, Compound. Pinjam atau pinjamkan aset, bunga diatur oleh algoritma supply-demand.
+</li>
+<li><strong>Yield Aggregator</strong>: Yearn Finance. Otomatis mencari hasil terbaik dari berbagai protokol.
+</li>
+<li><strong>Stablecoin</strong>: DAI (desentralisasi, di-back oleh kripto), USDC/USDT (sentralisasi, di-back oleh dolar sungguhan).
+</li>
+</ul>
+
+<p><strong>NFT (Non-Fungible Token)</strong></p>
+
+<p>NFT lebih dari sekadar gambar profil. NFT adalah primitif kepemilikan digital yang bisa diterapkan di banyak bidang:</p>
+
+<ul>
+<li>Seni dan koleksi: bukti kepemilikan dan keaslian
+</li>
+<li>Musik: royalty otomatis lewat smart contract setiap kali didengarkan atau dijual
+</li>
+<li>Game: skin, senjata, karakter yang benar-benar dimiliki pemain (bukan hanya lisensi)
+</li>
+<li>Real estate: properti virtual di metaverse
+</li>
+<li>Tiket: tiket event sebagai NFT yang anti-palsu
+</li>
+</ul>
+
+<p><strong>RWA (Real World Assets)</strong></p>
+
+<p>RWA adalah jembatan antara ekonomi tradisional dan Web3, tokenisasi aset dunia nyata di blockchain. Properti, obligasi, komoditas, invoice, bahkan hak cipta bisa dijadikan token dan diperdagangkan di blockchain.</p>
+
+<p>Potensi RWA sangat besar, pasar triliunan dolar. Tapi tantangannya juga signifikan: regulasi, verifikasi kepemilikan, dan mekanisme hukum jika terjadi sengketa.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>3.10 Istilah DeFi yang Wajib Diketahui (BARU)</h3>
+
+<p><strong>AMM (Automated Market Maker)</strong>: Mekanisme di balik DEX seperti Uniswap. Alih-alih menggunakan order book (seperti bursa saham), AMM menggunakan <strong>liquidity pool</strong> dan rumus matematika untuk menentukan harga. Contoh rumus: <code>x * y = k</code>.</p>
+
+<p><strong>Web2 → Web3:</strong> Di Web2, kamu beli saham lewat order book: ada penjual dan pembeli yang cocok. Di Web3 DeFi, kamu swap token langsung dengan liquidity pool: nggak perlu nunggu lawan transaksi. Mirip seperti "beli dollar di money changer" bedanya harganya diatur algoritma, bukan tawar-menawar.</p>
+
+<p><strong>Liquidity Pool</strong>: Kumpulan token yang dikunci di smart contract, dipakai untuk memfasilitasi trading di DEX. Siapa pun bisa menjadi <strong>liquidity provider (LP)</strong> dengan menyetor token ke pool, dan mendapatkan imbalan dari biaya trading.</p>
+
+<p><strong>Slippage</strong>: Selisih antara harga yang kamu lihat saat memulai transaksi dan harga aktual saat transaksi dieksekusi. Terjadi karena harga berubah selama transaksi diproses (terutama di pool dengan likuiditas rendah).</p>
+
+<p><strong>Web2 → Web3:</strong> Slippage itu seperti "harga tiket pesawat berubah pas kamu mau bayar." Cuma di DeFi, ini terjadi dalam hitungan detik.</p>
+
+<p><strong>Impermanent Loss</strong>: Kerugian yang dialami liquidity provider ketika harga token di pool berubah drastis dibandingkan saat menyetor. Dinamakan "impermanent" karena bisa hilang kalau harga kembali ke posisi awal: tapi kalau tidak, jadi permanen.</p>
+
+<p><strong>TVL (Total Value Locked)</strong>: Total nilai aset yang dikunci di suatu protokol DeFi. Ini adalah metrik kesehatan utama: makin tinggi TVL, makin banyak orang percaya dan menggunakan protokol itu.</p>
+
+<p><strong>Yield Farming / Liquidity Mining (BARU)</strong>: Praktik menyediakan likuiditas ke protokol DeFi untuk mendapatkan reward dalam bentuk token. Ibaratnya "menyetor uang di bank" tapi bunganya dibayar dalam saham bank itu sendiri.</p>
+
+<p><strong>Staking (BARU)</strong>: Mengunci token di jaringan Proof of Stake untuk mendukung keamanan jaringan dan mendapatkan reward. Berbeda dengan yield farming yang berfokus pada liquidity provision di protokol DeFi.</p>
+
+<p><strong>Airdrop (BARU)</strong>: Distribusi token gratis ke alamat wallet tertentu. Biasanya sebagai reward untuk pengguna awal, partisipan testnet, atau anggota komunitas. Ini adalah strategi marketing khas Web3.</p>
+
+<p><strong>Web2 → Web3:</strong> Airdrop itu seperti "cashback" atau "voucher" di Web2: tapi dalam bentuk token yang bisa diperdagangkan.</p>
+
+<p><strong>Flash Loan (BARU)</strong>: Pinjaman tanpa agunan yang harus dikembalikan dalam satu transaksi yang sama. Jika tidak bisa dikembalikan, transaksi dibatalkan (revert). Ini hanya mungkin di blockchain karena atomicity transaksi.</p>
+
+<p><strong>MEV (Maximal Extractable Value) (BARU)</strong>: Keuntungan yang bisa diperoleh validator/miner dengan mengatur ulang, memasukkan, atau mengecualikan transaksi dalam block. Contoh: sandwich attack: bot melihat transaksi beli besar, lalu beli duluan, jual setelah transaksi besar itu dieksekusi.</p>
+
+<p><strong>Web2 → Web3:</strong> MEV itu seperti "front-running" di pasar saham: seseorang tahu kamu mau beli saham dalam jumlah besar, lalu dia beli duluan buat jual ke kamu dengan harga lebih mahal. Tapi di Web3, ini diotomatisasi oleh bot.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-2">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-4">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-4" aria-labelledby="bab-4-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 4: TOOLS PENGEMBANGAN</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-4-title">BAB 4: TOOLS PENGEMBANGAN</h2>
+    </header>
+    <div class="reader-prose">
+<h3>4.1 Remix IDE untuk Eksperimen Cepat</h3>
+
+<p>Seperti sudah kita bahas di Bab 2, Remix adalah senjata utama pemula. Tapi bahkan developer senior pun menggunakannya untuk prototyping cepat.</p>
+
+<p>Yang perlu kamu ketahui tentang Remix:</p>
+
+<ul>
+<li><strong>File explorer:</strong> Workspace untuk menyimpan file Solidity.
+</li>
+<li><strong>Solidity Compiler:</strong> Compile contract dan dapatkan ABI + bytecode.
+</li>
+<li><strong>Deploy &amp; Run:</strong> Deploy ke berbagai environment (Remix VM, injected MetaMask, atau provider lain).
+</li>
+<li><strong>Plugin Manager:</strong> Tambah plugin seperti static analysis, debugger, dan verifikasi.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>4.2 MetaMask untuk Development</h3>
+
+<p>MetaMask adalah wallet browser extension paling populer (60 juta+ pengguna). Untuk development, fitur-fitur ini yang paling berguna:</p>
+
+<ul>
+<li><strong>Multiple networks:</strong> tambahkan berbagai testnet dan L2 dengan mudah.
+</li>
+<li><strong>Account management:</strong> buat banyak akun untuk testing.
+</li>
+<li><strong>Custom network:</strong> tambahkan jaringan kustom dengan RPC dan chain ID sendiri.
+</li>
+<li><strong>Testnet faucets:</strong> akses langsung ke faucet untuk test token.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>4.3 Hardhat: Framework Profesional</h3>
+
+<p>Hardhat adalah framework development Ethereum yang paling banyak digunakan (berbasis JavaScript/TypeScript). Kalau Remix adalah "playground," Hardhat adalah "workshop."</p>
+
+<p><strong>Fitur utama Hardhat:</strong></p>
+
+<ul>
+<li><strong>Hardhat Network</strong>: Blockchain lokal untuk testing. Cepat, bisa di-reset kapan saja.
+</li>
+<li><strong>Task system</strong>: Script deployment, testing, dan interaksi dengan kontrak.
+</li>
+<li><strong>Console</strong>: Debugging interaktif dengan akses penuh ke blockchain lokal.
+</li>
+<li><strong>Ecosystem plugin</strong>: ethers, waffle, tenderly, gas reporter, dan banyak lagi.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>4.4 Foundry: Modern dan Cepat</h3>
+
+<p>Foundry adalah toolkit yang relatif baru (2022) tapi sudah banyak diadopsi. Ditulis di Rust, sehingga sangat cepat. Yang bikin Foundry istimewa:</p>
+
+<ul>
+<li><strong>Test di Solidity</strong>: Tidak perlu JavaScript. Test ditulis langsung di Solidity.
+</li>
+<li><strong>Cheatcode</strong>: <code>vm.prank()</code>, <code>vm.warp()</code>, <code>vm.roll()</code> untuk memanipulasi state blockchain saat testing. Sangat powerfull.
+</li>
+<li><strong>Gas tracking</strong>: Laporan gas per test, built-in.
+</li>
+<li><strong>Fork testing</strong>: Test di mainnet fork: kamu bisa test interaksi dengan kontrak yang sudah ada di Ethereum mainnet tanpa biaya.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>4.5 OpenZeppelin: Tidak Usah Reinvent the Wheel</h3>
+
+<p>OpenZeppelin adalah pustaka smart contract yang sudah diaudit dan digunakan oleh ribuan proyek. Gunakan OpenZeppelin untuk:</p>
+
+<ul>
+<li>Token standar: ERC20, ERC721, ERC1155
+</li>
+<li>Akses kontrol: Ownable, AccessControl
+</li>
+<li>Keamanan: ReentrancyGuard, Pausable
+</li>
+<li>Utility: Counters, Strings, Address
+</li>
+</ul>
+
+<p>Saya sering bilang ke teman-teman: "Jangan nulis ERC20 dari nol kecuali kamu memang sedang belajar." OpenZeppelin adalah Bootstrap-nya smart contract, gunakan yang sudah jadi, teruji, dan diaudit.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>4.6 Node Providers dan Block Explorer</h3>
+
+<p>Untuk mengakses blockchain tanpa menjalankan node sendiri:</p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Provider</th><th scope="col">Keunggulan</th></tr></thead>
+<tbody>
+<tr><td>Alchemy</td><td>Supernode, debug tracing, webhook</td></tr>
+<tr><td>Infura</td><td>Pioneer, stabil, gratis 100K req/hari</td></tr>
+<tr><td>QuickNode</td><td>Cepat, multi-chain, analytics</td></tr>
+<tr><td>Ankr</td><td>Desentralisasi, competitive pricing</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Setiap provider punya layer gratis yang cukup untuk development dan testing. Upgrade ke paket berbayar kalau sudah produksi.</p>
+
+<p><strong>Block explorer penting untuk:</strong></p>
+
+<ul>
+<li>Verifikasi kontrak: publikasi source code agar pengguna bisa memeriksa kontrakmu.
+</li>
+<li>Debugging: lihat detail transaksi yang gagal.
+</li>
+<li>Monitoring: lihat aktivitas kontrak secara real-time.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-3">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-5">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-5" aria-labelledby="bab-5-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 5: MEMBANGUN SMART CONTRACT SEDERHANA</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-5-title">BAB 5: MEMBANGUN SMART CONTRACT SEDERHANA</h2>
+    </header>
+    <div class="reader-prose">
+<h3>5.1 Hello World</h3>
+
+<p>Setiap perjalanan coding dimulai dari Hello World. Di Solidity, Hello World adalah smart contract yang menyimpan dan mengembalikan pesan.</p>
+
+<p>pragma solidity ^0.8.0;</p>
+
+<p>contract HelloWorld {</p>
+
+<p>string public message;</p>
+
+<p>constructor(string memory _msg) {</p>
+
+<p>message = _msg;</p>
+
+<p>}</p>
+
+<p>function setMessage(string memory _msg) public {</p>
+
+<p>message = _msg;</p>
+
+<p>}</p>
+
+<p>}</p>
+
+<p>Yang perlu diperhatikan:</p>
+
+<ul>
+<li><code>pragma solidity ^0.8.0</code>: kamu butuh compiler versi 0.8.0 atau lebih tinggi (tapi di bawah 0.9.0).
+</li>
+<li><code>string public message</code>: state variable. Keyword <code>public</code> secara otomatis membuat fungsi <code>message()</code> yang bisa dipanggil siapa pun untuk membaca nilainya. Gratis (no gas).
+</li>
+<li><code>constructor</code>: dipanggil SATU KALI saat kontrak di-deploy.
+</li>
+<li><code>setMessage</code>: fungsi yang mengubah state. Butuh gas.
+</li>
+</ul>
+
+<p>Coba deploy di Remix, panggil <code>message()</code>, lalu panggil <code>setMessage("Halo Web3!")</code> dan lihat perubahannya. Selamat, kamu baru pertama kali menulis smart contract! 🎉</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>5.2 Counter Contract</h3>
+
+<p>Setelah Hello World, mari kita buat sesuatu yang interaktif:</p>
+
+<p>contract Counter {</p>
+
+<p>uint public count;</p>
+
+<p>function increment() public {</p>
+
+<p>count += 1;</p>
+
+<p>}</p>
+
+<p>function decrement() public {</p>
+
+<p>count -= 1;</p>
+
+<p>}</p>
+
+<p>function reset() public {</p>
+
+<p>count = 0;</p>
+
+<p>}</p>
+
+<p>}</p>
+
+<p>Pelajaran dari Counter:</p>
+
+<ul>
+<li>Fungsi <code>view</code> (baca) GRATIS. Fungsi yang mengubah state kena gas.
+</li>
+<li>Setiap <code>count += 1</code> menghasilkan transaksi baru di blockchain.
+</li>
+<li>Blockchain tidak punya "variabel sementara": semua state permanen.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>5.3 Ownership dan Akses Kontrol</h3>
+
+<p>Tidak semua orang boleh mengubah state kontrakmu. Di sinilah akses kontrol berperan:</p>
+
+<p>contract Ownable {</p>
+
+<p>address public owner;</p>
+
+<p>constructor() {</p>
+
+<p>owner = msg.sender;  // siapa yang deploy jadi owner</p>
+
+<p>}</p>
+
+<p>modifier onlyOwner() {</p>
+
+<p>require(msg.sender == owner, "Not owner");</p>
+
+<p>_;</p>
+
+<p>}</p>
+
+<p>function changeOwner(address _newOwner) public onlyOwner {</p>
+
+<p>owner = _newOwner;</p>
+
+<p>}</p>
+
+<p>}</p>
+
+<p>Konsep penting:</p>
+
+<ul>
+<li><code>msg.sender</code>: alamat yang memanggil fungsi. INI ADALAH IDENTITAS di Web3.
+</li>
+<li><code>modifier</code>: fungsi yang "membungkus" eksekusi fungsi lain. <code>onlyOwner</code> memastikan hanya pemilik kontrak yang bisa memanggil <code>changeOwner</code>.
+</li>
+<li><code>require</code>: kalau kondisi tidak terpenuhi, transaksi di-revert (dibatalkan). Gas tetap terpakai: ini yang kadang mengejutkan developer Web2.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>5.4 Wallet Sederhana</h3>
+
+<p>Kontrak yang bisa menerima dan mengirim ETH:</p>
+
+<p>contract SimpleWallet {</p>
+
+<p>address public owner;</p>
+
+<p>constructor() {</p>
+
+<p>owner = msg.sender;</p>
+
+<p>}</p>
+
+<p>receive() external payable {}</p>
+
+<p>function withdraw(uint _amount) external {</p>
+
+<p>require(msg.sender == owner, "Not owner");</p>
+
+<p>payable(owner).transfer(_amount);</p>
+
+<p>}</p>
+
+<p>function getBalance() public view returns (uint) {</p>
+
+<p>return address(this).balance;</p>
+
+<p>}</p>
+
+<p>}</p>
+
+<p>Fungsi <code>receive()</code> adalah fungsi khusus yang dipanggil ketika kontrak menerima ETH. Tanpa fungsi ini, kirim ETH ke kontrak akan gagal.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>5.5 ERC-20 dengan OpenZeppelin</h3>
+
+<p>Membuat token ERC-20 yang kompatibel dengan ekosistem Ethereum:</p>
+
+<p>import "@openzeppelin/contracts/token/ERC20/ERC20.sol";</p>
+
+<p>contract MyToken is ERC20 {</p>
+
+<p>constructor() ERC20("MyToken", "MTK") {</p>
+
+<p>_mint(msg.sender, 1000000 * 10 ** decimals());</p>
+
+<p>}</p>
+
+<p>}</p>
+
+<p>Dengan enam baris kode (setelah import), kamu punya token ERC-20 yang kompatibel dengan MetaMask, Uniswap, dan semua wallet/exchange.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>5.6 NFT Minting</h3>
+
+<p>Membuat NFT sederhana:</p>
+
+<p>import "@openzeppelin/contracts/token/ERC721/ERC721.sol";</p>
+
+<p>contract MyNFT is ERC721 {</p>
+
+<p>uint public tokenCounter;</p>
+
+<p>constructor() ERC721("MyNFT", "MNFT") {</p>
+
+<p>tokenCounter = 0;</p>
+
+<p>}</p>
+
+<p>function mintNFT(address recipient) public returns (uint) {</p>
+
+<p>tokenCounter++;</p>
+
+<p>_safeMint(recipient, tokenCounter);</p>
+
+<p>return tokenCounter;</p>
+
+<p>}</p>
+
+<p>}</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>5.7 Deploy ke Testnet</h3>
+
+<p>Langkah demi langkah:</p>
+
+<ol>
+<li>Install MetaMask, buat wallet, simpan seed phrase di tempat aman.
+</li>
+<li>Switch jaringan ke testnet (Sepolia atau Goerli untuk Ethereum).
+</li>
+<li>Dapatkan test ETH dari faucet: cari "[testnet name] faucet" di Google.
+</li>
+<li>Buka Remix, tulis smart contract, compile.
+</li>
+<li>Buka tab "Deploy &amp; Run Transactions."
+</li>
+<li>Environment pilih "Injected Provider: MetaMask."
+</li>
+<li>Klik "Deploy", MetaMask akan pop-up minta konfirmasi.
+</li>
+<li>Konfirmasi. Tunggu beberapa detik. Transaksi terkirim!
+</li>
+<li>Buka block explorer testnet, cari alamat kontrakmu. Lihat! Kontrakmu hidup di blockchain.
+</li>
+</ol>
+
+<p>Momen ini, ketika kontrak pertamamu live di testnet, adalah momen "aku ngerti sekarang" bagi banyak developer. Sesuatu yang kamu tulis dari nol, berjalan di ribuan komputer, tidak bisa diubah siapa pun.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-4">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-6">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-6" aria-labelledby="bab-6-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 6: TESTING, DEBUGGING &amp; KEAMANAN</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-6-title">BAB 6: TESTING, DEBUGGING &amp; KEAMANAN</h2>
+    </header>
+    <div class="reader-prose">
+<h3>6.1 Kenapa Testing Itu Kritis di Web3?</h3>
+
+<p>Di Web2, ada budaya "move fast and break things." Kamu deploy kode, kalau ada bug, hotfix dalam hitungan menit. Database bisa di-rollback dari backup. Pengguna mungkin tidak sadar ada yang salah.</p>
+
+<p>Di Web3, aturannya berbeda. Kontrak yang sudah di-deploy TIDAK BISA DIUBAH. Kecuali kamu menerapkan pola upgrade khusus (seperti proxy pattern), kode itu akan hidup di blockchain selamanya, dengan semua bug-nya.</p>
+
+<p>Lebih parah lagi: <strong>bug di smart contract berarti kehilangan dana NYATA.</strong> Bukan "data pengguna hilang" atau "halaman error 500." Tapi ratusan juta dolar lenyap dalam satu transaksi.</p>
+
+<p>Beberapa kerugian terbesar akibat bug smart contract:</p>
+
+<ul>
+<li><strong>DAO Hack (2016):</strong> $60 juta ETH hilang karena bug reentrancy. Ini bahkan terjadi sebelum Ethereum punya 1 juta pengguna.
+</li>
+<li><strong>Parity Wallet Bug (2017):</strong> $300 juta ETH terkunci selamanya karena fungsi <code>kill()</code> yang tidak sengaja dipanggil.
+</li>
+<li><strong>Nomad Bridge Hack (2022):</strong> $190 juta hilang karena satu baris konfigurasi yang salah.
+</li>
+</ul>
+
+<p>Ini bukan untuk menakut-nakuti, tapi untuk membangun kesadaran: <strong>testing bukan opsional di Web3. Ini adalah bagian paling penting dari development.</strong></p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>6.2 Unit Testing dan Integration Testing</h3>
+
+<ul>
+<li><strong>Unit testing</strong>: Menguji fungsi individual. Memastikan bahwa <code>increment()</code> benar-benar menambah counter sebesar 1, bahwa <code>withdraw()</code> hanya bisa dipanggil oleh owner, dan seterusnya.
+</li>
+<li><strong>Integration testing</strong>: Menguji interaksi antar kontrak. Misalnya, test apakah fungsi <code>deposit()</code> di lending protocol benar-benar mentransfer token dari pengguna ke kontrak, dan apakah token representasi tercetak dengan benar.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>6.3 Foundry Testing</h3>
+
+<p>Salah satu alasan Foundry begitu populer adalah testing-nya yang powerfull. Test ditulis di Solidity, tidak perlu context switch ke JavaScript.</p>
+
+<p>function testIncrement() public {</p>
+
+<p>counter.increment();</p>
+
+<p>assertEq(counter.count(), 1);</p>
+
+<p>}</p>
+
+<p>function testFailDecrementBelowZero() public {</p>
+
+<p>counter.decrement();</p>
+
+<p>// Harus revert karena 0 - 1 = -1</p>
+
+<p>}</p>
+
+<p>// Cheatcode, fitur ajaib Foundry</p>
+
+<p>function testOwnerCanWithdraw() public {</p>
+
+<p>vm.prank(owner);  // "menyamar" sebagai owner</p>
+
+<p>wallet.withdraw(1 ether);</p>
+
+<p>assertEq(address(wallet).balance, 0 ether);</p>
+
+<p>}</p>
+
+<p>Fitur <code>vm.prank()</code> adalah cheatcode yang "memalsukan" <code>msg.sender</code> selama satu transaksi. Sangat berguna untuk testing akses kontrol.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>6.4 Common Smart Contract Bugs</h3>
+
+<p><strong>1. Reentrancy</strong>: Bug klasik yang menyebabkan DAO Hack 2016. Terjadi ketika kontrak A memanggil kontrak B, dan kontrak B memanggil balik kontrak A sebelum fungsi A selesai, menciptakan "rekursi" yang tidak diinginkan.</p>
+
+<ul>
+<li><strong>Cegah dengan:</strong> OpenZeppelin ReentrancyGuard. Selalu update state SEBELUM transfer dana (checks-effects-interactions pattern).
+</li>
+</ul>
+
+<p><strong>2. Access Control Mistakes</strong>: Fungsi kritis tidak dilindungi. Siapa pun bisa mint token, tarik dana, atau mengubah parameter penting.</p>
+
+<ul>
+<li><strong>Cegah dengan:</strong> Selalu pakai modifier <code>onlyOwner</code> atau <code>AccessControl</code> dari OpenZeppelin. Setiap fungsi yang bisa menyebabkan kerugian harus dilindungi.
+</li>
+</ul>
+
+<p><strong>3. Integer Overflow/Underflow</strong>: Di Solidity versi &lt; 0.8, jika kamu kurangi 1 dari <code>uint</code> yang bernilai 0, hasilnya bukan -1 (tidak mungkin), tapi 2^256 - 1. Angka yang sangat besar, yang bisa menyebabkan bug berbahaya.</p>
+
+<ul>
+<li>Solidity 0.8+ secara otomatis memeriksa overflow/underflow. Untuk versi lama, pakai SafeMath OpenZeppelin.
+</li>
+</ul>
+
+<p><strong>4. Bad Assumptions</strong>: Menganggap harga aset akan stabil, menganggap seorang pengguna akan berperilaku jujur, atau menganggap oracle tidak pernah salah. Harga bisa dimanipulasi (flash loan attack), pengguna bisa melakukan sandwich attack, oracle bisa memberikan data usang.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>6.5 Audit dan Security Tools</h3>
+
+<p>Audit adalah proses review keamanan oleh tim independen, seperti "penetration testing" di Web2, tapi untuk smart contract.</p>
+
+<p><strong>Yang diperiksa auditor:</strong></p>
+
+<ul>
+<li>Logic correctness: apakah kontrak melakukan apa yang seharusnya?
+</li>
+<li>Attack vectors: adakah celah yang bisa dieksploitasi?
+</li>
+<li>Gas optimization: apakah ada pemborosan gas yang tidak perlu?
+</li>
+<li>Code quality: apakah kode bersih, terdokumentasi, dan maintainable?
+</li>
+</ul>
+
+<p>Audit itu penting, tapi bukan jaminan. Beberapa bug terkenal berhasil lolos audit. Audit adalah alat mitigasi risiko, bukan sertifikat "kebal bug."</p>
+
+<p><strong>Security tools:</strong></p>
+
+<ul>
+<li><strong>Slither</strong>: Static analyzer (seperti ESLint untuk Solidity)
+</li>
+<li><strong>Mythril</strong>: Symbolic execution, cari celah keamanan otomatis
+</li>
+<li><strong>Echidna</strong>: Fuzzing, generate input acak untuk cari bug
+</li>
+<li><strong>Formal Verification</strong>: Bukti matematis bahwa kontrak memenuhi spesifikasi
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>6.6 Post-Deployment Monitoring</h3>
+
+<p>Keamanan tidak berhenti setelah deploy. Kamu perlu memantau kontrak secara berkelanjutan:</p>
+
+<ul>
+<li><strong>Tenderly</strong>: Dashboard real-time, alert, simulasi transaksi
+</li>
+<li><strong>Defender (OpenZeppelin)</strong>: Admin panel, automation, relayer
+</li>
+<li><strong>Forta</strong>: Deteksi anomali on-chain desentralisasi
+</li>
+<li><strong>Dune Analytics</strong>: Dashboard kustom untuk metrik kontrak
+</li>
+</ul>
+
+<p><strong>Web2 → Web3:</strong> Tenderly + Forta = Datadog + Sentry untuk blockchain. Tapi bedanya: di Web2 kamu monitor server error. Di Web3, kamu monitor transaksi mencurigakan: sebelum dana hilang.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-5">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-7">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-7" aria-labelledby="bab-7-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 7: ARSITEKTUR PRODUK dApp</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-7-title">BAB 7: ARSITEKTUR PRODUK dApp</h2>
+    </header>
+    <div class="reader-prose">
+<h3>7.1 Apa Itu dApp?</h3>
+
+<p>dApp (Decentralized Application) adalah aplikasi yang sebagian atau seluruh logika backend-nya berjalan di smart contract, bukan di server milik perusahaan.</p>
+
+<p>Tapi yang membedakan dApp dari aplikasi biasa bukan hanya teknologinya, tapi juga filosofinya:</p>
+
+<ul>
+<li><strong>Frontend:</strong> tetap seperti aplikasi web biasa. React, Next.js, Vue, semuanya bisa.
+</li>
+<li><strong>Auth:</strong> pakai wallet (connect wallet), bukan email/password.
+</li>
+<li><strong>Data:</strong> di blockchain + off-chain storage, bukan database server.
+</li>
+<li><strong>Backend logic:</strong> di smart contract, bukan API server.
+</li>
+<li><strong>Kepemilikan:</strong> di tangan pengguna, bukan perusahaan.
+</li>
+</ul>
+
+<p><strong>Perbedaan mendasar dengan Web2:</strong></p>
+
+<p>Web2: Aplikasi → API Server → Database (milik perusahaan)</p>
+
+<p>Web3: dApp → RPC → Smart Contract → Blockchain (milik publik)</p>
+
+<p>↕                   ↕</p>
+
+<p>IPFS/Arweave       Wallet Pengguna</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>7.2 Arsitektur dari Atas ke Bawah</h3>
+
+<p>Arsitektur dApp umumnya terdiri dari 4 lapisan:</p>
+
+<ol>
+<li><strong>Frontend Layer</strong>: UI yang dilihat pengguna. Website atau mobile app.
+</li>
+<li><strong>Wallet Layer</strong>: Jembatan antara frontend dan blockchain. MetaMask, Phantom, WalletConnect. Menangani sign transaksi dan manajemen kunci.
+</li>
+<li><strong>Smart Contract Layer</strong>: Inti dari dApp. Semua logika bisnis yang perlu desentralisasi dan transparansi.
+</li>
+<li><strong>Storage &amp; Backend Layer</strong>: Penyimpanan off-chain dan server backend untuk fitur yang tidak perlu (atau tidak cocok) on-chain.
+</li>
+</ol>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>7.3 Frontend, Smart Contract, Backend</h3>
+
+<p><strong>Frontend Layer</strong>: Teknologi yang umum dipakai:</p>
+
+<ul>
+<li>React / Next.js / Vue: framework frontend
+</li>
+<li>wagmi.sh: React Hooks untuk Ethereum (connect wallet, baca kontrak, kirim transaksi)
+</li>
+<li>RainbowKit / Web3Modal: UI komponen untuk wallet connection
+</li>
+<li>ethers.js / viem: library interaksi smart contract dari JavaScript
+</li>
+</ul>
+
+<p><strong>Smart Contract Layer</strong>: Jantung dari dApp. Fungsi utamanya:</p>
+
+<ul>
+<li>Aturan token (ERC-20, ERC-721, ERC-1155)
+</li>
+<li>Catatan kepemilikan
+</li>
+<li>Eksekusi transaksi bisnis (swap, stake, mint, transfer)
+</li>
+<li>Emisi event untuk memberi tahu frontend
+</li>
+</ul>
+
+<p><strong>Backend Layer</strong>: Banyak developer pemula Web3 salah paham: Web3 bukan berarti "tidak ada backend." Sebagian besar dApps tetap butuh server untuk:</p>
+
+<ul>
+<li>Indexing: blockchain tidak punya search atau query.
+</li>
+<li>Notifications: push notifikasi saat event on-chain terjadi.
+</li>
+<li>Analytics: dashboard TVL, volume transaksi, jumlah user.
+</li>
+<li>User preferences: pengaturan yang tidak perlu on-chain.
+</li>
+<li>Admin operations: monitoring, support, emergency controls.
+</li>
+<li>Gasless transactions: sponsored gas agar user tidak perlu punya ETH.
+</li>
+</ul>
+
+<p><strong>Ingat:</strong> Desentralisasi adalah spektrum, bukan biner. Tidak semua bagian aplikasi perlu desentralisasi. Letakkan logika yang perlu transparan dan trustless di smart contract. Sisanya bisa tetap di backend tradisional.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>7.4 Wallet Integration</h3>
+
+<p><strong>Flow koneksi wallet:</strong></p>
+
+<ol>
+<li>User klik "Connect Wallet" di dApp.
+</li>
+<li>Wallet popup (MetaMask, Phantom, atau WalletConnect QR).
+</li>
+<li>User pilih akun dan setujui koneksi.
+</li>
+<li>dApp mendapat alamat wallet user.
+</li>
+<li>Ketika user ingin melakukan transaksi:
+<ul>
+<li>dApp menyusun data transaksi
+</li>
+<li>Wallet meminta user untuk sign (setujui)
+</li>
+<li>Transaksi dikirim ke blockchain
+</li>
+<li>dApp menunggu konfirmasi (melalui RPC)
+</li>
+</ul>
+</li>
+</ol>
+
+<p><strong>Teknologi untuk wallet integration:</strong></p>
+
+<ul>
+<li><strong>wagmi</strong>: Paling populer untuk React. Hooks-based.
+</li>
+<li><strong>Web3Modal</strong>: UI untuk mendukung banyak wallet.
+</li>
+<li><strong>RainbowKit</strong>: UI wallet connection yang indah dan mudah.
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>7.5 Database vs Blockchain vs Storage</h3>
+
+<p>Keputusan arsitektur paling penting: data mana yang on-chain, mana yang off-chain?</p>
+
+<p><strong>Simpan di Blockchain (On-Chain):</strong></p>
+
+<ul>
+<li>Kepemilikan aset (saldo, kepemilikan NFT)
+</li>
+<li>Transaksi bernilai
+</li>
+<li>Voting governance
+</li>
+<li>Data yang butuh verifikasi publik
+</li>
+</ul>
+
+<p><strong>Simpan di Database (Off-Chain):</strong></p>
+
+<ul>
+<li>Profil pengguna (nama, avatar, bio)
+</li>
+<li>Preferensi dan pengaturan
+</li>
+<li>Draft atau data yang belum final
+</li>
+<li>Log analytics (kecuali butuh transparansi)
+</li>
+</ul>
+
+<p><strong>Simpan di IPFS/Arweave:</strong></p>
+
+<ul>
+<li>File besar (gambar, video)
+</li>
+<li>Metadata NFT
+</li>
+<li>Dokumen yang perlu permanen tapi tidak perlu on-chain
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>7.6 Admin Dashboard</h3>
+
+<p>Bahkan dApp yang paling terdesentralisasi pun sering butuh admin tools:</p>
+
+<ul>
+<li><strong>Monitoring:</strong> TVL, transaksi, gas cost
+</li>
+<li><strong>Emergency:</strong> pause contract dalam situasi darurat
+</li>
+<li><strong>Support:</strong> bantu user troubleshoot transaksi gagal
+</li>
+<li><strong>Reporting:</strong> laporan periodik untuk stakeholder
+</li>
+<li><strong>Config:</strong> update parameter (hanya yang bisa diubah via access control)
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>7.7 Mindset Shift: Web2 ke Web3</h3>
+
+<p>Inilah inti dari transisi yang sebenarnya, mengubah cara berpikir:</p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Web2</th><th scope="col">Web3</th></tr></thead>
+<tbody>
+<tr><td>"Move fast and break things"</td><td>"Move fast dengan guardrails"</td></tr>
+<tr><td>Validasi di server</td><td>Validasi di client + on-chain</td></tr>
+<tr><td>Database bisa di-rollback</td><td>Ledger immutable</td></tr>
+<tr><td>Auth: email + password</td><td>Auth: wallet signature</td></tr>
+<tr><td>Deploy kapan saja, hotfix kapan saja</td><td>Butuh pola upgrade khusus</td></tr>
+<tr><td>Revenue: iklan &amp; subscription</td><td>Revenue: fee, token, NFT</td></tr>
+<tr><td>Percaya perusahaan</td><td>Trust the code (audit) + verifikasi</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Tiga prinsip penting:</strong></p>
+
+<ol>
+<li><strong>Pertama:</strong> blockchain bukan solusi untuk semua masalah. Jangan paksa desentralisasi ke bagian aplikasi yang tidak membutuhkannya. Tambahkan Web3 hanya di tempat di mana ia memberi nilai tambah nyata.
+</li>
+<li><strong>Kedua:</strong> UX tetap raja. Mayoritas pengguna tidak peduli teknologi backend mereka. Mereka peduli aplikasi cepat, mudah digunakan, dan tidak error. Web3 masih kalah di UX: tugas kita sebagai builder adalah menjembatani kesenjangan ini.
+</li>
+<li><strong>Ketiga:</strong> komunitas adalah segalanya. Web3 tanpa komunitas hanyalah database yang mahal. Komunitas adalah yang memberi nilai pada token, yang mengamankan jaringan, yang menyebarkan produk. Bangun hubungan, bukan sekadar transaksi.
+</li>
+</ol>
+
+<p>Dan yang paling penting: jangan takut memulai. Setiap builder Web3 yang kamu kagumi memulai dari titik nol yang sama. Mereka juga pernah bingung dengan gas fee, pernah gagal deploy, pernah kehilangan test token. Yang membedakan adalah mereka tidak berhenti.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-6">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="bab-8">Next chapter</button></nav>
+</section><section class="reader-section" id="bab-8" aria-labelledby="bab-8-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>BAB 8: DARI BUILDER KE BUILDER: HACKATHON, KARIR &amp; GO-TO-MARKET (BARU)</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="bab-8-title">BAB 8: DARI BUILDER KE BUILDER: HACKATHON, KARIR &amp; GO-TO-MARKET (BARU)</h2>
+    </header>
+    <div class="reader-prose">
+<p>Setelah kamu paham fondasi teknis, pertanyaan selanjutnya biasanya: "Terus gue ngapain sekarang?" Bab ini jawab tiga hal paling praktis: hackathon sebagai batu loncatan, strategi cari kerja di Web3, dan cara marketing produk Web3.</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>8.1 Hackathon Web3: Gerbang Cepat Masuk Ekosistem</h3>
+
+<p>Hackathon Web3 bukan sekadar lomba coding. Ini adalah <strong>jalan pintas untuk masuk ke ekosistem</strong>. Banyak builder Web3 top memulai dari hackathon: entah dapat prize, dapat kontributor, atau dapat perhatian VC.</p>
+
+<p><strong>Kenapa hackathon penting:</strong></p>
+
+<ol>
+<li><strong>Learning by doing</strong>: Tidak ada guru yang lebih baik daripada deadline. Dalam 48 jam, kamu dipaksa untuk membuat produk nyata dari awal sampai selesai. Ini memaksa kamu belajar lebih cepat daripada membaca ebook selama sebulan.
+</li>
+<li><strong>Portfolio nyata</strong>: Menang atau tidak, hasil hackathon bisa kamu pakai sebagai portfolio. "Saya bikin DEX di testnet dalam 48 jam" lebih berdampak daripada "Saya sudah belajar Solidity 3 bulan."
+</li>
+<li><strong>Koneksi</strong>: Hackathon adalah tempat bertemu developer, founder, VC, dan perekrut dalam satu atap. Banyak kerja berawal dari jabat tangan di hackathon.
+</li>
+<li><strong>Prize + Exposure</strong>: Total prize hackathon Web3 bisa mencapai $50k–$500k. Ethereum Foundation, Solana Foundation, Polygon, dan protocol besar punya program hackathon rutin dengan prize besar.
+</li>
+<li><strong>Batu loncatan ke grant</strong>: Tim yang tampil di hackathon sering diundang untuk apply grant dari protocol. Grant $5k–$50k tanpa dilusi ekuitas.
+</li>
+</ol>
+
+<p><strong>Hackathon yang wajib kamu ikuti:</strong></p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Nama</th><th scope="col">Chain</th><th scope="col">Frekuensi</th><th scope="col">Hadiah</th></tr></thead>
+<tbody>
+<tr><td>ETHGlobal</td><td>Ethereum/L2</td><td>Beberapa kali/tahun</td><td>$50k–$150k+</td></tr>
+<tr><td>Solana Hackathon</td><td>Solana</td><td>Tahunan</td><td>$100k–$500k+</td></tr>
+<tr><td>Chainlink Hackathon</td><td>Multi-chain</td><td>Tahunan</td><td>$50k+</td></tr>
+<tr><td>Gitcoin Grants</td><td>Multi-chain</td><td>Kuartalan</td><td>Grant-based</td></tr>
+<tr><td>BNB Chain Hackathon</td><td>BNB Chain</td><td>Periodik</td><td>$50k+</td></tr>
+<tr><td>Local/Edu Hackathon</td><td>Various</td><td>Periodik</td><td>Lebih kecil tapi akses lebih mudah</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Tips menang hackathon Web3:</strong></p>
+
+<ol>
+<li><strong>Pilih tema spesifik, jangan umum.</strong> "DeFi untuk petani kecil" lebih menarik daripada "platform DeFi."
+</li>
+<li><strong>Gunakan hackstack yang kamu kuasai.</strong> Jangan belajar framework baru pas hackathon. Gunakan yang kamu sudah nyaman: React + wagmi + Solidity dasar sudah cukup.
+</li>
+<li><strong>Prioritaskan demo yang bisa jalan.</strong> Juri lebih suka produk jelek yang bisa dicoba daripada produk bagus yang cuma slide.
+</li>
+<li><strong>Baca sponsor track.</strong> Setiap hackathon punya sponsor dengan prize track sendiri. Baca kriteria mereka dan arahkan produk ke track itu. Lebih sedikit pesaing.
+</li>
+<li><strong>Selesaikan dalam 24 jam pertama.</strong> Hari pertama coding, hari kedua polish + pitchdeck + video demo. Jangan tunda.
+</li>
+<li><strong>Pitchdeck yang jelas.</strong> Problem → Solution → How it works → Impact → Next steps. Dalam 3 menit. Jangan lebih.
+</li>
+</ol>
+
+<p><strong>Platform hackathon yang harus kamu bookmark:</strong></p>
+
+<ul>
+<li><a href="https://ethglobal.com" target="_blank" rel="noopener noreferrer">ethglobal.com</a>: Standard emas hackathon Ethereum
+</li>
+<li><a href="https://devpost.com" target="_blank" rel="noopener noreferrer">devpost.com</a>: Platform hackathon terbesar untuk semua chain
+</li>
+<li><a href="https://taiko.xyz" target="_blank" rel="noopener noreferrer">taiko.xyz/hackathon</a>: L2 emerging dengan hackathon aktif
+</li>
+<li><a href="https://colosseum.org" target="_blank" rel="noopener noreferrer">colosseum.org</a>: Solana-focused hackathon accelerator
+</li>
+<li><a href="https://dorahacks.io" target="_blank" rel="noopener noreferrer">dorahacks.io</a>: Populer di Asia, banyak hackathon lokal
+</li>
+</ul>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>8.2 Mencari Kerja di Web3</h3>
+
+<p>Pasar kerja Web3 berbeda dari Web2. Spesifikasinya kadang tidak jelas, persyaratannya campur aduk, dan proses rekrutmennya bisa dari Discord. Tapi peluangnya besar.</p>
+
+<p><strong>Peran-peran di Web3 (tidak semuanya harus koding):</strong></p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Peran</th><th scope="col">Gaji entry (USD/thn)</th><th scope="col">Skill utama</th></tr></thead>
+<tbody>
+<tr><td>Solidity Developer</td><td>$60k–$150k</td><td>Solidity, Hardhat/Foundry, EVM</td></tr>
+<tr><td>Smart Contract Auditor</td><td>$80k–$200k</td><td>Security, Solidity, symbolic execution</td></tr>
+<tr><td>Rust (Solana) Developer</td><td>$100k–$200k</td><td>Rust, SVM, Anchor</td></tr>
+<tr><td>Frontend dApp Developer</td><td>$60k–$120k</td><td>React, wagmi, ethers.js</td></tr>
+<tr><td>Product Manager (Web3)</td><td>$80k–$150k</td><td>Web3 product sense, tokenomics, community</td></tr>
+<tr><td>Community Manager</td><td>$40k–$80k</td><td>Discord, Twitter, governance</td></tr>
+<tr><td>Developer Relations</td><td>$80k–$160k</td><td>Coding + communication + content</td></tr>
+<tr><td>Data Analyst (On-chain)</td><td>$60k–$120k</td><td>Dune Analytics, SQL, Python</td></tr>
+<tr><td>Technical Writer</td><td>$50k–$100k</td><td>Documentation, technical content</td></tr>
+<tr><td>Growth / Marketing</td><td>$60k–$140k</td><td>Web3 growth strategies, airdrop campaigns</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Di mana cari kerja Web3:</strong></p>
+
+<ul>
+<li><strong>cryptocurrencyjobs.co</strong>: Papan kerja khusus Web3. Paling komprehensif.
+</li>
+<li><strong>web3.career</strong>: Filter peran, lokasi, gaji. Data-driven.
+</li>
+<li><strong>LinkedIn</strong>: Filter dengan keyword: "blockchain," "smart contract," "solidity," "defi."
+</li>
+<li><strong>Discord komunitas</strong>: Banyak kerja tidak di-publish di papan kerja resmi. Masuk Discord Ethereum Indonesia, developer DAO, atau Discord protocol yang kamu minati.
+</li>
+<li><strong>Twitter/X</strong>: Follow akun protocol, cari tweet dengan kata "hiring" atau "we're looking for."
+</li>
+<li><strong>Bounties</strong>: Gitcoin, Immunefi (bug bounty), HackerOne (Web3). Mulai dari freelance/sampingan.
+</li>
+</ul>
+
+<p><strong>Strategi membangun karir Web3 untuk tech professional:</strong></p>
+
+<ol>
+<li><strong>Mulai dari kontribusi kecil.</strong> Baca repo open source protocol. Cari issue "good first issue." Bikin PR. Ini cara paling efektif untuk dikenal tim inti.
+</li>
+<li><strong>Bangun publikasi on-chain.</strong> Semakin banyak transaksi dan interaksi di wallet-mu, semakin kredibel kamu. Bukan soal jumlah uang, tapi aktivitas.
+</li>
+<li><strong>Tulis dan bagikan.</strong> Blog, Twitter thread, atau video tentang apa yang kamu pelajari. Web3 adalah industri yang menghargai orang yang berbagi pengetahuan. Ini membangun personal branding.
+</li>
+<li><strong>Ikut bounties dan audit contest.</strong> Platform seperti Code4rena, Sherlock, dan Immunefi membayar untuk menemukan bug. Cocok untuk belajar sambil dapat uang.
+</li>
+<li><strong>Gunakan pengalaman Web2 sebagai leverage.</strong> "Saya PM di Gojek selama 5 tahun, sekarang bikin produk DeFi": itu cerita yang menarik buat perekrut Web3. Mereka butuh orang yang paham product sense dari Web2.
+</li>
+</ol>
+
+<p><strong>Platform untuk kontribusi on-chain &amp; portofolio:</strong></p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Platform</th><th scope="col">Fungsi</th></tr></thead>
+<tbody>
+<tr><td>DeBank / Zapper</td><td>Portfolio tracker : tunjukkan pengalaman DeFi kamu</td></tr>
+<tr><td>Layer3 / Rabbithole</td><td>On-chain credential : bukti interaksi dengan berbagai protocol</td></tr>
+<tr><td>Buildspace</td><td>Program "build in public" : guided cohorts untuk builder Web3</td></tr>
+<tr><td>Dune Analytics</td><td>Dashboard publik : buat query on-chain dan bagikan</td></tr>
+<tr><td>Gitcoin</td><td>Grants + bounties untuk developer Web3</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="reader-break" aria-hidden="true"></div>
+
+<h3>8.3 How to Market Produk Web3</h3>
+
+<p>Marketing di Web3 berbeda dari Web2. Tidak ada Facebook Ads yang efektif untuk DeFi. Tidak ada Google Ads untuk NFT. Channel distribusi utama di Web3 adalah komunitas, kredibilitas, dan utility.</p>
+
+<p><strong>Perbedaan marketing Web2 vs Web3:</strong></p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Web2</th><th scope="col">Web3</th></tr></thead>
+<tbody>
+<tr><td>Iklan berbayar (Google/Facebook Ads)</td><td>Organic community + influencer</td></tr>
+<tr><td>SEO + content marketing</td><td>Twitter/X + Discord + Mirror blog</td></tr>
+<tr><td>Email marketing</td><td>On-chain notifications + Telegram/Discord</td></tr>
+<tr><td>Brand awareness</td><td>On-chain reputation + TVL</td></tr>
+<tr><td>Funnel: lihat → klik → beli</td><td>Funnel: lihat → join Discord → try dApp → stake/gov</td></tr>
+<tr><td>KPI: CAC, LTV, ROAS</td><td>KPI: TVL, unique wallets, daily tx, community growth</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Strategi marketing produk Web3:</strong></p>
+
+<p><strong>1. Bangun komunitas SEBELUM produk jadi.</strong></p>
+
+<p>Di Web2, kamu bisa rilis produk dulu, baru cari user. Di Web3, komunitas adalah modal awal. Buka Discord atau Telegram grup sejak hari pertama. Ajak diskusi, kumpulkan feedback, bangun antisipasi.</p>
+
+<p><strong>Contoh konkret:</strong> Sebelum mainnet launch, pastikan Discord punya minimal 1.000 anggota aktif. Bukan yang cuma join lalu diam. Tapi yang beneran ngobrol tentang produkmu.</p>
+
+<p><strong>2. Airdrop sebagai strategi distribusi (tapi hati-hati).</strong></p>
+
+<p>Airdrop adalah cara paling cepat untuk menyebarkan token ke ribuan wallet. Tapi airdrop yang tidak direncanakan dengan baik hanya akan menarik <strong>sybil account</strong> (orang yang bikin banyak wallet palsu) yang langsung jual tokennya.</p>
+
+<p><strong>Strategi airdrop yang baik:</strong></p>
+
+<ul>
+<li>Persyaratan: pengguna harus melakukan aksi nyata (swap, stake, provide liquidity).
+</li>
+<li>Vesting: token tidak bisa dijual langsung, di-vesting beberapa bulan.
+</li>
+<li>Anti-sybil: deteksi wallet yang terhubung ke exchange atau punya aktivitas mencurigakan.
+</li>
+</ul>
+
+<p><strong>3. Publish kredibilitas teknis.</strong></p>
+
+<p>Produk Web3 yang tidak transparan tentang kodenya akan susah dipercaya. Lakukan:</p>
+
+<ul>
+<li><strong>Verifikasi kontrak</strong> di block explorer.
+</li>
+<li><strong>Publikasi laporan audit</strong>: walaupun dari auditor kecil, lebih baik daripada tidak sama sekali.
+</li>
+<li><strong>Open source repository</strong> di GitHub: walau tidak semua kode, minimal smart contract-nya.
+</li>
+<li><strong>Technical blog</strong> di Mirror.xyz: jelaskan arsitektur, tokenomics, dan alasan desain.
+</li>
+</ul>
+
+<p><strong>4. Manfaatkan Twitter/X sebagai channel utama.</strong></p>
+
+<p>Twitter adalah "halaman depan" Web3. Strategi konten yang efektif:</p>
+
+<ul>
+<li><strong>Thread edukatif</strong>: jelaskan masalah yang produkmu selesaikan.
+</li>
+<li><strong>Behind the scenes</strong>: tampilkan progress development. Web3 menghargai "building in public."
+</li>
+<li><strong>Testimonial / usage screenshot</strong>: bukti bahwa produkmu dipakai.
+</li>
+<li><strong>Collaborate dengan protocol lain</strong>: cross-post, joint AMA, liquidity partnership.
+</li>
+</ul>
+
+<p><strong>5. Liquidity bootstrap untuk DeFi.</strong></p>
+
+<p>Produk DeFi mati tanpa likuiditas. Strategi bootstrap:</p>
+
+<ul>
+<li><strong>Liquidity mining</strong>: beri reward kepada early LP.
+</li>
+<li><strong>Venture partnership</strong>: ajak VC atau angel untuk menyediakan seed liquidity.
+</li>
+<li><strong>Cross-chain bridge</strong>: biarkan aset dari chain lain masuk ke produkmu.
+</li>
+<li><strong>Incentive alignment</strong>: token reward yang di-vesting agar tidak langsung dijual.
+</li>
+</ul>
+
+<p><strong>6. Referral dan gamifikasi.</strong></p>
+
+<p>Web3 punya alat unik untuk growth: referral on-chain. Contoh:</p>
+
+<ul>
+<li>Pengguna A referral pengguna B → keduanya dapat reward.
+</li>
+<li>Referral di-track di smart contract: transparan, tidak bisa dimanipulasi.
+</li>
+<li>Bisa dikombinasikan dengan NFT badge atau on-chain achievement.
+</li>
+</ul>
+
+<p><strong>7. Partnership dengan protocol lain.</strong></p>
+
+<p>Di Web2, partnership seringkali seremonial: logo di website, siaran pers, tidak ada dampak nyata. Di Web3, partnership berarti <strong>integration nyata</strong>:</p>
+
+<ul>
+<li>Tokenmu bisa dipakai di protocol mereka.
+</li>
+<li>Likuiditas bersama (joint pool).
+</li>
+<li>Cross-promotion di Discord/Twitter.
+</li>
+</ul>
+
+<p><strong>Channel distribusi yang harus kamu siapkan:</strong></p>
+
+<ol>
+<li><strong>Discord</strong>: Command center komunitas. Channel: #announcements, #general, #dev-chat, #support, #feedback.
+</li>
+<li><strong>Twitter/X</strong>: Official announcement, thread edukasi, engagement dengan komunitas.
+</li>
+<li><strong>Mirror.xyz / Medium</strong>: Blog untuk technical posts, proposal, update bulanan.
+</li>
+<li><strong>Telegram</strong>: Untuk komunitas yang lebih real-time, terutama di Asia.
+</li>
+<li><strong>Dune Dashboard</strong>: Dashboard publik yang menunjukkan metrik produkmu (TVL, users, volume).
+</li>
+</ol>
+
+<p><strong>Metrik yang harus dilacak:</strong></p>
+
+<div class="reader-table-wrap" role="region" aria-label="Scrollable table" tabindex="0">
+<table>
+<thead><tr><th scope="col">Metrik</th><th scope="col">Kenapa Penting</th></tr></thead>
+<tbody>
+<tr><td><strong>TVL</strong></td><td>Total Value Locked : ukuran adopsi untuk produk DeFi</td></tr>
+<tr><td><strong>Unique Active Wallets</strong></td><td>User acquisition : mingguan/bulanan</td></tr>
+<tr><td><strong>Daily Transactions</strong></td><td>Engagement : apakah produk dipakai setiap hari?</td></tr>
+<tr><td><strong>Retention (7d/30d)</strong></td><td>Apakah user kembali setelah pertama kali coba?</td></tr>
+<tr><td><strong>Community Growth</strong></td><td>Discord/Twitter follower : indikator interest</td></tr>
+<tr><td><strong>Audit Score</strong></td><td>Kredibilitas keamanan</td></tr>
+<tr><td><strong>NPS / Sentiment</strong></td><td>Apa kata komunitas tentang produkmu?</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Kesalahan marketing Web3 yang umum:</strong></p>
+
+<ol>
+<li><strong>Terlalu fokus pada harga token.</strong> Harga naik karena utility dan adopsi, bukan karena hype. Jual produknya, bukan tokennya.
+</li>
+<li><strong>Airdrop ke "hunter" yang tidak loyal.</strong> Lebih baik 1.000 real users daripada 10.000 sybil accounts.
+</li>
+<li><strong>Launch tanpa audit.</strong> Rugi besar karena hack dalam 24 jam pertama.
+</li>
+<li><strong>Community yang dibeli (botters).</strong> Lebih baik 100 orang yang ngobrol aktif daripada 5.000 bot yang diam.
+</li>
+<li><strong>Tidak siap support.</strong> Web3 itu 24/7. Kalau ada masalah dengan smart contract, pengguna tidak bisa menunggu hingga Senin pagi.
+</li>
+</ol>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-7">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="penutup">Next chapter</button></nav>
+</section><section class="reader-section" id="penutup" aria-labelledby="penutup-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>PENUTUP: LANGKAH SELANJUTNYA</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="penutup-title">PENUTUP: LANGKAH SELANJUTNYA</h2>
+    </header>
+    <div class="reader-prose">
+<p>Kita sudah sampai di akhir perjalanan ebook ini. Mari kita rekap apa yang sudah kita pelajari:</p>
+
+<p>Kita mulai dengan memahami <strong>fondasi blockchain</strong>: apa itu block, hash, node, dan mengapa teknologi ini berbeda dari database tradisional. Kita belajar tentang <strong>wallet dan self-custody</strong>, sebuah konsep yang mungkin paling asing bagi developer Web2.</p>
+
+<p>Kita masuk ke <strong>pengembangan smart contract</strong>: dari Solidity, ABI, state, storage, hingga standar token ERC-20, ERC-721, ERC-1155, dan SBT.</p>
+
+<p>Kita menjelajahi <strong>ekosistem blockchain</strong>: L1 dan L2, consensus mechanism, bridge, oracle, ZK proofs, DAO, DeFi, NFT, dan RWA. Setiap konsep adalah puzzle yang saling terhubung dalam satu gambaran besar.</p>
+
+<p>Kita berkenalan dengan <strong>tools development</strong>: Remix untuk prototyping, Hardhat dan Foundry untuk proyek profesional, OpenZeppelin untuk komponen yang sudah teruji.</p>
+
+<p>Kita <strong>membangun smart contract nyata</strong>: dari Hello World hingga ERC-20 token, dan mendeploynya ke testnet. Ini adalah langkah pertama yang paling penting.</p>
+
+<p>Kita membahas <strong>testing dan keamanan</strong>: kenapa smart contract testing adalah prioritas nomor satu, common bugs, audit, dan post-deployment monitoring.</p>
+
+<p>Kita melihat <strong>arsitektur produk dApp</strong>: bagaimana semua komponen ini bersatu membentuk aplikasi nyata yang bisa digunakan orang.</p>
+
+<p><strong>Dan kita tambahkan dimensi baru:</strong> hackathon, karir, dan marketing: karena menjadi builder Web3 bukan cuma soal koding. Tapi soal bagaimana karyamu dikenal, dipakai, dan menghasilkan dampak.</p>
+
+<p><strong>Apa Langkah Selanjutnya?</strong></p>
+
+<ol>
+<li><strong>Buat wallet.</strong> Install MetaMask atau Phantom. Tulis seed phrase di kertas. Simpan di tempat aman. Ini seperti punya rekening bank pertama kamu.
+</li>
+<li><strong>Main di testnet.</strong> Minta test token dari faucet. Kirim transaksi. Lihat di explorer. Rasakan sensasinya.
+</li>
+<li><strong>Tulis smart contract pertamamu.</strong> Mulai dari Hello World di Remix. Deploy ke testnet. Verifikasi di explorer. Pamer ke teman.
+</li>
+<li><strong>Baca kode orang lain.</strong> Buka Etherscan, cari kontrak populer (Uniswap, Aave, OpenSea), baca verified source code-nya. Ini cara terbaik belajar.
+</li>
+<li><strong>Gabung komunitas.</strong> Ethereum Indonesia, Solana ID, berbagai Discord developer. Web3 dibangun secara terbuka, jangan belajar sendirian.
+</li>
+<li><strong>Bangun sesuatu.</strong> Produk kecil saja. Sebuah dApp sederhana. Token koin meme untuk komunitas lokal. NFT collection untuk acara keluarga. Yang penting selesai dan live.
+</li>
+<li><strong><em>Baru dari edisi ini:</strong></em> <strong>Daftar hackathon.</strong> ETHGlobal, Devpost, atau hackathon lokal. Ikut kompetisi 48 jam. Kamu akan belajar lebih banyak dalam 2 hari daripada 2 bulan membaca.
+</li>
+<li><strong><em>Baru dari edisi ini:</strong></em> <strong>Buka peluang karir.</strong> Lihat lowongan di cryptojobs atau Web3.career. Update LinkedIn-mu dengan skill yang sudah kamu pelajari. Jangan ragu apply: banyak perusahaan Web3 yang terbuka untuk orang dengan growth mindset, bukan cuma pengalaman.
+</li>
+</ol>
+
+<p><strong>Pesan Terakhir</strong></p>
+
+<p>Web3 adalah perjalanan, bukan tujuan. Teknologi ini masih sangat muda. Ethereum baru berusia 10 tahun. Solana baru 5 tahun. Bandingkan dengan internet yang sudah 30+ tahun dan masih terus berubah.</p>
+
+<p>Akan ada banyak kegagalan. Banyak proyek yang mati. Banyak hype yang ternyata kosong. Tapi di balik semua noise itu, ada fundamental yang kuat: teknologi yang memungkinkan kepemilikan digital, kepercayaan tanpa perantara, dan organisasi tanpa batas.</p>
+
+<p>Sebagai developer dan builder, kita punya kesempatan langka, menjadi bagian dari gelombang baru yang membentuk ulang cara internet bekerja. Jangan hanya jadi penonton.</p>
+
+<p>Tulislah kode pertamamu. Deploy kontrak pertamamu. Bangun dApp pertamamu. Gabung hackathon. Lamar kerja. Bikin produk yang kamu banggakan.</p>
+
+<p>Gagallah, belajar, dan bangun lagi.</p>
+
+<p><strong>"Don't trust, verify!"</strong></p>
+
+<p>Welcome to the Web3 world, Happy building! 🚀</p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="bab-8">Previous chapter</button><button class="btn ghost" type="button" data-reader-target="tentang-penulis">Next chapter</button></nav>
+</section><section class="reader-section" id="tentang-penulis" aria-labelledby="tentang-penulis-title" hidden>
+  <div class="reader-lock card" data-reader-lock hidden>
+    <div class="content-type">Members only</div>
+    <h2>TENTANG PENULIS</h2>
+    <p class="hint">This ebook unlocks with the Community Bundle subscription.</p>
+    <a class="btn" href="subscribe.html">Choose subscription</a>
+  </div>
+  <div class="reader-book-content" data-reader-content>
+    <header class="reader-chapter-header">
+      <h2 id="tentang-penulis-title">TENTANG PENULIS</h2>
+    </header>
+    <div class="reader-prose">
+<p><strong>Faris Abdurrahman</strong> adalah seorang Product Manager dan Technical Founder yang berbasis di Bandung, Jawa Barat. Dengan pengalaman lebih dari 7 tahun di Product Management, Web3, blockchain, SaaS, AI, dan pengembangan produk digital, ia telah terlibat dalam berbagai proyek di edutech, healthcare, DeFi, dan agentic AI systems.</p>
+
+<p>Faris memiliki ketertarikan mendalam di persimpangan antara teknologi, etika bisnis, dan nilai-nilai Islam. Ia percaya bahwa teknologi, termasuk blockchain dan AI, harus digunakan untuk menciptakan manfaat nyata bagi masyarakat dan mendatangkan keberkahan.</p>
+
+<p>Saat ini, Faris aktif membangun di ekosistem Web3, mengeksplorasi Agentic AI, dan berbagi pengetahuan sebagai pembangun jembatan antara Web2 dan Web3, membantu developer dan founder untuk memahami dan mengadopsi teknologi desentralisasi dengan cara yang praktis, etis, dan berorientasi nilai.</p>
+
+<p><strong>Web3 Unlocked, Edisi 1.1 © 2026 Faris Abdurrahman</strong></p>
+
+<div class="reader-break" aria-hidden="true"></div>
+    </div>
+  </div>
+  <nav class="reader-pagination" aria-label="Chapter navigation"><button class="btn ghost" type="button" data-reader-target="penutup">Previous chapter</button></nav>
+</section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+
+  </footer>
+</main>
+</div>
+
+</div>
+
+<script src="app.js?v=4"></script>
+<script>
+  (function () {
+    var subscribed = K.subscribed;
+    var detail = document.getElementById("detail");
+    var badge = document.getElementById("ebook-access-badge");
+    var hint = document.getElementById("ebook-access-hint");
+    var reader = document.getElementById("ebook-reader");
+    var position = document.getElementById("reader-position");
+    var select = document.getElementById("reader-section-select");
+    var ids = ['depan', 'pendahuluan', 'bab-1', 'bab-2', 'bab-3', 'bab-4', 'bab-5', 'bab-6', 'bab-7', 'bab-8', 'penutup', 'tentang-penulis'];
+    var sections = Array.prototype.slice.call(document.querySelectorAll(".reader-section"));
+    var navItems = Array.prototype.slice.call(document.querySelectorAll(".reader-nav-item"));
+
+    detail.classList.remove("hidden");
+    badge.textContent = subscribed ? "UNLOCKED" : "LOCKED";
+    badge.classList.toggle("unlocked", subscribed);
+    badge.classList.toggle("locked", !subscribed);
+    hint.textContent = subscribed
+      ? "Included with your Community Bundle."
+      : "Unlocks with your Community Bundle subscription.";
+
+    navItems.forEach(function (item, index) {
+      item.classList.toggle("is-locked", !subscribed && index > 0);
+    });
+
+    function openSection(id, updateHash, shouldScroll) {
+      var index = ids.indexOf(id);
+      if (index === -1) {
+        id = "depan";
+        index = 0;
+      }
+
+      sections.forEach(function (section) {
+        section.hidden = section.id !== id;
+        section.classList.remove("is-entering");
+      });
+
+      var active = document.getElementById(id);
+      var locked = !subscribed && index > 0;
+      var lockView = active.querySelector("[data-reader-lock]");
+      var bookContent = active.querySelector("[data-reader-content]");
+      if (lockView) lockView.hidden = !locked;
+      if (bookContent) bookContent.hidden = locked;
+
+      navItems.forEach(function (item) {
+        var current = item.getAttribute("data-reader-target") === id;
+        if (current) item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+      });
+
+      select.value = id;
+      position.textContent = index === 0 ? "Front matter" : "Chapter " + index + " of " + (ids.length - 1);
+
+      void active.offsetWidth;
+      active.classList.add("is-entering");
+      window.setTimeout(function () { active.classList.remove("is-entering"); }, 300);
+
+      if (updateHash && location.hash !== "#" + id) {
+        history.pushState(null, "", "#" + id);
+      }
+      if (shouldScroll) {
+        var top = reader.getBoundingClientRect().top + window.scrollY - 16;
+        window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+      }
+    }
+
+    document.querySelectorAll("[data-reader-target]").forEach(function (control) {
+      control.addEventListener("click", function (event) {
+        event.preventDefault();
+        openSection(control.getAttribute("data-reader-target"), true, true);
+      });
+    });
+
+    select.addEventListener("change", function () {
+      openSection(select.value, true, true);
+    });
+
+    window.addEventListener("hashchange", function () {
+      openSection(location.hash.slice(1), false, true);
+    });
+
+    var initial = location.hash ? location.hash.slice(1) : "depan";
+    openSection(initial, false, false);
+  })();
+
+  document.getElementById("reset-proto").addEventListener("click", function (e) {
+    e.preventDefault();
+    K.reset();
+    location.href = "index.html";
+  });
+</script>
+</body>
+</html>

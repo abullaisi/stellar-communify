@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komunify · DAO votes</title>
+  <link rel="icon" type="image/png" href="logo-mark.png">
+  <link rel="stylesheet" href="styles.css?v=4">
+  <style>
+    /* candidate for promotion */
+    .dao-head h2 { font-size: 33px; font-weight: 500; margin: var(--space-1) 0 var(--space-2); }
+    .dao-head .label { color: var(--color-content-accent); }
+    .dao-head .hint { margin-bottom: 0; }
+    .section-label { margin-bottom: var(--space-3); }
+    .proposal-list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .dao-proposal {
+      background: var(--color-bg-input);
+      border: 1px solid var(--color-border-medium);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+    }
+    .proposal-head { align-items: flex-start; }
+    .proposal-name { font-size: 16px; font-weight: 600; }
+    .proposal-partner { color: var(--color-content-secondary); font-size: 13px; margin-top: 2px; }
+    .proposal-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-4) 0 var(--space-3);
+    }
+    .proposal-meta strong { display: block; font-size: 14px; margin-top: 2px; }
+    .vote-copy { color: var(--color-content-secondary); font-size: 13px; margin: 0; }
+    .vote-actions { flex-wrap: wrap; margin-top: var(--space-3); }
+    .vote-status { color: var(--color-content-accent); font-size: 13px; }
+    .pool-fieldset { border: 0; margin: 0; padding: 0; }
+    .pool-fieldset legend { color: var(--color-content-secondary); font-size: 14px; margin-bottom: 5px; }
+    .pool-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+    .pool-chip { min-height: 48px; padding: var(--space-2) var(--space-3); font-size: 13px; text-align: left; }
+    .pool-chip.selected {
+      background: var(--color-bg-accent-tint);
+      border-color: var(--color-border-accent);
+      color: var(--color-content-accent);
+    }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+    .split-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+    .split-grid input { width: 100%; }
+    .form-feedback { margin: 0; }
+    .history-list { display: flex; flex-direction: column; }
+    .history-row { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border-medium); }
+    .history-row:first-child { padding-top: 0; }
+    .history-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .history-row .row { align-items: flex-start; }
+    .history-pills { justify-content: flex-end; flex-wrap: wrap; margin-top: 0; }
+    @media (max-width: 640px) {
+      .pool-chips, .form-grid, .split-grid { grid-template-columns: 1fr; }
+      .proposal-head, .history-row > .row { align-items: flex-start; flex-direction: column; }
+      .history-pills { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidenav">
+  <a class="logo" href="index.html"><img src="logo-mark.png" alt="" class="logo-mark">Komunify</a>
+  <nav class="nav-group">
+    <div class="label">MEMBER</div>
+    <a class="nav-item" href="dashboard.html">Dashboard</a>
+    <a class="nav-item" href="benefits.html">Benefits</a>
+    <a class="nav-item" href="traction.html">Traction</a>
+    <a class="nav-item active" href="dao.html">DAO votes</a>
+  </nav>
+  <nav class="nav-group" id="nav-partners"></nav>
+  <div class="sidenav-foot">
+    <code id="side-wallet" class="hidden"></code>
+    <a href="#" id="reset-proto">Reset demo</a>
+  </div>
+</aside>
+
+<div class="app-main">
+<main class="shell">
+
+  <section class="card dao-head">
+    <div class="label">PARTNER GOVERNANCE</div>
+    <h2>DAO votes</h2>
+    <p class="hint">Packages and distribution schemes are governed by partner vote. Simulated in this prototype; on-chain post-hackathon.</p>
+  </section>
+
+  <section class="card" aria-labelledby="open-label">
+    <div class="label section-label" id="open-label">OPEN PROPOSALS</div>
+    <div id="open-proposals" class="proposal-list"></div>
+  </section>
+
+  <section class="card" aria-labelledby="new-label">
+    <div class="label section-label" id="new-label">NEW PROPOSAL</div>
+    <form id="proposal-form" novalidate>
+      <div class="form-grid">
+        <label>Package name
+          <input id="proposal-name" type="text" autocomplete="off" placeholder="Builder access package">
+        </label>
+        <label>Price
+          <input id="proposal-price" type="text" autocomplete="off" placeholder="10 XLM">
+        </label>
+      </div>
+
+      <fieldset class="pool-fieldset">
+        <legend>Pool type</legend>
+        <div class="pool-chips" id="pool-chips">
+          <button class="ghost pool-chip selected" type="button" data-pool="New package" aria-pressed="true">New package · cost XLM</button>
+          <button class="ghost pool-chip" type="button" data-pool="Freebies" aria-pressed="false">Freebies</button>
+          <button class="ghost pool-chip" type="button" data-pool="Web3" aria-pressed="false">Web3</button>
+        </div>
+      </fieldset>
+
+      <div>
+        <div class="label">DISTRIBUTION SCHEME</div>
+        <div class="split-grid">
+          <label>Owner
+            <input id="split-owner" type="number" min="0" max="100" step="1" value="70">
+          </label>
+          <label>Manager
+            <input id="split-manager" type="number" min="0" max="100" step="1" value="20">
+          </label>
+          <label>Platform
+            <input id="split-platform" type="number" min="0" max="100" step="1" value="10">
+          </label>
+        </div>
+        <p class="success form-feedback" id="split-feedback">Split totals 100.</p>
+      </div>
+
+      <p class="hint form-feedback hidden" id="form-feedback" role="status"></p>
+      <div><button class="btn" type="submit">Submit proposal</button></div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="history-label">
+    <div class="label section-label" id="history-label">HISTORY</div>
+    <div id="proposal-history" class="history-list"></div>
+  </section>
+
+  <footer>
+
+  </footer>
+</main>
+</div>
+
+</div>
+
+<script src="app.js?v=4"></script>
+<script>
+  (function () {
+    // State lives in localStorage["k_dao_proposals"] through the shared K methods.
+    var openEl = document.getElementById("open-proposals");
+    var historyEl = document.getElementById("proposal-history");
+    var form = document.getElementById("proposal-form");
+    var poolType = "New package";
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (char) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char];
+      });
+    }
+
+    function poolPillClass(type) {
+      if (type === "Freebies") return "ok";
+      if (type === "Web3") return "warn";
+      return "accent";
+    }
+
+    function splitText(split) {
+      return split.map(function (part) { return Number(part) || 0; }).join(" / ");
+    }
+
+    function render() {
+      var proposals = K.daoProposals;
+      var open = proposals.filter(function (proposal) { return proposal.status === "pending"; });
+      var history = proposals.filter(function (proposal) { return proposal.status !== "pending"; });
+
+      if (!open.length) {
+        openEl.innerHTML = '<p class="hint">No open proposals. New submissions will appear here.</p>';
+      } else {
+        openEl.innerHTML = open.map(function (proposal) {
+          var voted = proposal.votedApprove || proposal.votedReject;
+          var voteLabel = proposal.votedApprove ? "Approve" : "Reject";
+          return (
+            '<article class="dao-proposal fade-in">' +
+              '<div class="row proposal-head">' +
+                '<div><div class="proposal-name">' + escapeHtml(proposal.name) + '</div>' +
+                '<div class="proposal-partner">Proposed by ' + escapeHtml(proposal.partner) + '</div></div>' +
+                '<span class="pill ' + poolPillClass(proposal.poolType) + '">' + escapeHtml(proposal.poolType) + '</span>' +
+              '</div>' +
+              '<div class="proposal-meta">' +
+                '<div><div class="label">PRICE</div><strong>' + escapeHtml(proposal.price) + '</strong></div>' +
+                '<div><div class="label">OWNER / MANAGER / PLATFORM</div><strong>' + splitText(proposal.split) + '</strong></div>' +
+              '</div>' +
+              '<p class="vote-copy">' + proposal.votesApprove + ' of 4 partners · 3 to pass</p>' +
+              '<p class="vote-copy">' + proposal.votesReject + ' rejects · 2 to reject</p>' +
+              '<div class="row tight vote-actions">' +
+                '<button class="btn sm vote-btn" type="button" data-id="' + escapeHtml(proposal.id) + '" data-vote="approve"' + (voted ? ' disabled' : '') + '>Approve</button>' +
+                '<button class="btn ghost sm vote-btn" type="button" data-id="' + escapeHtml(proposal.id) + '" data-vote="reject"' + (voted ? ' disabled' : '') + '>Reject</button>' +
+                (voted ? '<span class="vote-status">You voted: ' + voteLabel + '</span>' : '') +
+              '</div>' +
+            '</article>'
+          );
+        }).join("");
+      }
+
+      if (!history.length) {
+        historyEl.innerHTML = '<p class="hint">No proposals have been resolved yet.</p>';
+      } else {
+        historyEl.innerHTML = history.map(function (proposal) {
+          var approved = proposal.status === "approved";
+          return (
+            '<div class="history-row fade-in"><div class="row">' +
+              '<div><div class="proposal-name">' + escapeHtml(proposal.name) + '</div>' +
+              '<div class="proposal-partner">Proposed by ' + escapeHtml(proposal.partner) + ' · ' + escapeHtml(proposal.price) + ' · ' + splitText(proposal.split) + '</div></div>' +
+              '<div class="row tight history-pills">' +
+                '<span class="pill ' + poolPillClass(proposal.poolType) + '">' + escapeHtml(proposal.poolType) + '</span>' +
+                '<span class="pill ' + (approved ? "ok" : "warn") + '">' + (approved ? "Approved · scheme updated" : "Rejected") + '</span>' +
+              '</div>' +
+            '</div></div>'
+          );
+        }).join("");
+      }
+    }
+
+    openEl.addEventListener("click", function (event) {
+      var button = event.target.closest(".vote-btn");
+      if (!button || button.disabled) return;
+      K.voteDaoProposal(button.getAttribute("data-id"), button.getAttribute("data-vote"));
+      render();
+    });
+
+    document.getElementById("pool-chips").addEventListener("click", function (event) {
+      var chip = event.target.closest(".pool-chip");
+      if (!chip) return;
+      poolType = chip.getAttribute("data-pool");
+      document.querySelectorAll(".pool-chip").forEach(function (item) {
+        var selected = item === chip;
+        item.classList.toggle("selected", selected);
+        item.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+    });
+
+    function splitValues() {
+      return ["split-owner", "split-manager", "split-platform"].map(function (id) {
+        return Number(document.getElementById(id).value);
+      });
+    }
+
+    function updateSplitFeedback() {
+      var values = splitValues();
+      var total = values.reduce(function (sum, value) { return sum + (Number.isFinite(value) ? value : 0); }, 0);
+      var feedback = document.getElementById("split-feedback");
+      var valid = values.every(function (value) { return Number.isFinite(value) && value >= 0 && value <= 100; }) && total === 100;
+      feedback.className = (valid ? "success" : "error") + " form-feedback";
+      feedback.textContent = valid ? "Split totals 100." : "Must sum to 100 (currently " + total + ").";
+      return valid;
+    }
+
+    ["split-owner", "split-manager", "split-platform"].forEach(function (id) {
+      document.getElementById(id).addEventListener("input", updateSplitFeedback);
+    });
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var name = document.getElementById("proposal-name").value.trim();
+      var price = document.getElementById("proposal-price").value.trim();
+      var split = splitValues();
+      var feedback = document.getElementById("form-feedback");
+      var error = "";
+      if (!name) error = "Add a package name before submitting.";
+      else if (!price) error = "Add a price before submitting.";
+      else if (!poolType) error = "Choose a pool type before submitting.";
+      else if (!updateSplitFeedback()) error = "Distribution must total 100 before submitting.";
+
+      if (error) {
+        feedback.textContent = error;
+        feedback.className = "error form-feedback";
+        return;
+      }
+
+      K.addDaoProposal({
+        id: "dao-proposal-" + Date.now(),
+        name: name,
+        partner: "Your partner",
+        poolType: poolType,
+        price: price,
+        split: split,
+        votesApprove: 0,
+        votesReject: 0,
+        status: "pending",
+        votedApprove: false,
+        votedReject: false
+      });
+
+      form.reset();
+      poolType = "New package";
+      document.querySelectorAll(".pool-chip").forEach(function (chip, index) {
+        chip.classList.toggle("selected", index === 0);
+        chip.setAttribute("aria-pressed", index === 0 ? "true" : "false");
+      });
+      document.getElementById("split-owner").value = "70";
+      document.getElementById("split-manager").value = "20";
+      document.getElementById("split-platform").value = "10";
+      updateSplitFeedback();
+      feedback.textContent = "Proposal submitted for partner vote.";
+      feedback.className = "success form-feedback";
+      render();
+    });
+
+    render();
+  })();
+
+  document.getElementById("reset-proto").addEventListener("click", function (e) {
+    e.preventDefault();
+    K.reset();
+    location.href = "index.html";
+  });
+</script>
+</body>
+</html>

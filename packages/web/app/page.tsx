@@ -188,8 +188,13 @@ function LiveStats() {
     queryFn: async (): Promise<LiveStatsFixture> => {
       try {
         const response = await ApiClient.get<LiveStatsFixture>('/stats');
-        if (!response.data) throw new Error('No stats data');
-        return response.data;
+        const d = response.data;
+        // Zero or shape-mismatched data reads as "backend not wired yet":
+        // fall back to fixture so the landing never renders 0+ metrics.
+        if (!d || (!d.activeCreators && !d.totalSubscriptions && !d.totalRevenue)) {
+          throw new Error('No usable stats data');
+        }
+        return d;
       } catch {
         // Fallback fixture data
         return {
@@ -508,7 +513,7 @@ function HeroSection() {
           className="mt-8 max-w-xl mx-auto text-center text-[15px] md:text-[16px] leading-relaxed text-[var(--color-content-secondary)]"
         >
           One subscription, split on-chain the moment it settles. Soroban routes every payment
-          70/20/10 to the people who earned it, and unlocks perks across partner communities.
+          to the project owner, community manager, and platform, and unlocks perks across partner communities.
         </motion.p>
 
         {/* CTAs */}
