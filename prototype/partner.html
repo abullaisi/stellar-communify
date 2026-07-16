@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Komunify · Member preview</title>
   <link rel="icon" type="image/png" href="logo-mark.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
   <style>
     /* candidate for promotion */
     .stack { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -28,7 +28,7 @@
     <div class="label">MEMBER</div>
     <a class="nav-item" href="dashboard.html">Dashboard</a>
     <a class="nav-item" href="benefits.html">Benefits</a>
-    <a class="nav-item" href="traction.html">Traction</a>
+    <a class="nav-item" href="dao.html">Traction</a>
     <a class="nav-item" href="dao.html">DAO votes</a>
   </nav>
   <nav class="nav-group" id="nav-partners"></nav>
@@ -60,7 +60,7 @@
               <span class="avatar" id="p-avatar"></span>
               <h2 id="p-name"></h2>
             </div>
-            <span class="badge unlocked">UNLOCKED</span>
+            <span class="content-meta">Unlocked</span>
           </div>
           <div class="content-meta" id="p-members"></div>
           <p class="hint">Included with your Community Bundle. Access is checked against your on-chain entitlement.</p>
@@ -90,7 +90,7 @@
 
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
   (function () {
     var guard = document.getElementById("guard");
@@ -125,8 +125,8 @@
         action = '<a class="btn ghost sm" href="' + (item.url || "#") + '" target="_blank" rel="noopener" title="Opens the partner link in a new tab (demo target)">Open ↗</a>';
       } else {
         action = item.href
-          ? '<a class="btn ghost sm" href="' + item.href + '">Open</a>'
-          : '<a class="btn ghost sm" href="content.html?p=' + partner.id + '&i=' + i + '">Open</a>';
+          ? '<a class="btn sm" href="' + item.href + '">ACCESS</a>'
+          : '<a class="btn sm" href="content.html?p=' + partner.id + '&i=' + i + '">ACCESS</a>';
         if (item.modules) {
           var prog = K.getProgress(partner.id, i);
           metaExtra = ' · ' + (prog.doneModules || []).length + '/' + item.modules.length + ' done';

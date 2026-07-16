@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Komunify · Subscribe</title>
   <link rel="icon" type="image/png" href="logo-mark.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
   <style>
     /* candidate for promotion */
     .toast a { color: inherit; }
@@ -21,7 +21,7 @@
       <a href="subscribe.html" class="active">Subscribe</a>
       <a href="benefits.html">Benefits</a>
       <a href="dashboard.html">Dashboard</a>
-      <a href="traction.html">Traction</a>
+      <a href="dao.html">Traction</a>
       <code id="topbar-wallet" class="hidden"></code>
     </nav>
   </div>
@@ -59,14 +59,6 @@
     </div>
   </section>
 
-  <!-- split card: the ONE sanctioned .split-flow glow in the prototype -->
-  <section class="card split-flow" id="split-card">
-    <div class="num-label"><span class="num">03</span> AUTOMATIC SPLIT</div>
-    <p class="hint">The Soroban contract splits every payment the moment it settles.</p>
-    <div id="alloc-rows"></div>
-    <p class="hint">Split contract <code id="contract-chip"></code></p>
-  </section>
-
   </div>
 
   <!-- tx status area: hidden until Pay is clicked -->
@@ -80,7 +72,7 @@
     <div class="toast tx-success hidden" id="toast-success">
       <span class="toast-dot"></span>
       <div class="t-msg">Subscription active
-        <div class="t-sub">Tx <a id="tx-link" href="#" target="_blank" rel="noopener"><code id="tx-chip"></code></a></div>
+        <div class="t-sub">Auto-split on-chain, shares set by DAO governance. Tx <a id="tx-link" href="#" target="_blank" rel="noopener"><code id="tx-chip"></code></a></div>
       </div>
     </div>
     <a class="btn block hidden" id="unlock-cta" href="benefits.html">See what you unlocked</a>
@@ -91,11 +83,11 @@
   </footer>
 </main>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
   (function () {
     var guardCard = document.getElementById("guard-card");
-    var flowIds = ["stepper-card", "sub-card", "split-card", "tx-area"];
+    var flowIds = ["stepper-card", "sub-card", "tx-area"];
 
     document.getElementById("reset-proto").addEventListener("click", function (e) {
       e.preventDefault();
@@ -121,24 +113,6 @@
     // Price from data layer.
     document.getElementById("price").textContent = fmtUsdc(KDATA.priceUsdc);
     payBtn.textContent = "Pay " + fmtUsdc(KDATA.priceUsdc);
-
-    // Split rows from KDATA.split (70 / 20 / 10 of the price).
-    var allocWrap = document.getElementById("alloc-rows");
-    KDATA.split.forEach(function (s) {
-      var amt = (KDATA.priceUsdc * s.pct) / 100;
-      var row = document.createElement("div");
-      row.className = "alloc-row";
-      row.innerHTML =
-        '<span class="alloc-name">' + s.name + "</span>" +
-        '<span class="alloc-pct">' + s.pct + "%</span>" +
-        '<span class="alloc-amt">' + fmtUsdc(amt) + "</span>" +
-        '<div class="alloc-track"><div class="alloc-fill ' + s.cls + '" style="width:' + s.pct + '%"></div></div>';
-      allocWrap.appendChild(row);
-    });
-
-    var contractChip = document.getElementById("contract-chip");
-    contractChip.textContent = shortHash(KDATA.contractId);
-    contractChip.title = KDATA.contractId;
 
     function setStepDone(id) {
       var step = document.getElementById(id);

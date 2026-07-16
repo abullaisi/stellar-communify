@@ -10,7 +10,7 @@ Sources of truth (read before building):
 ## Hard rules (violations = rejected)
 
 1. **No raw hex colors, no new CSS files.** If a screen truly needs a local style, max ~15 lines in a `<style>` block using ONLY the CSS custom properties, with a comment `/* candidate for promotion */`.
-2. **No em dashes (—) anywhere in copy.** Use periods, commas, or colons.
+2. **No em dashes (the long dash character) anywhere in copy.** Use periods, commas, or colons.
 3. **One primary button per card.** Secondary actions use `class="ghost"`.
 4. All numbers that can column-align use existing classes (`.balance`, `.alloc-amt`, `.stat-value`) or inherit `tabular-nums` from them.
 5. Copy tone: simple, concrete, benefits before features, 8th grade reading level. No "leverage", "unlock" is allowed ONLY as the product's literal verb (unlocking benefits), no "seamless", no "robust".
@@ -87,11 +87,11 @@ PRD 7.1 + 7.3 acceptance: submit one subscription payment on testnet; split logi
 
 - Guard: if no `K.wallet`, show a single `.card.center` telling the user to connect first with a `.btn` back to index.html (hide everything else).
 - Subscription card: `.num-label` (`02 SUBSCRIPTION`), plan name "Community Bundle, monthly", price as `.balance` (`fmtXlm(KDATA.priceXlm)`), 3 short included lines (member benefits at every partner, subscriber prices in the listing, on-chain receipt), primary button "Pay 10 XLM".
-- Split card (THE `.split-flow` card, only glow use): `.num-label` (`03 AUTOMATIC SPLIT`), one sentence: the Soroban contract splits every payment the moment it settles. Then 3 `.alloc-row`s from `KDATA.split`: name, `.alloc-pct` (70%, 20%, 10%), `.alloc-amt` (7 XLM, 2 XLM, 1 XLM), `.alloc-track` + `.alloc-fill` (width = pct, classes from `cls`).
-- Contract line under the rows: `.hint` with contract `code` chip `shortAddr`-style (use `shortHash(KDATA.contractId)` or first/last chars) + `title` full id.
+- **Revised 2026-07-16 (Faris round-2 review): the Automatic Split card is removed.** The pay flow ends at the subscription card and the tx status area. Fee shares are not shown as a fixed split on this screen; they are dynamic and set by each community's DAO (see Screen 8 below).
+- Contract line: no longer shown on this screen (it lived on the removed split card). Contract identity now surfaces on traction.html.
 - Tx status area (hidden until Pay is clicked):
   - Pending: `.toast.pending` with dot, `t-msg` "Confirming on Stellar testnet", `t-sub` "Waiting for signature and ledger close".
-  - Success (`K.subscribe` callback): swap to `.toast.tx-success` with `t-msg` "Subscription active", `t-sub` showing tx hash `code` chip (`shortHash(KDATA.demoTxHash)`, `title` full hash) linking to `KDATA.explorerBase + "/tx/" + KDATA.demoTxHash`. Then reveal (`.fade-in`) a primary `.btn.block` "See what you unlocked" to benefits.html. Update the stepper to all done. Disable the Pay button after success ("Subscribed" label).
+  - Success (`K.subscribe` callback): swap to `.toast.tx-success` with `t-msg` "Subscription active", `t-sub` "Auto-split on-chain, shares set by DAO governance" plus the tx hash `code` chip (`shortHash(KDATA.demoTxHash)`, `title` full hash) linking to `KDATA.explorerBase + "/tx/" + KDATA.demoTxHash`. Then reveal (`.fade-in`) a primary `.btn.block` "See what you unlocked" to benefits.html. Update the stepper to all done. Disable the Pay button after success ("Subscribed" label).
 - If already subscribed on load, show the success state directly.
 
 ## Screen 3: `benefits.html` (Member dashboard / entitlements + listing)
@@ -99,29 +99,25 @@ PRD 7.1 + 7.3 acceptance: submit one subscription payment on testnet; split logi
 PRD 7.1 + 7.2 acceptance: entitlement record visible; dashboard shows unlocked partner benefits; subscribers see discounted pricing.
 
 - Guard: if not `K.subscribed`, single `.card.center`: "No active subscription yet", `.btn` to subscribe.html (hide the rest).
+- **Removed 2026-07-16 (Faris round-2 review):** the Connect/Pay/Unlocked stepper card that used to render at the top of this screen (all-done state) is gone. It duplicated the payment flow's own stepper on subscribe.html once the user had already arrived here as a subscriber.
 - Membership card: `.label` MEMBERSHIP, `.row` with "Community Bundle" (16px/600, use `h2`) + `.pill.accent` ACTIVE, `.hint` "Renews Aug 5, 2026 · entitlement recorded on-chain", address `code` chip.
-- One card per partner (3 cards) from `KDATA.partners`: `.row` header with `.avatar` + partner name (`h2`) + `.badge.unlocked` UNLOCKED, then each benefit as a `.benefit-line` (benefit text left, `.pill.ok` INCLUDED right).
+- One card per partner (3 cards) from `KDATA.partners`: `.row` header with `.avatar` + partner name (`h2`) + a quiet status text ("Unlocked", plain `.content-meta`, no pill/badge shape per the 2026-07-16 review), then each benefit as a `.benefit-line` (benefit text left, `.pill.ok` INCLUDED right).
 - Listing card: `.num-label` (`04 MEMBER PRICES`), one sentence: partner items at subscriber prices, on Stellar. Per `KDATA.listings` a `.benefit-line`: left = item name (13px) + `.hint`-style sub-line (kind · partner, margins tightened via existing classes), right = `.price-was` (fmtXlm priceXlm) + `.price-now` (fmtXlm memberPriceXlm) side by side in a `.row.tight`.
-- Bottom `.row.tight`: primary `.btn` "View on-chain traction" to traction.html.
+- Bottom `.row.tight`: primary `.btn` "View on-chain traction" to dao.html (2026-07-16 review: traction now lives inside the DAO profile, see Screen 8).
 
-## Screen 4: `traction.html` (On-chain traction dashboard)
+## Screen 4: `traction.html` (Redirect, superseded 2026-07-16)
 
-PRD 7.4 acceptance: subscriber count, payment volume, payout summary, recent activity, judge-verifiable against chain.
+**Restructured per the Faris round-2 review (Bahasa doc): "Pindahkan halaman Traction ke DAO (List of DAO) -> Select DAO -> Profile DAO (Profiles, Packages, Traction, Proposals) -> View Traction or View Proposal."** Traction is no longer its own page. It now lives inside each DAO's profile (see Screen 8, Traction tab), reached via the DAO list.
 
-- No stepper. Top: `.num-label` (`05 TRACTION`), `h2`-weight title "Live on-chain traction", one sentence: every number below reads from the KomunifyContract on Stellar testnet.
-- `.stat-strip` with 3 `.stat-chip`s from `KDATA.stats`: SUBSCRIBERS / VOLUME / PAYOUT EVENTS (`.label` + `.stat-value`, one `.stat-delta` "+12 this week" on subscribers).
-- Payout summary card: `.label` PAYOUT SPLIT TO DATE, 3 `.alloc-row`s from `KDATA.split` with amounts = pct of `KDATA.stats.volumeXlm` (896 / 256 / 128 XLM), tracks as on subscribe. NO glow here.
-- Activity card: `.label` RECENT ACTIVITY, `.feed-row`s from `KDATA.activity`: left = kind (600 weight) + detail (`.t-sub` styling via existing classes or plain 13px secondary span), right = `.feed-when`.
-- Contract card: `.label` CONTRACT, `code` chip with `shortHash(KDATA.contractId)` (`title` full), `.pill.ok` TESTNET, `.row.tight` with ghost `.btn` "View on Stellar Expert" linking `KDATA.explorerBase + "/contract/" + KDATA.contractId` (target _blank) and ghost "Latest tx" linking the demo tx.
-- Bottom: ghost `.btn` back to benefits.html.
+`traction.html` is kept only as a thin redirect so old links keep working: `<meta http-equiv="refresh" content="0; url=dao.html">` plus a `location.replace("dao.html")` fallback and a visible `.btn` link, in case refresh is blocked. It carries no stats, no DAOS card, no stepper. Every nav "Traction" link across the prototype (sidenav MEMBER group, topbar funnel nav, dashboard/benefits CTA buttons) now points straight to `dao.html` instead of routing through the redirect.
 
 ## Screen 5: `partner.html?p=<partner-id>` (Member content preview)
 
 Added 2026-07-05 after the first build round. Reached from a small hyperlink icon (`.icon-link`, external-link SVG) next to the partner name on each benefits.html partner card.
 
 - Guard: if not `K.subscribed`, "Members only" `.card.center` with a `.btn` to subscribe.html.
-- Partner header card: `.avatar` + name (from `?p=` id, fallback first partner) + `.badge.unlocked`, hint about on-chain entitlement.
-- Content card: `.num-label` (`06 MEMBER CONTENT`), rows from `KDATA.partners[].content` (types: course / video / ebook / link). Each row: `.content-type` mono label, `.content-title`, `.content-meta`, right side ghost `sm` action. Course/video/ebook get a "Preview" toggle revealing a `.preview-pane` (course: `.module-line` list; video: `.media-ph` + play glyph; ebook: skeleton sample lines). Link rows get a dummy "Open" anchor (`href="#"`).
+- Partner header card: `.avatar` + name (from `?p=` id, fallback first partner) + a quiet status text ("Unlocked", plain `.content-meta`, no pill/badge shape per the 2026-07-16 review), hint about on-chain entitlement.
+- Content card: `.num-label` (`06 MEMBER CONTENT`), rows from `KDATA.partners[].content` (types: course / video / ebook / link). Each row: `.content-type` mono label, `.content-title`, `.content-meta`, right side action. Non-link rows use a primary `.btn.sm` "ACCESS" (2026-07-16 review: replaces the ghost "Open" link). Link rows keep ghost `sm` "Open ↗" to the external URL.
 - Ghost "Back to benefits" at the bottom. Shared chrome identical to the other screens.
 
 ## Screen 6: `dashboard.html` (Access dashboard)
@@ -131,7 +127,9 @@ Added 2026-07-05. The member's single hub for everything the subscription unlock
 - Guard: if not `K.subscribed`, "Members only" `.card.center` with a `.btn` to subscribe.html.
 - Membership card: same shape as benefits.html's (label, Community Bundle + `.pill.accent` ACTIVE, renew hint, wallet chip).
 - `.stat-strip` with 3 `.stat-chip`s computed from KDATA: PARTNERS (partners.length), ITEMS UNLOCKED (sum of content lengths), MEMBER PRICES (listings.length).
-- Access library card: `.num-label` (`07 ACCESS LIBRARY`), one `.content-line` row per content item across ALL partners (type label, title, meta prefixed with the partner name), right side ghost `sm` "Open" linking `partner.html?p=<id>`.
+- Access library card: `.num-label` (`07 ACCESS LIBRARY`), one `.content-line` row per content item across ALL partners (type label, title, meta prefixed with the partner name), right side action: primary `.btn.sm` "ACCESS" for non-link items (2026-07-16 review), ghost `sm` "Open ↗" for link items.
+- The "CONTINUE WHERE YOU LEFT OFF" hero card keeps its `.progress`/`.fill` bar (a 2026-07-16 first-pass removal of this bar was reverted: Faris's review screenshot was of the Connect/Pay/Unlocked **stepper**, not this learning-progress bar; see the correction below).
+- **Corrected 2026-07-16 (Faris round-2 review, second pass):** the review's crossed-out screenshot was the Connect/Pay/Unlocked stepper strip rendering on post-subscribe app pages, not the `.progress`/`.fill` bars on this screen or on content.html. Those two `.progress` bars are restored as originally specced. The stepper itself never appeared on dashboard.html.
 - Bottom `.row.tight`: ghost "All benefits" + ghost "On-chain traction".
 
 ## Mobbin-pattern revisions (2026-07-09, from the Figma inspiration board)
@@ -173,12 +171,30 @@ Member-area pages (dashboard, benefits, partner, content, traction) use the app 
 
 The Mobbin patterns are now working features, not visual dressing. New state layer in app.js (all localStorage, cleared by Reset demo): `k_progress` (per-item progress keyed `pid:idx`; courses store `doneModules[]`, video/ebook store `pct`), `k_owned` (purchased listing indexes), `k_act` (personal activity log, capped 8), `k_last` is now `{pid, idx}`.
 
-- **content.html?p=<pid>&i=<idx>** (Screen 7, `08 <TYPE>` num-label): the real content detail page. Rail: partner mini card, PROGRESS card (`stat`-size pct + `.progress` bar + modules-done text), CERTIFICATE card for courses (LOCKED until every module done, then EARNED, Uxcel pattern), back links. Body by type: course = module rows with `.mod-dot` + Mark done/Undo buttons; video = `.media-ph` player placeholder + Mark watched; ebook = sample skeleton + Mark as read. Every completion logs to the activity feed; finishing all modules logs "Certificate earned" once.
-- **partner.html**: preview panes REMOVED. Content rows now link to content.html (courses show live `N/M done` from the progress store). Link rows unchanged. The `?open` param is gone.
+- **content.html?p=<pid>&i=<idx>** (Screen 7, `08 <TYPE>` num-label): the real content detail page. Rail: partner mini card (with a quiet "Unlocked" status text, no pill, per the 2026-07-16 review), PROGRESS card (`stat`-size pct + `.progress` bar + modules-done text; a first-pass 2026-07-16 removal of this card was reverted, see the correction under Screen 6), CERTIFICATE card for courses (LOCKED until every module done, then EARNED, Uxcel pattern), back links. Body by type: course = module rows with `.mod-dot` + Mark done/Undo buttons; video = `.media-ph` player placeholder + Mark watched; ebook = sample skeleton + Mark as read. Every completion logs to the activity feed; finishing all modules logs "Certificate earned" once.
+- **partner.html**: preview panes REMOVED. Content rows now link to content.html (courses show live `N/M done` from the progress store) via a primary `.btn.sm` "ACCESS" (2026-07-16 review). Link rows unchanged. The `?open` param is gone.
 - **dashboard.html**: hero reads real progress (courses: "N of M modules done"; CTA flips Resume→Review at 100%) and links to content.html. Library rows link to content.html. New MY ACTIVITY card in the rail: last 5 personal events with `timeAgo` stamps, empty-state hint.
+- **Corrected 2026-07-16 (Faris round-2 review, second pass):** the Connect/Pay/Unlocked stepper strip is what the review actually flagged for removal, not the learning-progress bars above. The stepper is removed from post-subscribe app pages (benefits.html; it never appeared on dashboard/content/partner/traction/dao) and stays on subscribe.html, which owns the payment flow's own progress.
 - **benefits.html**: member-price listings have a working buy flow: Buy → "Confirming…" (1.2s) → OWNED pill, persisted in `k_owned`, "Purchased" logged to activity.
 - **subscribe.html**: a real payment logs "Subscribed" to the activity feed.
 - **?demo=sub** now seeds `{pid:"dwb", idx:0}`, module 1 done, and two activity entries so captures look lived-in.
+
+## Screen 8: `dao.html` (Traction-to-DAO flow, restructured 2026-07-16)
+
+Restructured per Faris round-2 review, then corrected against the review doc's screenshots (second pass, same day): "Pindahkan halaman Traction ke DAO (List of DAO) -> Select DAO -> Profile DAO (Profiles, Packages, Traction, Proposals) -> View Traction or View Proposal." DAO votes is no longer a single flat form, it is a per-community DAO with a profile, and traction.html's content now lives inside it (Screen 4 is a redirect, see above). Reached from the sidenav "Traction" and "DAO votes" nav items (list mode) and every "View on-chain traction" / "On-chain traction" CTA across the prototype.
+
+- **List mode** (`dao.html`, no `?dao=` param): DAOS card listing every `KDATA.partners` entry as a DAO (avatar + "{name} DAO" + ghost `sm` "View DAO" linking `dao.html?dao=<id>`). Reuses the `.dao-proposal` row shape.
+- **Detail mode** (`dao.html?dao=<partner-id>`): dao-head card retitles to "{name} DAO". A tab row (`.pill.tab-btn`, one `.active` at a time) switches four panels:
+  - **Profile:** partner name + member count, manager wallet `code` chip (simulated, `KDATA.demoAddress`).
+  - **Packages:** that DAO's `KDATA.partners[].content` items, type + title + meta.
+  - **Traction** (full traction.html content, moved here 2026-07-16 second pass): `.stat-strip` (SUBSCRIBERS / VOLUME / PAYOUT EVENTS from `KDATA.stats`), PAYOUT SPLIT TO DATE card (4 `.alloc-row`s from `KDATA.split`, relabeled "Community A / Community B / Community C / Platform Fee" at a 45/30/15/10 mix, simulated), RECENT ACTIVITY card (`KDATA.activity` feed rows), CONTRACT card (contract `code` chip, TESTNET pill, Stellar Expert + latest tx links). No stepper.
+  - **Proposals:** the existing OPEN PROPOSALS / NEW PROPOSAL / HISTORY sections and `K.daoProposals` / `K.voteDaoProposal` mechanics, nested under this tab. Proposals are shared across all DAOs in this pass (not yet filtered per-DAO).
+  - Ghost `.btn` "All DAOs" at the bottom links back to `dao.html` (list mode).
+
+**New proposal form (restructured 2026-07-16, five-tier listing spec):**
+
+- **Pool type** is a five-tier listing selector (`.pool-chip` pills): Freebies ($1 listing fee, 0% platform fee), Bronze ($1, 10%), Silver ($5, 5%), Gold ($10, 2%), Platinum ($20, 0.5%). Bronze is preselected. A `.hint` line under the selector shows the chosen tier's listing fee and platform fee. Selecting Freebies locks Price to a disabled "Free" input with a hint that Freebies packages are always free. All fees are simulated, no real payments move.
+- **Distribution scheme** replaces the old Owner/Manager/Platform rows with one editable row per community partner (default: one partner from `KDATA.partners`, 90%) plus a fixed Platform row that auto-fills from the selected tier's platform fee and cannot be edited by hand. A ghost "Add partner" button adds another partner row with a `<select>` sourced from `KDATA.partners`. A live total line reuses the `.error`/`.success` feedback pattern: partner percentages plus the platform fee must equal 100, and Submit is disabled while the total is off. Default state is one partner at 90% plus Bronze's 10% platform fee.
 
 ## Definition of done per screen
 

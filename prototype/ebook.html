@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Komunify · Web3 Unlocked</title>
   <link rel="icon" type="image/png" href="logo-mark.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
   <style>
     .ebook-reader-grid {
       display: grid;
@@ -232,7 +232,7 @@
     <div class="label">MEMBER</div>
     <a class="nav-item" href="dashboard.html">Dashboard</a>
     <a class="nav-item" href="benefits.html">Benefits</a>
-    <a class="nav-item" href="traction.html">Traction</a>
+    <a class="nav-item" href="dao.html">Traction</a>
   </nav>
   <nav class="nav-group" id="nav-partners"></nav>
   <div class="sidenav-foot">
@@ -251,7 +251,7 @@
           <span class="avatar"><img src="communities/manexus.png" alt="Manexus" loading="lazy"></span>
           <h2>Manexus</h2>
         </div>
-        <span class="badge unlocked" id="ebook-access-badge">UNLOCKED</span>
+        <span class="content-meta" id="ebook-access-badge">Unlocked</span>
       </div>
       <p class="hint" id="ebook-access-hint">Included with your Community Bundle.</p>
     </div>
@@ -2434,7 +2434,7 @@
 
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
   (function () {
     var subscribed = K.subscribed;
@@ -2449,9 +2449,7 @@
     var navItems = Array.prototype.slice.call(document.querySelectorAll(".reader-nav-item"));
 
     detail.classList.remove("hidden");
-    badge.textContent = subscribed ? "UNLOCKED" : "LOCKED";
-    badge.classList.toggle("unlocked", subscribed);
-    badge.classList.toggle("locked", !subscribed);
+    badge.textContent = subscribed ? "Unlocked" : "Locked";
     hint.textContent = subscribed
       ? "Included with your Community Bundle."
       : "Unlocks with your Community Bundle subscription.";

@@ -14,11 +14,12 @@ const KDATA = {
 
   priceUsdc: 10,
 
-  // 70/20/10 split, as configured in the deployed contract constructor
+  // Current fee split, set by DAO governance vote (dynamic, not fixed by the platform)
   split: [
-    { name: "Project owner", pct: 70, cls: "" },
-    { name: "Community manager", pct: 20, cls: "dim" },
-    { name: "Komunify platform", pct: 10, cls: "dimmer" }
+    { name: "Community A", pct: 45, cls: "" },
+    { name: "Community B", pct: 30, cls: "dim" },
+    { name: "Community C", pct: 15, cls: "dim" },
+    { name: "Platform Fee", pct: 10, cls: "dimmer" }
   ],
 
   // Whitelisted partner communities (MVP: static metadata)
@@ -121,10 +122,10 @@ const KDATA = {
   },
 
   activity: [
-    { kind: "Subscribe", detail: "10 USDC split 7 / 2 / 1", addr: "GAJX…K3TQ", reward: "+10 USDC", when: "2m ago" },
+    { kind: "Subscribe", detail: "10 USDC, split by DAO governance", addr: "GAJX…K3TQ", reward: "+10 USDC", when: "2m ago" },
     { kind: "Payout", detail: "to project owner", addr: "GDMV…HK2A", reward: "+7 USDC", when: "2m ago" },
     { kind: "Payout", detail: "to community manager", addr: "GDS7…M7FQ", reward: "+2 USDC", when: "2m ago" },
-    { kind: "Subscribe", detail: "10 USDC split 7 / 2 / 1", addr: "GCRZ…9WLN", reward: "+10 USDC", when: "18m ago" },
+    { kind: "Subscribe", detail: "10 USDC, split by DAO governance", addr: "GCRZ…9WLN", reward: "+10 USDC", when: "18m ago" },
     { kind: "Benefit redeemed", detail: "Circolo Event Voucher", addr: "GAJX…K3TQ", reward: "", when: "1h ago" }
   ]
 };

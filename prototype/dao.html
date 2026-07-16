@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Komunify · DAO votes</title>
   <link rel="icon" type="image/png" href="logo-mark.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
   <style>
     /* candidate for promotion */
     .dao-head h2 { font-size: 33px; font-weight: 500; margin: var(--space-1) 0 var(--space-2); }
@@ -42,8 +42,8 @@
       color: var(--color-content-accent);
     }
     .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
-    .split-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
-    .split-grid input { width: 100%; }
+    .split-row { display: grid; grid-template-columns: 1fr 96px; gap: var(--space-2); align-items: end; margin-bottom: var(--space-2); }
+    .split-row input, .split-row select { width: 100%; }
     .form-feedback { margin: 0; }
     .history-list { display: flex; flex-direction: column; }
     .history-row { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border-medium); }
@@ -51,6 +51,10 @@
     .history-row:last-child { border-bottom: 0; padding-bottom: 0; }
     .history-row .row { align-items: flex-start; }
     .history-pills { justify-content: flex-end; flex-wrap: wrap; margin-top: 0; }
+    /* candidate for promotion */
+    #dao-tabs { flex-wrap: wrap; }
+    .tab-btn { background: transparent; border: 1px solid var(--color-border-medium); cursor: pointer; }
+    .tab-btn.active { background: var(--color-bg-accent-tint); color: var(--color-content-accent); border-color: var(--color-border-accent); }
     @media (max-width: 640px) {
       .pool-chips, .form-grid, .split-grid { grid-template-columns: 1fr; }
       .proposal-head, .history-row > .row { align-items: flex-start; flex-direction: column; }
@@ -67,7 +71,7 @@
     <div class="label">MEMBER</div>
     <a class="nav-item" href="dashboard.html">Dashboard</a>
     <a class="nav-item" href="benefits.html">Benefits</a>
-    <a class="nav-item" href="traction.html">Traction</a>
+    <a class="nav-item" href="dao.html">Traction</a>
     <a class="nav-item active" href="dao.html">DAO votes</a>
   </nav>
   <nav class="nav-group" id="nav-partners"></nav>
@@ -82,9 +86,79 @@
 
   <section class="card dao-head">
     <div class="label">PARTNER GOVERNANCE</div>
-    <h2>DAO votes</h2>
-    <p class="hint">Packages and distribution schemes are governed by partner vote. Simulated in this prototype; on-chain post-hackathon.</p>
+    <h2 id="dao-head-title">DAO votes</h2>
+    <p class="hint" id="dao-head-hint">Each partner community runs its own DAO. Packages and fee splits are governed by partner vote. Simulated in this prototype; on-chain post-hackathon.</p>
   </section>
+
+  <!-- list mode: no ?dao= param, shows every partner as a DAO -->
+  <section class="card hidden" id="dao-list-section" aria-labelledby="dao-list-label">
+    <div class="label section-label" id="dao-list-label">DAOS</div>
+    <div id="dao-list-rows" class="proposal-list"></div>
+  </section>
+
+  <!-- detail mode: ?dao=<partner-id>, shows the DAO profile with tabs -->
+  <div class="hidden" id="dao-detail">
+
+  <section class="card" aria-labelledby="dao-tabs-label">
+    <div class="label section-label" id="dao-tabs-label">SECTIONS</div>
+    <div class="row tight" id="dao-tabs">
+      <button class="pill tab-btn active" type="button" data-tab="profile">Profile</button>
+      <button class="pill tab-btn" type="button" data-tab="packages">Packages</button>
+      <button class="pill tab-btn" type="button" data-tab="traction">Traction</button>
+      <button class="pill tab-btn" type="button" data-tab="proposals">Proposals</button>
+    </div>
+  </section>
+
+  <section class="card tab-panel" id="tab-profile" aria-labelledby="profile-label">
+    <div class="label section-label" id="profile-label">PROFILE</div>
+    <p class="hint" id="dao-desc"></p>
+    <div class="content-meta">Manager wallet <code id="dao-manager"></code></div>
+  </section>
+
+  <section class="card tab-panel hidden" id="tab-packages" aria-labelledby="packages-label">
+    <div class="label section-label" id="packages-label">PACKAGES</div>
+    <div id="dao-packages-rows"></div>
+  </section>
+
+  <div class="tab-panel hidden" id="tab-traction">
+
+  <section class="card" aria-labelledby="traction-label">
+    <div class="label section-label" id="traction-label">TRACTION</div>
+    <p class="hint">Every number below reads from the KomunifyContract on Stellar testnet.</p>
+  </section>
+
+  <div class="stat-strip" id="dao-stat-strip"></div>
+
+  <div class="grid-2">
+
+  <div class="card">
+    <div class="label">PAYOUT SPLIT TO DATE</div>
+    <p class="hint">Shares are set by this DAO's vote, not fixed by Komunify.</p>
+    <div id="dao-payout-rows"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">RECENT ACTIVITY</div>
+    <div id="dao-activity-rows"></div>
+  </div>
+
+  </div>
+
+  <div class="card">
+    <div class="label">CONTRACT</div>
+    <div class="row tight">
+      <code id="dao-contract-chip"></code>
+      <span class="pill ok">TESTNET</span>
+    </div>
+    <div class="row tight">
+      <a class="btn ghost" id="dao-link-contract" href="#" target="_blank" rel="noopener">View on Stellar Expert</a>
+      <a class="btn ghost" id="dao-link-tx" href="#" target="_blank" rel="noopener">Latest tx</a>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="tab-panel hidden" id="tab-proposals">
 
   <section class="card" aria-labelledby="open-label">
     <div class="label section-label" id="open-label">OPEN PROPOSALS</div>
@@ -102,29 +176,27 @@
           <input id="proposal-price" type="text" autocomplete="off" placeholder="10 XLM">
         </label>
       </div>
+      <p class="hint form-feedback hidden" id="price-lock-hint">Freebies packages are always free.</p>
 
       <fieldset class="pool-fieldset">
         <legend>Pool type</legend>
         <div class="pool-chips" id="pool-chips">
-          <button class="ghost pool-chip selected" type="button" data-pool="New package" aria-pressed="true">New package · cost XLM</button>
           <button class="ghost pool-chip" type="button" data-pool="Freebies" aria-pressed="false">Freebies</button>
-          <button class="ghost pool-chip" type="button" data-pool="Web3" aria-pressed="false">Web3</button>
+          <button class="ghost pool-chip selected" type="button" data-pool="Bronze" aria-pressed="true">Bronze</button>
+          <button class="ghost pool-chip" type="button" data-pool="Silver" aria-pressed="false">Silver</button>
+          <button class="ghost pool-chip" type="button" data-pool="Gold" aria-pressed="false">Gold</button>
+          <button class="ghost pool-chip" type="button" data-pool="Platinum" aria-pressed="false">Platinum</button>
         </div>
+        <p class="hint" id="pool-tier-hint"></p>
       </fieldset>
 
       <div>
         <div class="label">DISTRIBUTION SCHEME</div>
-        <div class="split-grid">
-          <label>Owner
-            <input id="split-owner" type="number" min="0" max="100" step="1" value="70">
-          </label>
-          <label>Manager
-            <input id="split-manager" type="number" min="0" max="100" step="1" value="20">
-          </label>
-          <label>Platform
-            <input id="split-platform" type="number" min="0" max="100" step="1" value="10">
-          </label>
-        </div>
+        <div id="split-partners"></div>
+        <div><button class="btn ghost sm" type="button" id="add-partner">Add partner</button></div>
+        <label>Platform (tier fee, fixed)
+          <input id="split-platform" type="number" min="0" max="100" step="1" value="10" disabled>
+        </label>
         <p class="success form-feedback" id="split-feedback">Split totals 100.</p>
       </div>
 
@@ -138,6 +210,12 @@
     <div id="proposal-history" class="history-list"></div>
   </section>
 
+  </div>
+
+  <a class="btn ghost" href="dao.html">All DAOs</a>
+
+  </div>
+
   <footer>
 
   </footer>
@@ -146,14 +224,125 @@
 
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
   (function () {
     // State lives in localStorage["k_dao_proposals"] through the shared K methods.
     var openEl = document.getElementById("open-proposals");
     var historyEl = document.getElementById("proposal-history");
     var form = document.getElementById("proposal-form");
-    var poolType = "New package";
+    var TIERS = {
+      Freebies: { listingFee: 1, platformFee: 0 },
+      Bronze: { listingFee: 1, platformFee: 10 },
+      Silver: { listingFee: 5, platformFee: 5 },
+      Gold: { listingFee: 10, platformFee: 2 },
+      Platinum: { listingFee: 20, platformFee: 0.5 }
+    };
+    var poolType = "Bronze";
+    var partnerRows = [{ partnerId: (KDATA.partners[0] || {}).id || "", pct: 90 }];
+
+    // List vs. detail mode: no ?dao= param shows every partner as a DAO,
+    // ?dao=<partner-id> shows that DAO's profile with tabs.
+    var daoId = new URLSearchParams(location.search).get("dao");
+    var dao = null;
+    KDATA.partners.forEach(function (p) { if (p.id === daoId) dao = p; });
+
+    if (!dao) {
+      document.getElementById("dao-list-section").classList.remove("hidden");
+      document.getElementById("dao-list-rows").innerHTML = KDATA.partners.map(function (p) {
+        return (
+          '<div class="dao-proposal">' +
+            '<div class="row proposal-head">' +
+              '<div class="row tight">' +
+                '<span class="avatar' + (p.avatarCls ? " " + p.avatarCls : "") + '">' + avatarInner(p) + '</span>' +
+                '<div class="proposal-name">' + p.name + ' DAO</div>' +
+              '</div>' +
+              '<a class="btn ghost sm" href="dao.html?dao=' + p.id + '">View DAO</a>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join("");
+    } else {
+      document.getElementById("dao-head-title").textContent = dao.name + " DAO";
+      document.getElementById("dao-head-hint").textContent = "Packages and fee splits for " + dao.name + " are governed by partner vote. Simulated in this prototype; on-chain post-hackathon.";
+      document.getElementById("dao-detail").classList.remove("hidden");
+
+      document.getElementById("dao-desc").textContent = dao.name + " · " + (dao.members || "Pilot partner");
+      var mgrChip = document.getElementById("dao-manager");
+      mgrChip.textContent = shortAddr(KDATA.demoAddress);
+      mgrChip.title = KDATA.demoAddress;
+
+      var typeLabels = { course: "COURSE", video: "VIDEO", ebook: "EBOOK", link: "EXTERNAL LINK" };
+      document.getElementById("dao-packages-rows").innerHTML = (dao.content || []).map(function (item) {
+        return (
+          '<div class="benefit-line">' +
+            '<span>' + typeLabels[item.type] + ' · ' + item.title + '</span>' +
+            '<span class="content-meta">' + item.meta + '</span>' +
+          '</div>'
+        );
+      }).join("") || '<p class="hint">No packages yet for this DAO.</p>';
+
+      var stats = KDATA.stats;
+      document.getElementById("dao-stat-strip").innerHTML = [
+        { label: "SUBSCRIBERS", value: String(stats.subscribers), delta: "+12 this week" },
+        { label: "VOLUME", value: fmtUsdc(stats.volumeUsdc), delta: "" },
+        { label: "PAYOUT EVENTS", value: String(stats.payoutEvents), delta: "" }
+      ].map(function (c) {
+        return (
+          '<div class="stat-chip">' +
+            '<div class="label">' + c.label + '</div>' +
+            '<div class="stat-value">' + c.value + '</div>' +
+            (c.delta ? '<div class="stat-delta">' + c.delta + '</div>' : '') +
+          '</div>'
+        );
+      }).join("");
+
+      // Payout summary: each share is its pct of total volume (no glow here).
+      document.getElementById("dao-payout-rows").innerHTML = KDATA.split.map(function (s) {
+        var amt = (KDATA.stats.volumeUsdc * s.pct) / 100;
+        var fillCls = "alloc-fill" + (s.cls ? " " + s.cls : "");
+        return (
+          '<div class="alloc-row">' +
+            '<span class="alloc-name">' + s.name + '</span>' +
+            '<span class="alloc-pct">' + s.pct + '%</span>' +
+            '<span class="alloc-amt">' + fmtUsdc(amt) + '</span>' +
+            '<div class="alloc-track"><div class="' + fillCls + '" style="width:' + s.pct + '%"></div></div>' +
+          '</div>'
+        );
+      }).join("");
+
+      // Recent activity feed.
+      document.getElementById("dao-activity-rows").innerHTML = KDATA.activity.map(function (a) {
+        return (
+          '<div class="feed-row">' +
+            '<div class="feed-main">' +
+              '<div class="feed-kind">' + a.kind + '</div>' +
+              '<div class="feed-detail">' + a.detail + (a.addr ? ' · <code>' + a.addr + '</code>' : '') + '</div>' +
+            '</div>' +
+            '<div class="feed-right">' +
+              (a.reward ? '<div class="feed-reward">' + a.reward + '</div>' : '') +
+              '<span class="feed-when">' + a.when + '</span>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join("");
+
+      // Contract chip + explorer links.
+      var daoContractChip = document.getElementById("dao-contract-chip");
+      daoContractChip.textContent = shortHash(KDATA.contractId);
+      daoContractChip.title = KDATA.contractId;
+      document.getElementById("dao-link-contract").href = KDATA.explorerBase + "/contract/" + KDATA.contractId;
+      document.getElementById("dao-link-tx").href = KDATA.explorerBase + "/tx/" + KDATA.demoTxHash;
+
+      document.getElementById("dao-tabs").addEventListener("click", function (event) {
+        var btn = event.target.closest(".tab-btn");
+        if (!btn) return;
+        document.querySelectorAll(".tab-btn").forEach(function (b) { b.classList.toggle("active", b === btn); });
+        document.querySelectorAll(".tab-panel").forEach(function (panel) {
+          panel.classList.toggle("hidden", panel.id !== "tab-" + btn.getAttribute("data-tab"));
+        });
+      });
+    }
 
     function escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, function (char) {
@@ -163,12 +352,18 @@
 
     function poolPillClass(type) {
       if (type === "Freebies") return "ok";
-      if (type === "Web3") return "warn";
+      if (type === "Platinum" || type === "Gold") return "warn";
       return "accent";
     }
 
     function splitText(split) {
       return split.map(function (part) { return Number(part) || 0; }).join(" / ");
+    }
+
+    function partnerName(id) {
+      var match = null;
+      KDATA.partners.forEach(function (p) { if (p.id === id) match = p; });
+      return match ? match.name : id;
     }
 
     function render() {
@@ -191,7 +386,7 @@
               '</div>' +
               '<div class="proposal-meta">' +
                 '<div><div class="label">PRICE</div><strong>' + escapeHtml(proposal.price) + '</strong></div>' +
-                '<div><div class="label">OWNER / MANAGER / PLATFORM</div><strong>' + splitText(proposal.split) + '</strong></div>' +
+                '<div><div class="label">PARTNERS / PLATFORM</div><strong>' + splitText(proposal.split) + '</strong></div>' +
               '</div>' +
               '<p class="vote-copy">' + proposal.votesApprove + ' of 4 partners · 3 to pass</p>' +
               '<p class="vote-copy">' + proposal.votesReject + ' rejects · 2 to reject</p>' +
@@ -231,6 +426,24 @@
       render();
     });
 
+    function applyTierUi() {
+      var tier = TIERS[poolType];
+      document.getElementById("pool-tier-hint").textContent = "Listing fee $" + tier.listingFee + " · Platform fee " + tier.platformFee + "%";
+      document.getElementById("split-platform").value = tier.platformFee;
+      var priceInput = document.getElementById("proposal-price");
+      var priceLockHint = document.getElementById("price-lock-hint");
+      if (poolType === "Freebies") {
+        priceInput.value = "Free";
+        priceInput.disabled = true;
+        priceLockHint.classList.remove("hidden");
+      } else {
+        if (priceInput.value === "Free") priceInput.value = "";
+        priceInput.disabled = false;
+        priceLockHint.classList.add("hidden");
+      }
+      updateSplitFeedback();
+    }
+
     document.getElementById("pool-chips").addEventListener("click", function (event) {
       var chip = event.target.closest(".pool-chip");
       if (!chip) return;
@@ -240,27 +453,67 @@
         item.classList.toggle("selected", selected);
         item.setAttribute("aria-pressed", selected ? "true" : "false");
       });
+      applyTierUi();
+    });
+
+    function renderPartnerRows() {
+      var el = document.getElementById("split-partners");
+      el.innerHTML = partnerRows.map(function (row, index) {
+        var options = KDATA.partners.map(function (p) {
+          return '<option value="' + p.id + '"' + (p.id === row.partnerId ? " selected" : "") + '>' + escapeHtml(p.name) + '</option>';
+        }).join("");
+        return (
+          '<div class="row split-row" data-index="' + index + '">' +
+            '<label>Partner' +
+              '<select class="split-partner-select" data-index="' + index + '">' + options + '</select>' +
+            '</label>' +
+            '<label>%' +
+              '<input class="split-partner-pct" type="number" min="0" max="100" step="1" value="' + row.pct + '" data-index="' + index + '">' +
+            '</label>' +
+          '</div>'
+        );
+      }).join("");
+    }
+
+    document.getElementById("split-partners").addEventListener("input", function (event) {
+      var target = event.target;
+      if (!target.classList.contains("split-partner-pct")) return;
+      partnerRows[Number(target.getAttribute("data-index"))].pct = Number(target.value);
+      updateSplitFeedback();
+    });
+
+    document.getElementById("split-partners").addEventListener("change", function (event) {
+      var target = event.target;
+      if (!target.classList.contains("split-partner-select")) return;
+      partnerRows[Number(target.getAttribute("data-index"))].partnerId = target.value;
+      render();
+    });
+
+    document.getElementById("add-partner").addEventListener("click", function () {
+      var used = partnerRows.map(function (row) { return row.partnerId; });
+      var next = KDATA.partners.filter(function (p) { return used.indexOf(p.id) === -1; })[0] || KDATA.partners[0];
+      partnerRows.push({ partnerId: next.id, pct: 0 });
+      renderPartnerRows();
+      updateSplitFeedback();
     });
 
     function splitValues() {
-      return ["split-owner", "split-manager", "split-platform"].map(function (id) {
-        return Number(document.getElementById(id).value);
-      });
+      var values = partnerRows.map(function (row) { return Number(row.pct); });
+      values.push(Number(document.getElementById("split-platform").value));
+      return values;
     }
 
     function updateSplitFeedback() {
       var values = splitValues();
       var total = values.reduce(function (sum, value) { return sum + (Number.isFinite(value) ? value : 0); }, 0);
       var feedback = document.getElementById("split-feedback");
+      var submitBtn = form.querySelector("button[type=submit]");
       var valid = values.every(function (value) { return Number.isFinite(value) && value >= 0 && value <= 100; }) && total === 100;
       feedback.className = (valid ? "success" : "error") + " form-feedback";
       feedback.textContent = valid ? "Split totals 100." : "Must sum to 100 (currently " + total + ").";
+      submitBtn.disabled = !valid;
       return valid;
     }
-
-    ["split-owner", "split-manager", "split-platform"].forEach(function (id) {
-      document.getElementById(id).addEventListener("input", updateSplitFeedback);
-    });
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -295,20 +548,22 @@
       });
 
       form.reset();
-      poolType = "New package";
-      document.querySelectorAll(".pool-chip").forEach(function (chip, index) {
-        chip.classList.toggle("selected", index === 0);
-        chip.setAttribute("aria-pressed", index === 0 ? "true" : "false");
+      poolType = "Bronze";
+      document.querySelectorAll(".pool-chip").forEach(function (chip) {
+        var selected = chip.getAttribute("data-pool") === "Bronze";
+        chip.classList.toggle("selected", selected);
+        chip.setAttribute("aria-pressed", selected ? "true" : "false");
       });
-      document.getElementById("split-owner").value = "70";
-      document.getElementById("split-manager").value = "20";
-      document.getElementById("split-platform").value = "10";
-      updateSplitFeedback();
+      partnerRows = [{ partnerId: (KDATA.partners[0] || {}).id || "", pct: 90 }];
+      renderPartnerRows();
+      applyTierUi();
       feedback.textContent = "Proposal submitted for partner vote.";
       feedback.className = "success form-feedback";
       render();
     });
 
+    renderPartnerRows();
+    applyTierUi();
     render();
   })();
 
