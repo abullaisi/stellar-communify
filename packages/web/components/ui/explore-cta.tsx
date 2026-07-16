@@ -12,7 +12,9 @@ export function ExploreCta({ style }: { style?: React.CSSProperties }) {
     <Link href="/explore" className="explore-cta" style={style}>
       <Icon name="sparkle" size={15} />
       Explore communities &amp; content
-      <Icon name="arrow-right" size={15} />
+      <span className="cta-arrow">
+        <Icon name="arrow-right" size={13} />
+      </span>
     </Link>
   );
 }

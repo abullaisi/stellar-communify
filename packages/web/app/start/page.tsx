@@ -3,6 +3,6 @@ import { StartWizard } from '@/components/onboarding/start-wizard';
 
 export default function StartPage() {
   return (
-    <AppShell><main className="shell"><StartWizard /></main></AppShell>
+    <AppShell><main className="shell shell-wide"><StartWizard /></main></AppShell>
   );
 }

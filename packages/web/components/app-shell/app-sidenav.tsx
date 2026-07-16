@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import { useWallet } from '@/providers/wallet-provider';
 import { useMe, useSignOut } from '@/services/auth';
+import { useCommunities } from '@/services/community';
 
 const SIDEBAR_STORAGE_KEY = 'komunify-app-sidebar';
 
@@ -55,6 +56,8 @@ export function AppSidenav() {
   const me = useMe();
   const signOut = useSignOut();
   const isAuthed = !!me.data;
+  const communities = useCommunities();
+  const partners = (communities.data?.communities ?? []).slice(0, 4);
 
   async function handleSignOut() {
     await signOut.mutateAsync();
@@ -117,14 +120,17 @@ export function AppSidenav() {
           className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border-medium)] bg-[var(--color-bg-input)] text-[var(--color-content-secondary)] transition-colors duration-150 hover:border-[var(--color-border-accent)] hover:bg-[var(--color-bg-accent-tint)] hover:text-[var(--color-content-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-content-accent)]"
         >
           <svg
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
+            stroke="currentColor"
             aria-hidden="true"
-            className="h-4 w-4 stroke-current"
+            className="h-4 w-4 shrink-0 stroke-current"
           >
             <path
               d={collapsed ? 'm9 18 6-6-6-6' : 'm15 18-6-6 6-6'}
-              strokeWidth="1.75"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -167,6 +173,34 @@ export function AppSidenav() {
           );
         })}
       </nav>
+
+      {partners.length > 0 ? (
+        <nav aria-label="Partner communities" className="flex flex-col gap-0.5">
+          <p
+            className={`mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--color-content-secondary)] ${
+              collapsed ? 'hidden' : 'block'
+            }`}
+          >
+            Partners
+          </p>
+
+          {partners.map((c) => (
+            <Link
+              key={c.wallet}
+              href={`/community/${c.wallet}`}
+              title={collapsed ? c.name : undefined}
+              className={`flex items-center rounded-[var(--radius-md)] py-2 text-[15px] text-[var(--color-content-secondary)] transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--color-content-accent)_6%,transparent)] hover:text-[var(--color-content-primary)] ${
+                collapsed ? 'justify-center gap-0 px-0' : 'gap-2 px-2.5'
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-content-accent)]`}
+            >
+              <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--color-border-medium)] bg-[var(--color-bg-input)] text-[11px] font-bold">
+                {c.name.charAt(0).toUpperCase()}
+              </span>
+              <span className={collapsed ? 'hidden' : 'inline'}>{c.name}</span>
+            </Link>
+          ))}
+        </nav>
+      ) : null}
 
       <div className={`mt-auto flex flex-col items-start gap-2 text-[13px] text-[var(--color-content-secondary)] ${collapsed ? 'hidden' : 'flex'}`}>
         {isConnected && address ? (

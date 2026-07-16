@@ -50,7 +50,7 @@ export function SubscriptionCard() {
   }
 
   return (
-    <section className="card">
+    <section className="card" style={{ maxWidth: 520, marginInline: 'auto' }}>
       <h2>Membership</h2>
       <span className="label">Single subscription multiple benefits</span>
       {config.isLoading ? (
