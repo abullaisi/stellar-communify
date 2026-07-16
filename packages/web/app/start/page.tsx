@@ -1,9 +1,8 @@
+import { AppShell } from '@/components/app-shell/app-shell';
 import { StartWizard } from '@/components/onboarding/start-wizard';
 
 export default function StartPage() {
   return (
-    <main className="shell">
-      <StartWizard />
-    </main>
+    <AppShell><main className="shell"><StartWizard /></main></AppShell>
   );
 }
