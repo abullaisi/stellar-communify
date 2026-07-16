@@ -840,7 +840,8 @@ function SplitLedgerSection() {
           </h2>
           <p className="mt-6 max-w-2xl mx-auto text-[15px] leading-relaxed text-[var(--color-content-secondary)]">
             Every subscription is split on-chain the moment it settles. No invoices, no reconciliation: the
-            Soroban contract routes each share instantly.
+            Soroban contract routes each share instantly. Each package pool defines its own distribution
+            scheme through its DAO; the live demo contract runs 70/20/10.
           </p>
         </motion.div>
 
@@ -1377,7 +1378,7 @@ const FAQ_ITEMS = [
   {
     question: 'How are payments and revenue shares handled?',
     answer:
-      'Komunify uses smart contracts to split and distribute subscription revenue and marketplace fees automatically between the platform, community managers, and project owners. This reduces manual reconciliation and makes the process more transparent.',
+      'Every package is a Soroban pool with its own distribution scheme. When a member subscribes, the contract splits revenue automatically between the community partners in the pool and the platform; the live demo contract runs 70/20/10. Pricing, splits, and partner changes pass a DAO vote, so every share stays transparent and verifiable on-chain, with no manual reconciliation.',
   },
   {
     question: 'Why is Komunify better?',
