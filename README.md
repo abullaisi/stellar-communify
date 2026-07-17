@@ -16,6 +16,8 @@ Members pay once to unlock benefits across multiple communities. Revenue automat
 | **Komunify** | [`CDRO7PJPVB6U4WYUSA3K3MJ7RVHLQXTNCJMUJM4KKFENRRICZAYLB7CT`](https://stellar.expert/explorer/testnet/contract/CDRO7PJPVB6U4WYUSA3K3MJ7RVHLQXTNCJMUJM4KKFENRRICZAYLB7CT) |
 | **Mock USDC** | [`CCT5P37F32YQNK2ER5AAEWPHV5TBMRZOGDKSDZMIBBK2K7JFAJQW4P3S`](https://stellar.expert/explorer/testnet/contract/CCT5P37F32YQNK2ER5AAEWPHV5TBMRZOGDKSDZMIBBK2K7JFAJQW4P3S) |
 
+**Verified contract call:** [`bec74266…f8a7`](https://stellar.expert/explorer/testnet/tx/bec74266a8dd505a2715126502bddf3c6cef2718107397c3e2ad4aa860e2f8a7) — a live `subscribe` transaction: 10 USDC transferred from the member into the contract and the `subscribed` event emitted, verifiable on Stellar Expert.
+
 ## Smart Contract
 
 **Komunify** (Soroban, Rust):
